@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Climb Shake Chalk - Grid Prototype</title>
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/ui.css">
+</head>
+<body>
+    <!-- Title Screen -->
+    <div class="title-screen" id="title-screen">
+        <div class="title-text">CLIMB SHAKE CHALK</div>
+        <div class="subtitle-text">Press any key to start</div>
+    </div>
+
+    <!-- Route Selection Overlay -->
+    <div id="route-selection-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(15, 19, 26, 0.95); z-index: 900; overflow-y: auto; padding: 50px 20px;">
+        <div class="route-selection" id="route-selection-content">
+            <!-- Route selection will be dynamically generated -->
+        </div>
+    </div>
+
+    <div class="game-container">
+        <div class="title">CLIMB SHAKE CHALK: Grid Prototype</div>
+
+        <div class="left-panel">
+            <div class="section-title">Hand Selection</div>
+
+            <div class="hand-status">
+                <div class="hand-status-item" id="left-hand-status">
+                    <span style="color: #c178de;">● LEFT HAND</span>
+                    <button class="hand-button left" id="left-hand-btn" onclick="selectHand('left')">
+                        SELECT (A)
+                    </button>
+                </div>
+                <div class="hand-status-item" id="right-hand-status">
+                    <span style="color: #6dbce3;">● RIGHT HAND</span>
+                    <button class="hand-button right" id="right-hand-btn" onclick="selectHand('right')">
+                        SELECT (D)
+                    </button>
+                </div>
+                <div style="margin-top: 10px; font-size: 0.8em; color: #bdb9ae; text-align: center;">
+                    Must alternate hands or match
+                </div>
+            </div>
+
+            <div class="section-title" style="margin-top: 25px;">Movement Style</div>
+
+            <div class="hand-status">
+                <div class="hand-status-item" id="static-status">
+                    <span style="color: #a8db60;">● STATIC</span>
+                    <button class="hand-button" id="static-btn" onclick="selectMovementStyle('static')" style="border-color: #a8db60;">
+                        SELECT (3)
+                    </button>
+                </div>
+                <div class="hand-status-item" id="regular-status">
+                    <span style="color: #fad882;">● REGULAR</span>
+                    <button class="hand-button" id="regular-btn" onclick="selectMovementStyle('regular')" style="border-color: #fad882;">
+                        SELECT (2)
+                    </button>
+                </div>
+                <div class="hand-status-item" id="dynamic-status">
+                    <span style="color: #f5aaa2;">● DYNAMIC</span>
+                    <button class="hand-button" id="dynamic-btn" onclick="selectMovementStyle('dynamic')" style="border-color: #f5aaa2;">
+                        SELECT (1)
+                    </button>
+                </div>
+                <div style="margin-top: 10px; font-size: 0.75em; color: #bdb9ae; line-height: 1.4;">
+                    Static: Close range + negates 2nd cross (3 move CD)<br>
+                    Regular: Balanced, always available<br>
+                    Dynamic: Long range + far reach bonus (3 move CD)
+                </div>
+            </div>
+
+            <!-- Combo Indicator -->
+            <div id="combo-indicator" style="margin-top: 15px; padding: 10px; border: 2px solid #6dbce3; border-radius: 8px; background: rgba(109, 188, 227, 0.1); display: none;">
+                <div style="text-align: center; font-family: 'Righteous', cursive; color: #6dbce3; font-size: 0.9em;">
+                    <span id="combo-text">COMBO: 0/3</span>
+                </div>
+            </div>
+
+            <div class="section-title" style="margin-top: 25px;">
+                Player Stats
+                <span style="color: #a8db60; font-size: 0.9em;" id="unspent-points-display">(0 pts)</span>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+                <div class="hand-status-item">
+                    <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                        <span style="color: #f5aaa2;">ENDURANCE: <span id="endurance-display">0</span></span>
+                        <button class="hand-button" onclick="allocateStatPoint('endurance')" style="border-color: #f5aaa2; padding: 5px 15px; font-size: 0.8em;">
+                            +
+                        </button>
+                    </div>
+                    <div style="font-size: 0.7em; color: #bdb9ae; margin-top: 5px;">
+                        -2% pump per point<br>
+                        +5 max pump per point
+                    </div>
+                </div>
+
+                <div class="hand-status-item">
+                    <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                        <span style="color: #c178de;">POWER: <span id="power-display">0</span></span>
+                        <button class="hand-button" onclick="allocateStatPoint('power')" style="border-color: #c178de; padding: 5px 15px; font-size: 0.8em;">
+                            +
+                        </button>
+                    </div>
+                    <div style="font-size: 0.7em; color: #bdb9ae; margin-top: 5px;">
+                        -2% grip loss per point<br>
+                        +5 max grip per point
+                    </div>
+                </div>
+
+                <div class="hand-status-item">
+                    <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                        <span style="color: #6dbce3;">SPEED: <span id="speed-display">0</span></span>
+                        <button class="hand-button" onclick="allocateStatPoint('speed')" style="border-color: #6dbce3; padding: 5px 15px; font-size: 0.8em;">
+                            +
+                        </button>
+                    </div>
+                    <div style="font-size: 0.7em; color: #bdb9ae; margin-top: 5px;">
+                        Reduces cooldowns<br>
+                        (every 5 points: -1 turn)
+                    </div>
+                </div>
+
+                <div class="hand-status-item">
+                    <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                        <span style="color: #fad882;">TECHNIQUE: <span id="technique-display">0</span></span>
+                        <button class="hand-button" onclick="allocateStatPoint('technique')" style="border-color: #fad882; padding: 5px 15px; font-size: 0.8em;">
+                            +
+                        </button>
+                    </div>
+                    <div style="font-size: 0.7em; color: #bdb9ae; margin-top: 5px;">
+                        +10% movement bonuses<br>
+                        (static/dynamic effectiveness)
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-title" style="margin-top: 25px;">
+                Skills
+                <span style="color: #c178de; font-size: 0.9em;" id="unspent-skill-points-display">(0 pts)</span>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+                <div class="hand-status-item" id="commit-skill-container">
+                    <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                        <span style="color: #f5aaa2;">COMMIT</span>
+                        <button class="hand-button" id="commit-learn-btn" onclick="learnSkill('commit')" style="border-color: #f5aaa2; padding: 5px 15px; font-size: 0.8em;">
+                            LEARN (1 pt)
+                        </button>
+                    </div>
+                    <div style="font-size: 0.7em; color: #bdb9ae; margin-top: 5px;">
+                        ⚠️ HIGH RISK ⚠️<br>
+                        Double success chance<br>
+                        If fail: Instant game over<br>
+                        Cooldown: 10 moves
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid-container">
+            <div class="climbing-grid" id="grid">
+                <!-- Grid cells will be generated here -->
+            </div>
+
+            <!-- Actions box (centered, full width) -->
+            <div style="margin-top: 20px;">
+                <div style="background: rgba(55, 51, 59, 0.6); border: 2px solid #738078; border-radius: 8px; padding: 15px; display: flex; flex-direction: column; align-items: center;">
+                    <div style="font-family: 'Righteous', cursive; font-size: 1em; color: #fad882; text-align: center; margin-bottom: 10px;">ACTIONS</div>
+                    <!-- Row 1: Core actions -->
+                    <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+                        <button class="hand-button" id="shake-btn" onclick="useShake()" style="border-color: #6dbce3; padding: 10px 20px;">
+                            SHAKE (Q)
+                        </button>
+                        <button class="hand-button" id="chalk-btn" onclick="useChalk()" style="border-color: #fad882; padding: 10px 20px;">
+                            CHALK (E)
+                        </button>
+                        <button class="hand-button" id="commit-btn" onclick="activateCommit()" style="border-color: #f5aaa2; padding: 10px 20px; display: none;">
+                            COMMIT (R)
+                        </button>
+                    </div>
+                    <!-- Row 2: Skill actions (hidden until learned) -->
+                    <div id="skill-actions-row" style="display: none; margin-top: 10px; gap: 8px; justify-content: center; flex-wrap: wrap;">
+                        <button class="hand-button" id="salve-btn" onclick="useSalve()" style="border-color: #a8db60; padding: 8px 12px; font-size: 0.85em; display: none;">
+                            🧴 SALVE
+                        </button>
+                        <button class="hand-button" id="stimulant-btn" onclick="useStimulant()" style="border-color: #c178de; padding: 8px 12px; font-size: 0.85em; display: none;">
+                            💊 STIM
+                        </button>
+                        <button class="hand-button" id="hook-btn" onclick="useGrapplingHook()" style="border-color: #6dbce3; padding: 8px 12px; font-size: 0.85em; display: none;">
+                            🪝 HOOK
+                        </button>
+                        <button class="hand-button" id="piton-btn" onclick="usePiton()" style="border-color: #738078; padding: 8px 12px; font-size: 0.85em; display: none;">
+                            🔩 PITON
+                        </button>
+                        <button class="hand-button" id="crashpad-btn" onclick="useCrashPad()" style="border-color: #f5aaa2; padding: 8px 12px; font-size: 0.85em; display: none;">
+                            🛡️ PAD
+                        </button>
+                        <button class="hand-button" id="wingsuit-btn" onclick="useWingsuit()" style="border-color: #6c5ead; padding: 8px 12px; font-size: 0.85em; display: none;">
+                            🦅 GLIDE
+                        </button>
+                        <!-- Magic skill buttons -->
+                        <button class="hand-button" id="timedilation-btn" onclick="useTimeDilation()" style="border-color: #a8db60; padding: 8px 12px; font-size: 0.85em; display: none;">
+                            ⏰ TIME
+                        </button>
+                        <button class="hand-button" id="transmute-btn" onclick="useTransmute()" style="border-color: #c178de; padding: 8px 12px; font-size: 0.85em; display: none;">
+                            🔄 SWAP
+                        </button>
+                        <button class="hand-button" id="gravity-btn" onclick="useGravityShift()" style="border-color: #6dbce3; padding: 8px 12px; font-size: 0.85em; display: none;">
+                            🌀 GRAV
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hold Info box (centered, full width, fixed height) -->
+            <div style="margin-top: 20px;">
+                <div style="background: rgba(55, 51, 59, 0.6); border: 2px solid #738078; border-radius: 8px; padding: 15px; height: 180px; display: flex; flex-direction: column;">
+                    <div style="font-family: 'Righteous', cursive; font-size: 1em; color: #fad882; text-align: center; margin-bottom: 10px;">HOLD INFO</div>
+                    <div id="hold-tooltip-static" style="flex: 1; color: #bdb9ae; font-size: 0.85em; display: flex; align-items: center; justify-content: center; text-align: center;">
+                        Hover over a hold to see details
+                    </div>
+                </div>
+            </div>
+
+            <!-- Row below actions/tooltip: Holds Climbed (left) and Level & XP (right) -->
+            <div style="display: flex; gap: 20px; justify-content: space-between; margin-top: 20px;">
+                <div style="background: rgba(55, 51, 59, 0.6); border: 2px solid #738078; border-radius: 8px; padding: 15px; flex: 1;">
+                    <div style="font-family: 'Righteous', cursive; font-size: 1em; color: #fad882; text-align: center; margin-bottom: 5px;">HOLDS CLIMBED</div>
+                    <div style="text-align: center; font-size: 2em; color: #a8db60; font-weight: bold;" id="move-count">0</div>
+                </div>
+
+                <div style="background: rgba(55, 51, 59, 0.6); border: 2px solid #738078; border-radius: 8px; padding: 15px; flex: 1;">
+                    <div style="font-family: 'Righteous', cursive; font-size: 1em; color: #fad882; text-align: center; margin-bottom: 10px;">LEVEL & XP</div>
+                    <div style="text-align: center; font-size: 1.2em; color: #a8db60; margin-bottom: 5px;">
+                        Level <span id="level-display">1</span>
+                    </div>
+                    <div style="font-size: 0.9em; color: #bdb9ae; text-align: center;">
+                        <span id="xp-display">0</span> / <span id="xp-needed-display">100</span> XP
+                    </div>
+                    <div style="height: 10px; background: rgba(15, 19, 26, 0.8); border: 1px solid #738078; border-radius: 5px; margin-top: 8px; overflow: hidden;">
+                        <div id="xp-bar" style="height: 100%; background: linear-gradient(90deg, #a8db60, #6dbce3); width: 0%; transition: width 0.3s ease;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="right-panel">
+            <!-- Resource Bars at top -->
+            <div class="section-title">Resources</div>
+
+            <div class="resource-bar">
+                <div class="resource-label">
+                    <span>PUMP</span>
+                    <span id="pump-value">0/100</span>
+                </div>
+                <div class="bar-container">
+                    <div class="bar-fill pump-bar" id="pump-bar" style="width: 0%">
+                        0%
+                    </div>
+                </div>
+            </div>
+
+            <div class="resource-bar">
+                <div class="resource-label">
+                    <span>GRIP</span>
+                    <span id="grip-value">100/100</span>
+                </div>
+                <div class="bar-container">
+                    <div class="bar-fill grip-bar" id="grip-bar" style="width: 100%">
+                        100%
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-title" style="margin-top: 15px;">Feedback</div>
+            <div class="feedback" id="feedback"></div>
+
+            <!-- Location Modifiers Box (shown when at a location) -->
+            <div class="sidebar-info-box" id="sidebar-location-modifiers" style="display: none;">
+                <div class="box-title">📍 Location Modifiers</div>
+                <div class="box-content" id="sidebar-modifier-content"></div>
+            </div>
+
+            <!-- Current Conditions Box -->
+            <div class="sidebar-info-box" id="sidebar-conditions">
+                <div class="box-title">🌤️ Current Conditions</div>
+                <div class="box-content">
+                    <div class="time-display" id="time-display">
+                        <span class="time-icon">🌅</span>
+                        <span>Morning - Day 1</span>
+                    </div>
+                    <div style="margin-top: 8px;" id="conditions-display">
+                        Temperature: Mild<br>
+                        Humidity: Dry<br>
+                        Wind: Calm
+                    </div>
+                </div>
+            </div>
+
+            <!-- Energy Display -->
+            <div class="sidebar-info-box" id="sidebar-energy">
+                <div class="box-title">⚡ Energy</div>
+                <div class="box-content">
+                    <div class="energy-display">
+                        <div class="energy-pips" id="energy-pips">
+                            <div class="energy-pip filled"></div>
+                            <div class="energy-pip filled"></div>
+                            <div class="energy-pip filled"></div>
+                            <div class="energy-pip filled"></div>
+                            <div class="energy-pip filled"></div>
+                        </div>
+                        <span id="energy-text">5/5</span>
+                    </div>
+                    <div style="font-size: 0.8em; color: #738078;">Rest at camp to recover</div>
+                </div>
+            </div>
+
+            <!-- Camp Button -->
+            <div style="margin-top: 15px;">
+                <button class="hand-button" id="camp-button" onclick="showCamp()" style="width: 100%; padding: 15px; border-color: #a8db60; font-size: 1em;">
+                    🏕️ GO TO CAMP
+                </button>
+            </div>
+
+            <!-- Guidebook Button -->
+            <div style="margin-top: 10px;">
+                <button class="hand-button" onclick="showGuidebook()" style="width: 100%; padding: 12px; border-color: #fad882; font-size: 0.95em;">
+                    📖 GUIDEBOOK
+                </button>
+            </div>
+
+            <!-- Skills Button -->
+            <div style="margin-top: 10px;">
+                <button class="hand-button" onclick="showSkills()" style="width: 100%; padding: 12px; border-color: #a64e68; font-size: 0.95em;">
+                    ⚔️ SKILLS <span id="sidebar-skill-points" style="color: #c178de;"></span>
+                </button>
+            </div>
+
+            <div style="margin-top: 20px; padding: 15px; background: rgba(15, 19, 26, 0.4); border-radius: 8px; text-align: center;">
+                <div style="color: #fad882; font-family: 'Righteous', cursive; margin-bottom: 8px;">Need Help?</div>
+                <div style="color: #bdb9ae; font-size: 0.9em;">Press <span style="color: #a8db60; font-weight: bold;">TAB</span> for How to Play</div>
+            </div>
+
+            <div style="margin-top: 20px;">
+                <div class="control-group">
+                    <strong style="color: #fad882;">Quick Controls:</strong><br>
+                    <span style="color: #c178de;">A/D</span> = Left/Right Hand<br>
+                    <span style="color: #6dbce3;">1/2/3</span> = Dynamic/Regular/Static<br>
+                    <span style="color: #a8db60;">Q/E</span> = Shake/Chalk<br>
+                    <span style="color: #f5aaa2;">R</span> = Commit (if learned)
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Help Modal -->
+    <div class="help-modal" id="help-modal">
+        <div class="help-content">
+            <div class="help-title">How to Play</div>
+            <div class="help-columns">
+                <div class="controls">
+                    <div class="control-group">
+                        <strong>Goal:</strong><br>
+                        Climb as high as you can! Game ends when pump reaches max or grip reaches 0. Increase your max with stats!
+                    </div>
+
+                    <div class="control-group">
+                        <strong>Progression:</strong><br>
+                        • Gain +10 XP per successful hold grab<br>
+                        • Bonus +25 XP every 5 holds<br>
+                        • Level up when XP bar fills<br>
+                        • XP requirements scale 1.5x per level
+                    </div>
+
+                    <div class="control-group">
+                        <strong>Stats (3 pts per level):</strong><br>
+                        • Endurance: -2% pump, +5 max pump<br>
+                        • Power: -2% grip loss, +5 max grip<br>
+                        • Speed: Reduces cooldowns<br>
+                        • Technique: +10% movement bonuses
+                    </div>
+
+                    <div class="control-group">
+                        <strong>Mechanics:</strong><br>
+                        • Hold Difficulty → Grip costs<br>
+                        • Move Difficulty → Pump costs<br>
+                        • Rest holds (⚓) = no cooldowns<br>
+                        • Long/diagonal moves cost more pump
+                    </div>
+
+                    <div class="control-group">
+                        <strong>Hand Selection:</strong><br>
+                        • Press A = Left Hand<br>
+                        • Press D = Right Hand<br>
+                        • Must alternate hands: L→R→L or R→L→R<br>
+                        • Match on ★ holds to reset everything
+                    </div>
+
+                    <div class="control-group">
+                        <strong>Climbing:</strong><br>
+                        • Only holds in the GOLD HIGHLIGHTED row are climbable<br>
+                        • Upper holds are visible for planning ahead<br>
+                        • Select hand + movement style, then click hold
+                    </div>
+                </div>
+
+                <div class="controls">
+                    <div class="control-group">
+                        <strong>Movement Style:</strong><br>
+                        • Press 1 = Dynamic (far: +10% success)<br>
+                        • Press 2 = Regular (balanced, no cooldown)<br>
+                        • Press 3 = Static (close: +10% success)<br>
+                        • Dynamic & Static have 3-move cooldown!<br>
+                        <br>
+                        <strong>Static:</strong> +10% success on close moves<br>
+                        <strong>Dynamic:</strong> +10% success on far moves<br>
+                        <strong>Regular:</strong> No bonus, no cooldown
+                    </div>
+
+                    <div class="control-group">
+                        <strong>Actions:</strong><br>
+                        • Press Q = Shake Out (-20 pump)<br>
+                        • Press E = Chalk Up (+20 grip)<br>
+                        • Both have 5-move cooldown<br>
+                        • Use strategically to extend your climb!
+                    </div>
+
+                    <div class="control-group">
+                        <strong>Combo System:</strong><br>
+                        • 3 consecutive successful grabs = Flow State!<br>
+                        • Flow State: ALL moves cost 50% pump & grip<br>
+                        • Flow State persists as long as you keep succeeding<br>
+                        • Failed grabs break combo and reset flow state
+                    </div>
+
+                    <div class="control-group">
+                        <strong>Cross-over Rules:</strong><br>
+                        • Only SUCCESSFUL grabs count toward crosses<br>
+                        • 1st successful cross: FREE (no penalty)<br>
+                        • All consecutive crosses after: +3 pump each<br>
+                        • Natural reach or match resets count
+                    </div>
+
+                    <div class="control-group">
+                        <strong>Strategy:</strong><br>
+                        • Look ahead - plan sequence<br>
+                        • Use Static for close moves<br>
+                        • Use Dynamic for far holds<br>
+                        • Match (★) resets hands & crosses
+                    </div>
+                </div>
+            </div>
+            <div class="help-close-hint">Press <strong>TAB</strong> or <strong>ESC</strong> to close</div>
+        </div>
+    </div>
+
+    <!-- Camp Screen Overlay -->
+    <div class="camp-overlay" id="camp-overlay">
+        <div class="camp-content">
+            <div class="camp-title">🏕️ Base Camp</div>
+            <div class="camp-subtitle" id="camp-subtitle">Day 1 - Morning</div>
+
+            <!-- Energy Display in Camp -->
+            <div style="display: flex; justify-content: center; margin-bottom: 25px;">
+                <div style="background: rgba(15, 19, 26, 0.6); padding: 15px 25px; border-radius: 8px; border: 2px solid #a8db60;">
+                    <div style="color: #a8db60; font-family: 'Righteous', cursive; margin-bottom: 8px; text-align: center;">⚡ Energy</div>
+                    <div class="energy-display" style="justify-content: center;">
+                        <div class="energy-pips" id="camp-energy-pips">
+                            <div class="energy-pip filled"></div>
+                            <div class="energy-pip filled"></div>
+                            <div class="energy-pip filled"></div>
+                            <div class="energy-pip filled"></div>
+                            <div class="energy-pip filled"></div>
+                        </div>
+                        <span id="camp-energy-text" style="color: #a8db60; font-weight: bold;">5/5</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Unspent Points Notification -->
+            <div id="camp-points-notification" style="display: none; background: rgba(250, 216, 130, 0.2); border: 2px solid #fad882; border-radius: 8px; padding: 15px; margin-bottom: 20px; text-align: center;">
+                <div style="color: #fad882; font-weight: bold;">📊 Unspent Points Available!</div>
+                <div style="color: #bdb9ae; font-size: 0.9em; margin-top: 5px;">
+                    <span id="camp-stat-points">0</span> stat points, <span id="camp-skill-points">0</span> skill points
+                </div>
+            </div>
+
+            <div class="camp-options">
+                <button class="camp-button primary" id="camp-spend-points" onclick="showCampSpendPoints()">
+                    <span class="icon">📊</span>
+                    Spend Points
+                </button>
+                <button class="camp-button" id="camp-rest" onclick="campRest()">
+                    <span class="icon">😴</span>
+                    Rest
+                </button>
+                <button class="camp-button" onclick="showGuidebook()">
+                    <span class="icon">📖</span>
+                    Guidebook
+                </button>
+                <button class="camp-button" onclick="showEquipment()">
+                    <span class="icon">🎒</span>
+                    Equipment
+                </button>
+                <button class="camp-button disabled" onclick="showPlaceholder('Talk to Climbers')">
+                    <span class="icon">💬</span>
+                    Talk to Climbers
+                </button>
+                <button class="camp-button primary" onclick="leaveCamp()">
+                    <span class="icon">🗺️</span>
+                    Leave Camp
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Camp Spend Points Overlay -->
+    <div class="camp-overlay" id="camp-spend-points-overlay">
+        <div class="camp-content" style="max-width: 700px;">
+            <div class="camp-title">📊 Spend Points</div>
+            <div class="camp-subtitle">
+                <span id="spend-stat-count">0</span> stat points, <span id="spend-skill-count">0</span> skill points available
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px;">
+                <!-- Stats Column -->
+                <div style="background: rgba(15, 19, 26, 0.4); border-radius: 8px; padding: 20px;">
+                    <div style="color: #fad882; font-family: 'Righteous', cursive; margin-bottom: 15px; text-align: center;">Stats</div>
+
+                    <div style="display: flex; flex-direction: column; gap: 12px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span style="color: #f5aaa2;">ENDURANCE: <span id="camp-endurance">0</span></span>
+                            <button class="hand-button" onclick="allocateStatPoint('endurance')" style="border-color: #f5aaa2; padding: 5px 15px;">+</button>
+                        </div>
+                        <div style="font-size: 0.75em; color: #738078;">-2% pump per point, +5 max pump</div>
+
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span style="color: #c178de;">POWER: <span id="camp-power">0</span></span>
+                            <button class="hand-button" onclick="allocateStatPoint('power')" style="border-color: #c178de; padding: 5px 15px;">+</button>
+                        </div>
+                        <div style="font-size: 0.75em; color: #738078;">-2% grip loss, +5 max grip</div>
+
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span style="color: #6dbce3;">SPEED: <span id="camp-speed">0</span></span>
+                            <button class="hand-button" onclick="allocateStatPoint('speed')" style="border-color: #6dbce3; padding: 5px 15px;">+</button>
+                        </div>
+                        <div style="font-size: 0.75em; color: #738078;">Reduces cooldowns (every 5 pts: -1 turn)</div>
+
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span style="color: #fad882;">TECHNIQUE: <span id="camp-technique">0</span></span>
+                            <button class="hand-button" onclick="allocateStatPoint('technique')" style="border-color: #fad882; padding: 5px 15px;">+</button>
+                        </div>
+                        <div style="font-size: 0.75em; color: #738078;">+10% movement bonuses</div>
+                    </div>
+                </div>
+
+                <!-- Skills Column -->
+                <div style="background: rgba(15, 19, 26, 0.4); border-radius: 8px; padding: 20px;">
+                    <div style="color: #c178de; font-family: 'Righteous', cursive; margin-bottom: 15px; text-align: center;">Skills</div>
+
+                    <!-- Legacy Commit Skill -->
+                    <div id="camp-commit-skill" style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid #738078;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span style="color: #f5aaa2;">COMMIT</span>
+                            <button class="hand-button" id="camp-commit-btn" onclick="learnSkill('commit')" style="border-color: #f5aaa2; padding: 5px 15px;">LEARN (1 pt)</button>
+                        </div>
+                        <div style="font-size: 0.75em; color: #738078;">2x success chance OR instant fall. 10-move cooldown.</div>
+                    </div>
+
+                    <!-- Quick Skills Preview -->
+                    <div id="camp-skills-preview" style="max-height: 200px; overflow-y: auto; margin-bottom: 15px;">
+                        <!-- Filled by updateCampSkillsPreview() -->
+                    </div>
+
+                    <!-- Open Full Skills Screen Button -->
+                    <button class="hand-button" onclick="closeCampSpendPoints(); showSkills();" style="width: 100%; padding: 12px; border-color: #a64e68; margin-top: 10px;">
+                        ⚔️ OPEN FULL SKILLS SCREEN
+                    </button>
+                </div>
+            </div>
+
+            <div style="margin-top: 25px; text-align: center;">
+                <button class="camp-button primary" onclick="closeCampSpendPoints()" style="display: inline-block; width: auto; padding: 15px 40px;">
+                    Done
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Guidebook Overlay -->
+    <div class="guidebook-overlay" id="guidebook-overlay">
+        <div class="guidebook-content">
+            <div class="guidebook-title">📖 Guidebook</div>
+            <div id="guidebook-locations"></div>
+            <div style="text-align: center; margin-top: 20px;">
+                <button class="camp-button primary" onclick="closeGuidebook()" style="display: inline-block; width: auto; padding: 15px 40px;">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Beta/Route Preview Overlay -->
+    <div class="beta-overlay" id="beta-overlay">
+        <div class="beta-content">
+            <div class="beta-title" id="beta-route-name">Route Name</div>
+            <div class="beta-subtitle" id="beta-route-subtitle">Location - Difficulty</div>
+
+            <div class="beta-section">
+                <div class="beta-section-title">📊 Route Overview</div>
+                <div id="beta-overview"></div>
+            </div>
+
+            <div class="beta-section">
+                <div class="beta-section-title">🌤️ Ideal Conditions</div>
+                <div class="beta-conditions" id="beta-conditions"></div>
+            </div>
+
+            <div class="beta-section">
+                <div class="beta-section-title">🧗 Hold Sequence (Beta)</div>
+                <div id="beta-holds"></div>
+            </div>
+
+            <div style="text-align: center; margin-top: 20px;">
+                <button class="camp-button" onclick="closeBeta()" style="display: inline-block; width: auto; padding: 12px 30px;">
+                    Close Beta
+                </button>
+                <button class="camp-button primary" id="beta-climb-btn" onclick="climbFromBeta()" style="display: inline-block; width: auto; padding: 12px 30px; margin-left: 10px;">
+                    🧗 Climb This Route
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Equipment Overlay -->
+    <div class="equipment-overlay" id="equipment-overlay">
+        <div class="equipment-content">
+            <div class="equipment-title">🎒 Equipment</div>
+            <div style="text-align: center; color: #738078; margin-bottom: 15px;">
+                Click a slot to change equipment. Changes only take effect when you leave camp.
+            </div>
+
+            <div class="equipment-slots" id="equipment-slots">
+                <!-- Slots will be populated by JS -->
+            </div>
+
+            <div class="inventory-section">
+                <div class="inventory-title">📦 Inventory <span id="inventory-filter-label"></span></div>
+                <div class="inventory-grid" id="inventory-grid">
+                    <!-- Inventory items will be populated by JS -->
+                </div>
+            </div>
+
+            <div style="text-align: center; margin-top: 20px;">
+                <button class="camp-button primary" onclick="closeEquipment()" style="display: inline-block; width: auto; padding: 15px 40px;">
+                    Done
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Skills Overlay -->
+    <div class="skills-overlay" id="skills-overlay">
+        <div class="skills-content">
+            <div class="skills-header">
+                <div class="skills-title">⚔️ Skills</div>
+                <div class="skill-points-display">
+                    <span id="skill-points-count">0</span> Skill Points
+                </div>
+            </div>
+
+            <div id="skills-categories">
+                <!-- Skills populated by JS -->
+            </div>
+
+            <div style="text-align: center; margin-top: 20px;">
+                <button class="camp-button primary" onclick="closeSkills()" style="display: inline-block; width: auto; padding: 15px 40px;">
+                    Done
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="game-over" id="game-over">
+        <h2 id="game-over-title">Game Over</h2>
+        <div id="game-over-message"></div>
+    </div>
+
+    <!-- Scripts loaded in dependency order -->
+    <script src="js/constants.js"></script>
+    <script src="js/skills-data.js"></script>
+    <script src="js/state.js"></script>
+    <script src="js/route.js"></script>
+    <script src="js/skills.js"></script>
+    <script src="js/equipment.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/camp.js"></script>
+    <script src="js/climbing.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>
