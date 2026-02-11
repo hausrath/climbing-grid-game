@@ -44,6 +44,10 @@ const gameState = {
         wind: 'calm' // 'calm', 'moderate', 'heavy'
     },
     
+    // Puzzle climbing state
+    weight: 'center', // 'left', 'center', 'right'
+    currentHand: null, // Which hand is currently on the wall ('left' or 'right')
+
     pump: 0,
     grip: 100,
     maxPump: 100,
@@ -101,7 +105,6 @@ const gameState = {
     skillState: {
         justChalked: false,
         justShook: false,
-        gritProcBonus: 0,
         ironGripProcBonus: 0,
         adrenalineTriggered: false,
         adrenalineMovesLeft: 0,
@@ -173,11 +176,8 @@ const gameState = {
     currentRow: 4, // Start at bottom
     currentCol: 2, // Start at center
     holdsClimbed: 0,
-    totalGrabs: 0, // Track all grab attempts
-    successfulGrabs: 0, // Track successful grabs
     comboCount: 0, // Track consecutive successful grabs
     flowStateActive: false, // Whether flow state bonus is active
-    fatiguePenalty: 0, // Penalty from shaking/chalking on bad holds (-2% per action)
     // Star challenge tracking
     climbStartTime: 0, // Timestamp when climb starts
     holdsCompletedInFlowState: 0, // Count holds grabbed while in flow state
@@ -186,8 +186,6 @@ const gameState = {
     chalkRemaining: 5, // Chalk uses remaining this climb
     maxChalk: 5, // Maximum chalk uses per climb
     routeAttempts: 0, // Track attempts on current route
-    totalHoldsInRoute: 0, // Total holds that should exist in this route
-    holdsGenerated: 0, // How many holds have been generated so far
     restHoldIndices: [], // Which hold indices should be rest holds
     grid: [] // 5x5 grid
 };
@@ -252,83 +250,24 @@ for (let i = 0; i < 25; i++) {
 
 // Generate routes for a location
 function generateRoutesForLocation(locationId, difficultyTier, isBoss) {
-    // The Spire - special final boss location
-    if (isBoss) {
-        return [{
-            id: 0,
-            name: "The Ascension",
-            difficulty: "spire",
-            holdCount: 30,
-            noFallZone: 15, // Death after this hold
-            bossRoute: true,
-            hasLoot: true, // Boss routes always have loot
-            difficultyMultiplier: 1.5 // Harder holds
-        }];
-    }
-    
-    const routeCount = 3; // Fixed at 3 regular routes
-    const routes = [];
-    
-    // Pick one random route to have loot (not the boss route)
-    const lootRouteIndex = Math.floor(Math.random() * routeCount);
-    
-    const routePrefixes = ["Warm-up", "Classic", "Tricky", "Technical", "Power", "Endurance", "Overhung", "Delicate"];
-    const routeSuffixes = ["Wall", "Route", "Problem", "Line", "Crack", "Face", "Corner", "Traverse"];
-    
-    for (let i = 0; i < routeCount; i++) {
-        let difficulty, holdCount, difficultyMultiplier;
-        
-        if (difficultyTier === 'easy') {
-            difficulty = i < 2 ? 'easy' : 'intermediate';
-            holdCount = 6 + Math.floor(Math.random() * 4); // 6-9
-            difficultyMultiplier = difficulty === 'easy' ? 0.8 : 1.0;
-        } else if (difficultyTier === 'intermediate') {
-            difficulty = i === 0 ? 'easy' : (i < 3 ? 'intermediate' : 'expert');
-            holdCount = 8 + Math.floor(Math.random() * 5); // 8-12
-            difficultyMultiplier = difficulty === 'easy' ? 0.8 : (difficulty === 'intermediate' ? 1.0 : 1.2);
-        } else {
-            difficulty = i === 0 ? 'intermediate' : 'expert';
-            holdCount = 10 + Math.floor(Math.random() * 6); // 10-15
-            difficultyMultiplier = difficulty === 'intermediate' ? 1.0 : 1.3;
+    // Check if hand-crafted routes exist in routes-data.js
+    if (typeof getRoutesForLocation === 'function') {
+        const craftedRoutes = getRoutesForLocation(locationId);
+        if (craftedRoutes.length > 0) {
+            return craftedRoutes;
         }
-        
-        const prefix = routePrefixes[Math.floor(Math.random() * routePrefixes.length)];
-        const suffix = routeSuffixes[Math.floor(Math.random() * routeSuffixes.length)];
-        
-        // Determine terrain type (slab, vertical, overhang)
-        const terrainRoll = Math.random();
-        let terrain = 'vertical';
-        if (terrainRoll < 0.25) terrain = 'slab';
-        else if (terrainRoll > 0.75) terrain = 'overhang';
-        
-        routes.push({
-            id: i,
-            name: `${prefix} ${suffix}`,
-            difficulty: difficulty,
-            holdCount: holdCount,
-            difficultyMultiplier: difficultyMultiplier,
-            terrain: terrain, // 'slab', 'vertical', 'overhang'
-            hasLoot: (i === lootRouteIndex) // One route has loot
-        });
     }
-    
-    // Add boss route (Project) as 4th route for non-Spire locations
-    const projectNames = ["The Project", "King Line", "Test Piece", "Crown Jewel", "The Crux"];
-    const projectName = projectNames[Math.floor(Math.random() * projectNames.length)];
-    
-    routes.push({
-        id: 3,
-        name: projectName,
-        difficulty: "project",
-        holdCount: 20,
-        noFallZone: 12, // Death after hold 12
-        bossRoute: true,
-        hasLoot: true, // Boss routes always have loot
-        difficultyMultiplier: 1.4,
-        terrain: 'overhang' // Boss routes are always overhangs
-    });
-    
-    return routes;
+
+    // For locations without hand-crafted routes, return placeholder
+    // (will be replaced with crafted routes in future updates)
+    return [{
+        id: 0,
+        name: "Coming Soon",
+        difficulty: "locked",
+        holdCount: 0,
+        description: "Routes for this location are not yet available.",
+        placeholder: true
+    }];
 }
 
 // Calculate total stars earned across all completed routes
@@ -383,56 +322,4 @@ function isLocationUnlocked(location) {
     return false;
 }
 
-// Calculate hold difficulty using GDD formula
-// Generate hold difficulty using GDD formula
-// easinessBias: 0 = random across full range, 1 = heavily biased toward easy end
-function generateHoldDifficulty(holdType, routeDifficultyMultiplier = 1.0, easinessBias = 0) {
-    // Generate random values within the hold type's ranges
-    // With easiness bias, we skew the random toward the MAX values (which = easier holds)
-    
-    // Helper function to generate biased random
-    // bias of 0 = uniform random, bias of 1 = heavily weighted toward max
-    function biasedRandom(min, max, bias) {
-        if (bias <= 0) {
-            return min + Math.random() * (max - min);
-        }
-        // Use power function to bias toward max
-        // With bias = 0.9, power ≈ 0.26, so random 0.5 → 0.84
-        // This means most values will be in top 30% of range
-        const power = 1 / (1 + bias * 3); // More aggressive: *3 instead of *2
-        const rand = Math.pow(Math.random(), power);
-        return min + rand * (max - min);
-    }
-    
-    const depth = biasedRandom(holdType.depthMin, holdType.depthMax, easinessBias);
-    const angle = biasedRandom(holdType.angleMin, holdType.angleMax, easinessBias);
-    const texture = biasedRandom(holdType.textureMin, holdType.textureMax, easinessBias);
-    const width = biasedRandom(holdType.widthMin, holdType.widthMax, easinessBias);
-    const matchDiff = biasedRandom(holdType.matchDiffMin, holdType.matchDiffMax, easinessBias);
-    
-    // GDD formula: angle × depth × texture × width × matchDifficulty
-    let rawDifficulty = angle * depth * texture * width * matchDiff;
-    
-    // Apply route difficulty multiplier (makes harder routes have worse holds)
-    // Lower multiplier = easier holds, higher = harder holds
-    if (routeDifficultyMultiplier > 1.0) {
-        // Harder route: reduce success chance
-        rawDifficulty *= (2.0 - routeDifficultyMultiplier);
-    } else if (routeDifficultyMultiplier < 1.0) {
-        // Easier route: boost success chance toward max
-        rawDifficulty = rawDifficulty + (1.0 - rawDifficulty) * (1.0 - routeDifficultyMultiplier) * 0.5;
-    }
-    
-    // For easy locations (high easinessBias), enforce minimum success rates
-    // This ensures holds in easy areas aren't frustratingly hard
-    if (easinessBias >= 0.8) {
-        // Easy location minimum: at least 45% success for all holds
-        rawDifficulty = Math.max(0.45, rawDifficulty);
-    } else if (easinessBias >= 0.5) {
-        // Intermediate location minimum: at least 30% success
-        rawDifficulty = Math.max(0.30, rawDifficulty);
-    }
-    
-    return Math.max(0.05, Math.min(0.99, rawDifficulty)); // Clamp between 5% and 99%
-}
 

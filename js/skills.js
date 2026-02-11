@@ -33,7 +33,6 @@ function resetSkillState() {
     gameState.skillState = {
         justChalked: false,
         justShook: false,
-        gritProcBonus: 0,
         ironGripProcBonus: 0,
         adrenalineTriggered: false,
         adrenalineMovesLeft: 0,
@@ -128,149 +127,6 @@ function resetSkillState() {
     }
 }
 
-// Calculate skill success bonuses
-function calculateSkillSuccessBonus(hold) {
-    let bonus = 0;
-    const rank = (id) => getSkillRank(id);
-    const state = gameState.skillState;
-    
-    // Deadpoint
-    if (rank('deadpoint') >= 1) {
-        if (state.justChalked) bonus += 0.10;
-        if (state.justShook) bonus += 0.08;
-    }
-    
-    // Grit clutch bonuses
-    const gritRank = rank('grit');
-    if (gritRank >= 2 && gameState.pump > gameState.maxPump * 0.7) {
-        bonus += gritRank >= 3 ? 0.12 : 0.08;
-    }
-    if (gritRank >= 3 && gameState.grip < gameState.maxGrip * 0.4) {
-        bonus += 0.10;
-    }
-    if (state.gritProcBonus > 0) bonus += 0.05;
-    
-    // Iron Grip proc bonus
-    if (state.ironGripProcBonus > 0) bonus += 0.08;
-    
-    // Adrenaline Rush
-    if (state.adrenalineMovesLeft > 0) bonus += 0.25;
-    
-    // Battle Cry
-    if (state.battleCryActive && state.battleCryMovesLeft > 0) {
-        bonus += rank('battleCry') >= 2 ? 0.20 : 0.15;
-    }
-    
-    // Kneebar post-bonus
-    if (state.kneebar.postKneebarBonus > 0 && rank('kneebar') >= 3) {
-        bonus += 0.10;
-    }
-    
-    // Flow State enhanced
-    const flowRank = rank('flowState');
-    if (flowRank >= 1 && gameState.flowStateActive) {
-        let flowBonus = flowRank >= 4 ? 0.20 : flowRank >= 3 ? 0.10 : flowRank >= 2 ? 0.08 : 0.05;
-        if (flowRank >= 2) {
-            flowBonus += Math.min(state.flowStackBonus, flowRank >= 3 ? 0.10 : 0.07);
-        }
-        bonus += flowBonus;
-    }
-    
-    // Dynamic landing bonus
-    if (state.dynamicLandingBonus > 0) bonus += 0.05;
-    
-    // Ambidextrous alternating
-    const ambiRank = rank('ambidextrous');
-    if (ambiRank >= 1 && gameState.lastHandUsed && gameState.selectedHand !== gameState.lastHandUsed) {
-        bonus += ambiRank >= 2 ? 0.06 : 0.03;
-    }
-    
-    // === UTILITY SKILL BONUSES ===
-    
-    // Climbing Salve bonus moves
-    if (state.salve.bonusMovesLeft > 0) {
-        const salveRank = rank('climbingSalve');
-        bonus += salveRank >= 3 ? 0.12 : salveRank >= 2 ? 0.08 : 0.05;
-    }
-    
-    // Stimulant dynamic bonus
-    if (state.stimulant.active && state.stimulant.movesLeft > 0 && rank('stimulant') >= 2) {
-        if (gameState.movementStyle === 'dynamic') {
-            bonus += 0.08;
-        }
-    }
-    
-    // Grappling Hook landing bonus (rank 3)
-    if (state.grapplingHook.landingBonus > 0) {
-        bonus += 0.15;
-    }
-    
-    // Crash Pad confidence boost
-    if (state.crashPad.confidenceBoost > 0) {
-        bonus += 0.10;
-    }
-    
-    // Route Journal attempt bonuses
-    const journalRank = rank('routeJournal');
-    if (journalRank >= 1 && gameState.routeAttempts > 1) {
-        let journalBonus = 0;
-        if (journalRank >= 4) {
-            journalBonus = gameState.routeAttempts >= 4 ? 0.35 : gameState.routeAttempts >= 3 ? 0.25 : 0.15;
-        } else if (journalRank >= 3) {
-            journalBonus = gameState.routeAttempts >= 4 ? 0.25 : gameState.routeAttempts >= 3 ? 0.18 : 0.12;
-        } else if (journalRank >= 2) {
-            journalBonus = gameState.routeAttempts >= 4 ? 0.15 : gameState.routeAttempts >= 3 ? 0.12 : 0.08;
-        } else {
-            journalBonus = gameState.routeAttempts >= 3 ? 0.08 : 0.05;
-        }
-        bonus += journalBonus;
-    }
-    
-    // Efficient Recovery post-recovery bonus (rank 5)
-    if (state.recoveryBonus > 0) {
-        bonus += 0.10;
-    }
-    
-    // === MAGIC SKILL BONUSES ===
-    
-    // Time Dilation success bonus
-    if (state.timeDilation && state.timeDilation.active && state.timeDilation.movesLeft > 0) {
-        const tdRank = rank('timeDilation');
-        bonus += tdRank >= 3 ? 0.15 : tdRank >= 2 ? 0.08 : 0;
-    }
-    
-    // Transmute post-swap bonus
-    if (state.transmute && state.transmute.bonusMovesLeft > 0) {
-        bonus += 0.10;
-    }
-    
-    // Gravity Shift success bonus (rank 2)
-    if (state.gravityShift && state.gravityShift.active && state.gravityShift.movesLeft > 0) {
-        if (rank('gravityShift') >= 2) bonus += 0.15;
-    }
-    
-    // Seer "seen" holds bonus
-    const seerRank = rank('seer');
-    if (seerRank >= 4) {
-        bonus += 0.10;
-    } else if (seerRank >= 3) {
-        bonus += 0.05;
-    }
-    
-    // Phantom Grip low grip bonus
-    const phantomRank = rank('phantomGrip');
-    if (phantomRank >= 1 && gameState.grip < gameState.maxGrip * 0.4) {
-        bonus += phantomRank >= 3 ? 0.15 : phantomRank >= 2 ? 0.08 : 0;
-    }
-    
-    // Teleport post-teleport bonus
-    if (state.teleport && state.teleport.postTeleportBonus > 0) {
-        bonus += 0.15;
-    }
-    
-    return bonus;
-}
-
 // Calculate grip loss reduction
 function calculateSkillGripReduction(hold) {
     let reduction = 0;
@@ -282,7 +138,7 @@ function calculateSkillGripReduction(hold) {
     else if (ironRank >= 2) reduction += 0.10;
     else if (ironRank >= 1) reduction += 0.05;
     
-    if (ironRank >= 2 && hold.type === 'crimp') reduction += 0.15;
+    if (ironRank >= 2 && (hold.type === 'crimp' || hold.type === 'sloper' || hold.type === 'pinch')) reduction += 0.15;
     
     // Flow State rank 4
     if (rank('flowState') >= 4 && gameState.flowStateActive) reduction += 0.15;
@@ -303,7 +159,19 @@ function calculateSkillGripReduction(hold) {
 function calculateSkillPumpReduction() {
     let reduction = 0;
     const rank = (id) => getSkillRank(id);
-    
+
+    // Grit: reduce pump cost when pump is high
+    const gritRank = rank('grit');
+    if (gritRank >= 1 && gameState.pump > gameState.maxPump * 0.8) {
+        reduction += gritRank >= 3 ? 0.20 : gritRank >= 2 ? 0.15 : 0.10;
+    }
+
+    // Ambidextrous: pump reduction when alternating hands
+    const ambiRank = rank('ambidextrous');
+    if (ambiRank >= 2 && gameState.lastHandUsed && gameState.selectedHand !== gameState.lastHandUsed) {
+        reduction += 0.05;
+    }
+
     // Precision Footwork
     const pfRank = rank('precisionFootwork');
     if (pfRank >= 4) reduction += 0.12;
@@ -340,20 +208,6 @@ function calculateSkillPumpReduction() {
     }
     
     return Math.min(reduction, 1.0);
-}
-
-// Check Grit proc on failure
-function checkGritProc() {
-    const gritRank = getSkillRank('grit');
-    if (gritRank < 1) return false;
-    
-    const procChance = gritRank >= 3 ? 0.50 : gritRank >= 2 ? 0.40 : 0.25;
-    if (Math.random() < procChance) {
-        addFeedback('💪 GRIT! Ignored failed grab!', 'bonus');
-        if (gritRank >= 3) gameState.skillState.gritProcBonus = 2;
-        return true;
-    }
-    return false;
 }
 
 // Check Iron Grip proc
@@ -393,13 +247,13 @@ function getSkillCrossBodyModifier() {
 }
 
 // Update skill state after move
-function updateSkillStateAfterMove(success) {
+// penalty: 0-3 penalty level from the move (0 = perfect position)
+function updateSkillStateAfterMove(success, penalty) {
     const state = gameState.skillState;
-    
+
     state.justChalked = false;
     state.justShook = false;
-    
-    if (state.gritProcBonus > 0) state.gritProcBonus--;
+
     if (state.ironGripProcBonus > 0) state.ironGripProcBonus--;
     if (state.adrenalineMovesLeft > 0) state.adrenalineMovesLeft--;
     if (state.kneebar.postKneebarBonus > 0) state.kneebar.postKneebarBonus--;
@@ -415,9 +269,39 @@ function updateSkillStateAfterMove(success) {
         }
     }
     
-    // Flow State stacking
-    if (success && gameState.flowStateActive && getSkillRank('flowState') >= 2) {
-        state.flowStackBonus = Math.min(state.flowStackBonus + 0.01, 0.15);
+    // Flow State: builds on low-penalty moves, breaks on high penalty
+    const flowRank = getSkillRank('flowState');
+    if (flowRank >= 1) {
+        if (penalty !== undefined && penalty <= 1) {
+            // Low/no penalty move builds flow
+            if (!gameState.flowStateActive) {
+                const threshold = flowRank >= 3 ? 1 : flowRank >= 2 ? 2 : 3;
+                gameState.comboCount++;
+                if (gameState.comboCount >= threshold) {
+                    gameState.flowStateActive = true;
+                    addFeedback('Flow State activated!', 'bonus');
+                }
+            } else if (flowRank >= 2) {
+                state.flowStackBonus = Math.min(state.flowStackBonus + 0.01, 0.15);
+            }
+        } else if (penalty !== undefined && penalty >= 3) {
+            // High penalty breaks flow (unless rank 3+ has buffer)
+            if (gameState.flowStateActive) {
+                if (state.flowFailureBuffer > 0) {
+                    state.flowFailureBuffer--;
+                    if (flowRank >= 4) {
+                        // Rank 4: pause flow instead of breaking
+                    } else {
+                        addFeedback('Flow State buffer used!', 'neutral');
+                    }
+                } else {
+                    gameState.flowStateActive = false;
+                    gameState.comboCount = 0;
+                    state.flowStackBonus = 0;
+                    addFeedback('Flow State broken!', 'penalty');
+                }
+            }
+        }
     }
     
     // Footwork move counter
@@ -571,17 +455,17 @@ function useSalve() {
     const bonusMoves = rank >= 3 ? 8 : rank >= 2 ? 5 : 3;
     state.bonusMovesLeft = bonusMoves;
     
-    // Remove fatigue at rank 2+
+    // Rank 2+: additional pump reduction
     if (rank >= 2) {
-        gameState.fatiguePenalty = 0;
+        gameState.pump = Math.max(0, gameState.pump - 3);
     }
     
     // Weather immunity at rank 3
     if (rank >= 3) {
         state.weatherImmunityLeft = 10;
-        addFeedback(`🧴 Salve applied! -${restore} pump, +${restore} grip, +${rank >= 3 ? 12 : rank >= 2 ? 8 : 5}% for ${bonusMoves} moves, weather immunity!`, 'bonus');
+        addFeedback(`🧴 Salve applied! -${restore} pump, +${restore} grip, reduced costs for ${bonusMoves} moves, weather immunity!`, 'bonus');
     } else {
-        addFeedback(`🧴 Salve applied! -${restore} pump, +${restore} grip, +${rank >= 2 ? 8 : 5}% for ${bonusMoves} moves`, 'bonus');
+        addFeedback(`🧴 Salve applied! -${restore} pump, +${restore} grip, reduced costs for ${bonusMoves} moves`, 'bonus');
     }
     
     updateSkillActionButtons();
@@ -603,7 +487,7 @@ function useStimulant() {
     
     addFeedback(`💊 Stimulant consumed! ${rank >= 2 ? 'Zero cooldowns' : 'Cooldowns -2'} for ${state.movesLeft} moves!`, 'bonus');
     if (rank >= 2) {
-        addFeedback(`+8% on dynamic moves during effect!`, 'bonus');
+        addFeedback(`Reduced pump on dynamic moves during effect!`, 'bonus');
     }
     
     updateSkillActionButtons();
@@ -629,12 +513,12 @@ function useGrapplingHook() {
     state.cooldown = rank >= 3 ? 1 : rank >= 2 ? 3 : 5;
     
     // Auto-grab the next hold with no cost
-    addFeedback(`🪝 Grappling hook deployed! Next grab is automatic success with 0 cost!`, 'bonus');
-    
+    addFeedback(`🪝 Grappling hook deployed! Next move has 0 pump/grip cost!`, 'bonus');
+
     // Grant landing bonus at rank 3
     if (rank >= 3) {
         state.landingBonus = 1;
-        addFeedback(`Hook Master: +15% success on next move after landing!`, 'bonus');
+        addFeedback(`Hook Master: reduced costs on next move after landing!`, 'bonus');
     }
     
     // Set a flag to make next grab auto-success
@@ -731,7 +615,7 @@ function useTimeDilation() {
     addFeedback(`⏰ Time Dilation activated! -${reduction}% pump/grip rates for ${state.movesLeft} moves!`, 'bonus');
     
     if (rank >= 2) {
-        addFeedback(`Cooldowns frozen! +${rank >= 3 ? 15 : 8}% success!`, 'bonus');
+        addFeedback(`Cooldowns frozen! -${rank >= 3 ? 80 : 60}% pump/grip rates!`, 'bonus');
     }
     
     updateSkillActionButtons();
@@ -757,7 +641,7 @@ function useTransmute() {
     state.bonusMovesLeft = 3;
     
     addFeedback(`🔄 Transmute! Pump ${oldPump}→${gameState.pump}, Grip ${oldGrip}→${gameState.grip}`, 'bonus');
-    addFeedback(`+10% success for 3 moves!`, 'bonus');
+    addFeedback(`Reduced costs for 3 moves!`, 'bonus');
     
     updateSkillActionButtons();
     updateUI();
@@ -784,7 +668,7 @@ function useGravityShift() {
     addFeedback(`🌀 Gravity Shift activated! -${pumpReduction}% pump for ${state.movesLeft} moves!`, 'bonus');
     
     if (rank >= 2) {
-        addFeedback(`Overhangs become slabs! +15% success!`, 'bonus');
+        addFeedback(`Overhangs become slabs! Greatly reduced pump!`, 'bonus');
     }
     
     updateSkillActionButtons();

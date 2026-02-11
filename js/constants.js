@@ -1,112 +1,11 @@
 const holdTypes = [
-    { 
-        type: 'jug', 
-        gripCost: 2, 
-        label: 'JUG', 
-        pumpBase: 3,
-        // GDD table values - Best: 100%, Worst: 33.32%
-        depthMin: 0.8, depthMax: 1,
-        angleMin: 0.85, angleMax: 1,
-        textureMin: 0.7, textureMax: 1,
-        widthMin: 0.7, widthMax: 1,
-        matchDiffMin: 0.7, matchDiffMax: 1
-    },
-    { 
-        type: 'crimp', 
-        gripCost: 5, 
-        label: 'CRIMP', 
-        pumpBase: 5,
-        // GDD table values - Best: 50.40%, Worst: 5.06%
-        depthMin: 0.45, depthMax: 0.7,
-        angleMin: 0.75, angleMax: 0.9,
-        textureMin: 0.5, textureMax: 1,
-        widthMin: 0.3, widthMax: 0.8,
-        matchDiffMin: 0.2, matchDiffMax: 1
-    },
-    { 
-        type: 'sloper', 
-        gripCost: 4, 
-        label: 'SLOPER', 
-        pumpBase: 4,
-        // GDD table values (Slope) - Best: 54.00%, Worst: 4.81%
-        depthMin: 0.5, depthMax: 0.9,
-        angleMin: 0.35, angleMax: 0.75,
-        textureMin: 0.5, textureMax: 1,
-        widthMin: 0.55, widthMax: 0.8,
-        matchDiffMin: 0.4, matchDiffMax: 1
-    },
-    { 
-        type: 'pinch', 
-        gripCost: 3, 
-        label: 'PINCH', 
-        pumpBase: 4,
-        // GDD table values - Best: 56.25%, Worst: 9.38%
-        depthMin: 0.5, depthMax: 0.75,
-        angleMin: 0.75, angleMax: 0.75, // Fixed angle
-        textureMin: 0.5, textureMax: 1,
-        widthMin: 0.5, widthMax: 1,
-        matchDiffMin: 0.4, matchDiffMax: 1
-    },
-    { 
-        type: 'pocket', 
-        gripCost: 4, 
-        label: 'POCKET', 
-        pumpBase: 4,
-        // GDD table values - Best: 70.00%, Worst: 12.00%
-        depthMin: 0.5, depthMax: 0.7,
-        angleMin: 0.8, angleMax: 1,
-        textureMin: 0.6, textureMax: 1,
-        widthMin: 0.5, widthMax: 1,
-        matchDiffMin: 0.01, matchDiffMax: 0.5 // Very hard to match
-    },
-    { 
-        type: 'sidepull', 
-        gripCost: 3, 
-        label: 'SIDE', // Shortened to fit in circle
-        pumpBase: 4,
-        // GDD table values - Best: 64.00%, Worst: 10.56%
-        depthMin: 0.4, depthMax: 0.8,
-        angleMin: 0.8, angleMax: 0.8, // Fixed angle
-        textureMin: 0.6, textureMax: 1,
-        widthMin: 0.55, widthMax: 1,
-        matchDiffMin: 0.3, matchDiffMax: 0.8
-    },
-    { 
-        type: 'undercling', 
-        gripCost: 3, 
-        label: 'UNDER', // Shortened to fit in circle
-        pumpBase: 5,
-        // GDD table values - Best: 64.00%, Worst: 10.89%
-        depthMin: 0.55, depthMax: 0.8,
-        angleMin: 0.6, angleMax: 1,
-        textureMin: 0.6, textureMax: 1,
-        widthMin: 0.55, widthMax: 0.8,
-        matchDiffMin: 0.6, matchDiffMax: 1
-    },
-    { 
-        type: 'gaston', 
-        gripCost: 4, 
-        label: 'GAST', // Shortened to fit in circle
-        pumpBase: 5,
-        // GDD table values - Best: 56.00%, Worst: 10.56%
-        depthMin: 0.4, depthMax: 0.7,
-        angleMin: 0.8, angleMax: 0.8, // Fixed angle
-        textureMin: 0.6, textureMax: 1,
-        widthMin: 0.55, widthMax: 1,
-        matchDiffMin: 0.3, matchDiffMax: 1
-    },
-    { 
-        type: 'edge', 
-        gripCost: 4, 
-        label: 'EDGE', 
-        pumpBase: 4,
-        // GDD table values - Best: 81.00%, Worst: 11.52%
-        depthMin: 0.3, depthMax: 0.9,
-        angleMin: 0.8, angleMax: 1,
-        textureMin: 0.6, textureMax: 1,
-        widthMin: 0.8, widthMax: 0.9,
-        matchDiffMin: 0.5, matchDiffMax: 1
-    }
+    { type: 'jug',       label: 'JUG',    basePumpRating: 1, baseGripDrain: 1, color: '#a8db60' },
+    { type: 'crimp',     label: 'CRIMP',   basePumpRating: 4, baseGripDrain: 2, color: '#f5aaa2' },
+    { type: 'sloper',    label: 'SLOPER',  basePumpRating: 3, baseGripDrain: 5, color: '#6dbce3' },
+    { type: 'pinch',     label: 'PINCH',   basePumpRating: 3, baseGripDrain: 3, color: '#fad882' },
+    { type: 'pocket',    label: 'POCKET',  basePumpRating: 3, baseGripDrain: 2, color: '#c178de' },
+    { type: 'edge',      label: 'EDGE',    basePumpRating: 3, baseGripDrain: 2, color: '#738078' },
+    { type: 'undercling', label: 'UNDER',  basePumpRating: 4, baseGripDrain: 2, color: '#b06758' }
 ];
 
 // ============ PHASE 14: Equipment Database ============

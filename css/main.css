@@ -119,6 +119,7 @@ body {
     border-color: #fad882;
 }
 
+/* Semicircle hold — rotated by angle */
 .hold {
     width: 64px;
     height: 64px;
@@ -133,52 +134,31 @@ body {
     transition: all 0.3s ease;
 }
 
-.hold.jug {
-    background: linear-gradient(135deg, #a8db60, #428764);
-    border: 3px solid #3f4727;
+.hold.semicircle {
+    width: 64px;
+    height: 32px;
+    border-radius: 0 0 64px 64px;
+    transform: rotate(var(--hold-angle, 0deg));
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top: 2px solid rgba(255, 255, 255, 0.6);
 }
 
-.hold.crimp {
-    background: linear-gradient(135deg, #f5aaa2, #b06758);
-    border: 3px solid #a64e68;
+.hold .hold-label {
+    transform: rotate(calc(-1 * var(--hold-angle, 0deg)));
+    font-size: 0.7em;
+    white-space: nowrap;
+    pointer-events: none;
 }
 
-.hold.sloper {
-    background: linear-gradient(135deg, #6dbce3, #6c5ead);
-    border: 3px solid #243447;
-}
-
-.hold.pinch {
-    background: linear-gradient(135deg, #fad882, #a18b50);
-    border: 3px solid #573b31;
-}
-
-.hold.pocket {
-    background: linear-gradient(135deg, #c178de, #532e54);
-    border: 3px solid #532e54;
-}
-
-.hold.sidepull {
-    background: linear-gradient(135deg, #6dbce3, #243447);
-    border: 3px solid #243447;
-    font-size: 0.7em; /* Smaller font to fit "SIDE" */
-}
-
-.hold.undercling {
-    background: linear-gradient(135deg, #b06758, #4a292c);
-    border: 3px solid #4a292c;
-    font-size: 0.6em; /* Smaller font to fit "UNDER" */
-}
-
-.hold.gaston {
-    background: linear-gradient(135deg, #a64e68, #532e54);
-    border: 3px solid #532e54;
-    font-size: 0.7em; /* Smaller font to fit "GAST" */
-}
-
-.hold.edge {
-    background: linear-gradient(135deg, #738078, #37333b);
-    border: 3px solid #37333b;
+.hold .hold-angle-indicator {
+    position: absolute;
+    bottom: -16px;
+    left: 50%;
+    transform: translateX(-50%) rotate(calc(-1 * var(--hold-angle, 0deg)));
+    font-size: 0.6em;
+    color: #bdb9ae;
+    white-space: nowrap;
+    pointer-events: none;
 }
 
 .hold.current {
@@ -196,15 +176,33 @@ body {
     50% { transform: scale(1.05); }
 }
 
-/* Bump animation for failed grabs */
-@keyframes bump-fail {
-    0% { transform: translate(0, 0); }
-    30% { transform: translate(var(--bump-x), var(--bump-y)) scale(1.1); }
-    100% { transform: translate(0, 0); }
+/* Weight indicator */
+.weight-indicator {
+    text-align: center;
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-weight: bold;
+    font-size: 0.85em;
+    margin: 4px 0;
+    border: 1px solid #738078;
 }
 
-.player.bumping {
-    animation: bump-fail 0.35s cubic-bezier(0.4, 0, 0.6, 1);
+.weight-indicator.weight-left {
+    background: rgba(109, 188, 227, 0.2);
+    border-color: #6dbce3;
+    color: #6dbce3;
+}
+
+.weight-indicator.weight-center {
+    background: rgba(168, 219, 96, 0.2);
+    border-color: #a8db60;
+    color: #a8db60;
+}
+
+.weight-indicator.weight-right {
+    background: rgba(250, 216, 130, 0.2);
+    border-color: #fad882;
+    color: #fad882;
 }
 
 .hold.matchable::after {

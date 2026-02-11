@@ -299,14 +299,15 @@ function showBeta(locationId, routeId) {
     // Set title and subtitle
     document.getElementById('beta-route-name').textContent = `${route.name} ${route.bossRoute ? '👑' : ''}`;
     
-    let difficultyColor = '#a8db60';
-    if (route.difficulty === 'intermediate') difficultyColor = '#fad882';
-    else if (route.difficulty === 'expert') difficultyColor = '#f5aaa2';
-    else if (route.difficulty === 'project') difficultyColor = '#c178de';
-    else if (route.difficulty === 'boss') difficultyColor = '#c178de';
-    
+    let gradeColor = '#a8db60';
+    if (route.grade) {
+        const gradeNum = parseInt(route.grade.replace(/\D/g, ''));
+        if (gradeNum >= 4) gradeColor = '#f5aaa2';
+        else if (gradeNum >= 2) gradeColor = '#fad882';
+    }
+
     document.getElementById('beta-route-subtitle').innerHTML = `
-        ${location.name} | <span style="color: ${difficultyColor};">${route.difficulty.toUpperCase()}</span> | ${route.holdCount} holds
+        ${location.name} | <span style="color: ${gradeColor};">${route.grade || 'V?'}</span> | ${route.holdCount} holds
     `;
     
     // Get route progress for status and high point
@@ -356,11 +357,11 @@ function showBeta(locationId, routeId) {
         `;
     }
     
-    // Add crux info if route has been generated
-    if (route.cruxInfo) {
+    // Show route description if available
+    if (route.description) {
         overviewHtml += `
             <div style="margin-top: 15px; padding: 10px; background: rgba(193, 120, 222, 0.15); border-radius: 6px; text-align: center;">
-                <span style="color: #c178de;">⚠️ ${route.cruxInfo.cruxDescription}</span>
+                <span style="color: #bdb9ae; font-style: italic;">${route.description}</span>
             </div>
         `;
     }
@@ -381,7 +382,6 @@ function showBeta(locationId, routeId) {
     `;
     
     // Generate and render hold sequence
-    pregenerateRoute(route); // Ensure route is generated
     const holdSequence = generateBetaHoldSequence(location, route);
     document.getElementById('beta-holds').innerHTML = holdSequence;
     
@@ -425,37 +425,24 @@ function analyzeIdealConditions(route) {
 
 // Generate the beta hold sequence display
 function generateBetaHoldSequence(location, route) {
-    const routeHolds = gameState.pregeneratedRoutes[route.id];
-    if (!routeHolds) return '<div style="color: #738078;">Route data not available</div>';
-    
+    if (!route.holds || route.holds.length === 0) {
+        return '<div style="color: #738078;">Route data not available</div>';
+    }
+
     // Get high point for this route
     const progress = gameState.routeProgress[`${location.id}-${route.id}`];
     const highPoint = (progress && progress.status !== 'completed') ? progress.highPoint : 0;
-    
-    // Determine rest hold indices
-    let restHoldIndices = [];
-    if (route.holdCount > 20) {
-        restHoldIndices = [Math.floor(route.holdCount * 0.33), Math.floor(route.holdCount * 0.67)];
-    } else if (route.holdCount > 10) {
-        restHoldIndices = [Math.floor(route.holdCount * 0.5)];
-    }
-    
-    // Use crux indices from route generation (or calculate if not present)
-    const cruxIndices = route.cruxInfo ? route.cruxInfo.cruxIndices : [];
-    
+
     let html = '<div style="max-height: 300px; overflow-y: auto;">';
-    
-    // Track position for direction calculation
+
     let currentCol = 2; // Start center
-    
-    routeHolds.forEach((hold, index) => {
+
+    route.holds.forEach((hold, index) => {
         const holdNum = index + 1;
-        const isRestHold = restHoldIndices.includes(holdNum);
-        const isCruxHold = cruxIndices.includes(holdNum) || hold.isCrux;
         const isHighPoint = holdNum === highPoint && highPoint > 0;
-        
+
         // Calculate direction from previous position
-        const direction = hold.col - currentCol;
+        const direction = hold.position.x - currentCol;
         let directionText = 'Center';
         let directionColor = '#bdb9ae';
         if (direction < 0) {
@@ -465,47 +452,31 @@ function generateBetaHoldSequence(location, route) {
             directionText = `Right ${direction}`;
             directionColor = '#c178de';
         }
-        
-        // Get hold type color
-        let holdColor = '#a8db60';
-        if (hold.difficulty < 0.4) holdColor = '#f5aaa2';
-        else if (hold.difficulty < 0.6) holdColor = '#fad882';
-        
-        // Success percentage display
-        const successPct = Math.round(hold.difficulty * 100);
-        let successColor = '#a8db60';
-        if (successPct < 40) successColor = '#f5aaa2';
-        else if (successPct < 60) successColor = '#fad882';
-        
+
+        // Get hold type color from constants
+        const holdTypeInfo = holdTypes.find(h => h.type === hold.type);
+        const holdColor = holdTypeInfo ? holdTypeInfo.color : '#738078';
+
         // Notes
         let notes = '';
-        if (isHighPoint) notes = '🏔️ HIGH POINT';
-        else if (isRestHold) notes = '⚓ Rest hold';
-        else if (isCruxHold) notes = '⚠️ Crux';
-        if (hold.matchable) notes += notes ? ', ★ Match' : '★ Match';
-        
-        // No fall zone indicator
-        if (route.noFallZone && holdNum === route.noFallZone) {
-            notes = '🚫 NO FALL ZONE BEGINS';
-        }
-        
-        // Add high point styling
-        const highPointClass = isHighPoint ? 'high-point-hold' : '';
-        
+        if (isHighPoint) notes = 'HIGH POINT';
+        else if (hold.isRest) notes = 'Rest';
+        if (hold.matchable) notes += notes ? ', Match' : 'Match';
+
         html += `
-            <div class="beta-hold ${isRestHold ? 'rest-hold' : ''} ${isCruxHold ? 'crux-hold' : ''}" 
+            <div class="beta-hold ${hold.isRest ? 'rest-hold' : ''}"
                  style="${isHighPoint ? 'background: rgba(250, 216, 130, 0.2); border-left: 3px solid #fad882;' : ''}">
                 <div class="beta-hold-num">#${holdNum}</div>
                 <div class="beta-hold-direction" style="color: ${directionColor};">${directionText}</div>
-                <div class="beta-hold-type" style="color: ${holdColor};">${hold.label.toUpperCase()}</div>
-                <div class="beta-hold-success" style="color: ${successColor};">${successPct}%</div>
+                <div class="beta-hold-type" style="color: ${holdColor};">${hold.label} ${hold.angle}°</div>
+                <div class="beta-hold-success" style="color: #bdb9ae;">P:${hold.pumpRating} G:${hold.gripDrain}</div>
                 <div class="beta-hold-notes" style="${isHighPoint ? 'color: #fad882; font-weight: bold;' : ''}">${notes}</div>
             </div>
         `;
-        
-        currentCol = hold.col;
+
+        currentCol = hold.position.x;
     });
-    
+
     html += '</div>';
     return html;
 }

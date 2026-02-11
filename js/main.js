@@ -263,45 +263,55 @@ function showRouteSelection(location) {
     const routesList = content.querySelector('#routes-list');
     
     location.routes.forEach(route => {
+        // Skip placeholder routes
+        if (route.placeholder) {
+            const placeholderDiv = document.createElement('div');
+            placeholderDiv.className = 'route-item';
+            placeholderDiv.style.opacity = '0.5';
+            placeholderDiv.style.cursor = 'default';
+            placeholderDiv.innerHTML = `
+                <div class="route-name">${route.name}</div>
+                <div class="route-details" style="color: #738078;">${route.description || 'Coming soon...'}</div>
+            `;
+            routesList.appendChild(placeholderDiv);
+            return;
+        }
+
         const completion = gameState.completedRoutes[`${location.id}-${route.id}`];
         const stars = completion ? completion.stars : 0;
-        const attempts = completion ? completion.attempts : 0;
-        
+
         const routeDiv = document.createElement('div');
         routeDiv.className = 'route-item';
         if (route.bossRoute) {
             routeDiv.classList.add('boss-route');
         }
         routeDiv.onclick = () => startClimb(location, route);
-        
-        let difficultyColor = '#a8db60';
-        if (route.difficulty === 'intermediate') difficultyColor = '#fad882';
-        else if (route.difficulty === 'expert') difficultyColor = '#f5aaa2';
-        else if (route.difficulty === 'project') difficultyColor = '#c178de';
-        else if (route.difficulty === 'spire') difficultyColor = '#fad882';
-        else if (route.difficulty === 'boss') difficultyColor = '#c178de';
-        
+
+        // Color by grade
+        let gradeColor = '#a8db60';
+        if (route.grade) {
+            const gradeNum = parseInt(route.grade.replace(/\D/g, ''));
+            if (gradeNum >= 4) gradeColor = '#f5aaa2';
+            else if (gradeNum >= 2) gradeColor = '#fad882';
+        }
+
         // Loot indicator
         const lootKey = `${location.id}-${route.id}`;
         const hasLoot = route.hasLoot && !gameState.collectedLoot[lootKey];
         const lootCollected = route.hasLoot && gameState.collectedLoot[lootKey];
         const lootIndicator = hasLoot ? '<span class="loot-indicator">🎁</span>' : (lootCollected ? '<span style="color: #738078;">📦</span>' : '');
-        
-        // No fall zone warning for boss routes
-        const noFallWarning = route.noFallZone ? 
-            `<div style="color: #f5aaa2; font-size: 0.85em; margin-top: 5px;">⚠️ NO FALL ZONE after hold ${route.noFallZone}</div>` : '';
-        
+
         routeDiv.innerHTML = `
             <div class="route-name">${route.name} ${route.bossRoute ? '👑' : ''} ${lootIndicator}</div>
             <div class="route-details">
-                <span style="color: ${difficultyColor};">● ${route.difficulty.toUpperCase()}</span>
+                <span style="color: ${gradeColor};">${route.grade || 'V?'}</span>
                 | ${route.holdCount} holds
                 ${completion ? `| <span class="stars">${'⭐'.repeat(stars)}${'☆'.repeat(6-stars)}</span> ${stars}/6` : ''}
                 ${hasLoot ? ' | <span style="color: #fad882;">Has Loot!</span>' : ''}
             </div>
-            ${noFallWarning}
+            ${route.description ? `<div style="color: #bdb9ae; font-size: 0.85em; margin-top: 4px;">${route.description}</div>` : ''}
         `;
-        
+
         routesList.appendChild(routeDiv);
     });
     
@@ -310,124 +320,82 @@ function showRouteSelection(location) {
 
 // Start climbing a route
 function startClimb(location, route) {
-    // Check energy before starting climb
-    if (!hasEnergy()) {
-        addFeedback(`⚡ You don't have enough energy to climb! Return to camp to rest!`, 'penalty');
+    // Don't allow starting placeholder routes
+    if (route.placeholder) {
+        addFeedback('This route is not yet available.', 'penalty');
         return;
     }
-    
+
+    // Check energy before starting climb
+    if (!hasEnergy()) {
+        addFeedback(`You don't have enough energy to climb! Return to camp to rest!`, 'penalty');
+        return;
+    }
+
     // Use 1 energy for this climb attempt
     useEnergy();
-    
+
     gameState.gameMode = 'climbing';
-    
-    // Track attempts properly - check BEFORE overwriting
-    // Increment if retrying same route, reset if new route
+
+    // Track attempts
     const routeKey = `${location.id}-${route.id}`;
-    const isSameRoute = gameState.currentLocation?.id === location.id && 
+    const isSameRoute = gameState.currentLocation?.id === location.id &&
                         gameState.currentRoute?.id === route.id;
-    
+
     if (isSameRoute && gameState.routeAttempts > 0) {
-        // Same route, increment attempt
         gameState.routeAttempts++;
     } else {
-        // New route, start at 1
         gameState.routeAttempts = 1;
     }
-    
-    // NOW set the current location/route
+
     gameState.currentLocation = location;
     gameState.currentRoute = route;
-    gameState.totalGrabs = 0;
-    gameState.successfulGrabs = 0;
-    
+
     // Hide route selection
     document.getElementById('route-selection-overlay').style.display = 'none';
-    
-    // Update sidebar with location modifiers
     updateSidebarLocationModifiers();
-    
-    // Pre-generate the entire route (will use cached if exists)
-    pregenerateRoute(route);
-    
+
     // Reset climbing state
     gameState.pump = 0;
     gameState.grip = gameState.maxGrip;
     gameState.selectedHand = null;
     gameState.lastHandUsed = null;
-    gameState.movementStyle = 'regular';
+    gameState.currentHand = null;
+    gameState.weight = 'center';
     gameState.consecutiveCrosses = 0;
+    gameState.movementStyle = 'regular';
     gameState.staticCooldown = 0;
     gameState.dynamicCooldown = 0;
     gameState.shakeCooldown = 0;
     gameState.chalkCooldown = 0;
-    gameState.comboCount = 0; // Reset combo
-    gameState.flowStateActive = false; // Reset flow state
-    gameState.fatiguePenalty = 0; // Reset fatigue
-    // Reset star tracking
+    gameState.comboCount = 0;
+    gameState.flowStateActive = false;
     gameState.climbStartTime = Date.now();
     gameState.holdsCompletedInFlowState = 0;
     gameState.shakesUsed = 0;
     gameState.chalksUsed = 0;
-    gameState.chalkRemaining = gameState.maxChalk; // Reset chalk uses
-    gameState.currentRow = 4;
-    gameState.currentCol = 2;
+    gameState.chalkRemaining = gameState.maxChalk;
     gameState.holdsClimbed = 0;
-    // Use actual generated holds count (includes alternates) rather than route.holdCount
-    gameState.totalHoldsInRoute = route.generatedHolds ? route.generatedHolds.length : route.holdCount;
-    gameState.holdsGenerated = 0;
-    
-    console.log(`Starting climb: holdCount=${route.holdCount}, generatedHolds=${route.generatedHolds?.length}, totalHoldsInRoute=${gameState.totalHoldsInRoute}`);
-    
-    // === RESET SKILL STATE ===
+
+    // Reset skill state
     resetSkillState();
-    
-    // Determine rest holds based on route length
-    gameState.restHoldIndices = [];
-    if (route.holdCount > 20) {
-        // 2 rest holds for routes >20
-        const rest1 = Math.floor(route.holdCount * 0.33);
-        const rest2 = Math.floor(route.holdCount * 0.67);
-        gameState.restHoldIndices = [rest1, rest2];
-    } else if (route.holdCount > 10) {
-        // 1 rest hold for routes 11-20
-        const rest1 = Math.floor(route.holdCount * 0.5);
-        gameState.restHoldIndices = [rest1];
-    }
-    // else 0 rest holds for routes ≤10
-    
+
     document.getElementById('feedback').innerHTML = '';
-    
+
     // Update title
     document.querySelector('.title').textContent = `${location.name} - ${route.name}`;
-    
-    // Initialize climbing grid
-    initGrid();
-    // Generate initial 4 holds from pre-generated route
-    const initialHolds = Math.min(4, route.holdCount);
-    
-    for (let i = 0; i < initialHolds; i++) {
-        const row = 3 - i; // Start from row 3 and go up
-        const holdData = route.generatedHolds[i];
-        
-        // Check if this should be a rest hold
-        const isRestHold = gameState.restHoldIndices.includes(holdData.holdIndex);
-        
-        gameState.grid[row][holdData.targetCol] = {
-            ...holdData,
-            isRestHold: isRestHold,
-            row: row,
-            col: holdData.targetCol
-        };
-        
-        gameState.holdsGenerated++;
-    }
-    
+
+    // Load route into grid using new system
+    loadRoute(route);
+
     renderGrid();
     updateUI();
-    const restInfo = gameState.restHoldIndices.length > 0 ? ` (${gameState.restHoldIndices.length} rest hold${gameState.restHoldIndices.length > 1 ? 's' : ''})` : '';
+
     const attemptInfo = gameState.routeAttempts > 1 ? ` (Attempt #${gameState.routeAttempts})` : '';
-    addFeedback(`Climbing ${route.name}! Reach ${route.holdCount} holds to complete${restInfo}${attemptInfo}.`, 'neutral');
+    addFeedback(`Climbing ${route.name} (${route.grade})! ${route.holdCount} holds to top${attemptInfo}.`, 'neutral');
+    if (route.description) {
+        addFeedback(route.description, 'neutral');
+    }
 }
 
 // Return to world map from climb
@@ -436,18 +404,6 @@ function returnToWorldMap() {
     gameState.gameMode = 'worldmap';
     showWorldMap();
 }
-
-// Original keyboard controls (now wrapped in mode check above)
-document.addEventListener('keydown', (e) => {
-    const key = e.key.toLowerCase();
-    if (key === 'a') selectHand('left');
-    else if (key === 'd') selectHand('right');
-    else if (key === '1') selectMovementStyle('dynamic');
-    else if (key === '2') selectMovementStyle('regular');
-    else if (key === '3') selectMovementStyle('static');
-    else if (key === 'q') useShake();
-    else if (key === 'e') useChalk();
-});
 
 
 

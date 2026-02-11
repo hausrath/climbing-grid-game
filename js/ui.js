@@ -1,128 +1,48 @@
 function showHoldTooltip(hold, row, col, event) {
     if (gameState.gameMode !== 'climbing') return;
-    if (row !== 3 && row !== 4) return; // Only for climbable holds and current position
-    
+
     const tooltipBox = document.getElementById('hold-tooltip-static');
-    
-    // Calculate move difficulty and costs
-    let currentHold = null;
-    for (let c = 0; c < 5; c++) {
-        const checkHold = gameState.grid[gameState.currentRow][c];
-        if (checkHold && checkHold.col === gameState.currentCol) {
-            currentHold = checkHold;
-            break;
-        }
+
+    // Convert viewport to route coords for penalty preview
+    const routeRow = viewportRowToRouteRow(row);
+    const dy = routeRow - gameState.currentRow;
+    const dx = Math.abs(col - gameState.currentCol);
+    const isExtendedMove = (dy >= 2 || dx >= 2);
+
+    // Preview penalty for left and right hand
+    const direction = getMoveDirection(gameState.currentCol, gameState.currentRow, col, routeRow);
+    const penaltyL = lookupPenalty(direction, 'L', hold.angle, gameState.weight);
+    const penaltyR = lookupPenalty(direction, 'R', hold.angle, gameState.weight);
+
+    const penaltyNames = ['Perfect', 'Slight', 'Moderate', 'Severe', 'FALL'];
+    const penaltyColors = ['#a8db60', '#fad882', '#f5aaa2', '#f55', '#f00'];
+
+    // Calculate estimated pump for each hand
+    function estimatePump(penalty) {
+        if (penalty === 4) return 'FALL';
+        let pump = hold.pumpRating + (PENALTY_PUMP_MULTIPLIERS[penalty] || 0);
+        if (isExtendedMove) pump += 2;
+        return `+${pump}`;
     }
-    
-    const moveDifficulty = calculateMoveDifficulty(
-        gameState.currentRow, 
-        gameState.currentCol, 
-        row, 
-        col, 
-        currentHold
-    );
-    
-    // Calculate base costs (with Regular movement style)
-    let gripCost = hold.gripCost;
-    gripCost *= (1 - gameState.power * 0.02);
-    
-    let basePumpCost = hold.pumpBase;
-    basePumpCost *= (1 + moveDifficulty * 2);
-    basePumpCost *= (1 - gameState.endurance * 0.02);
-    
-    // Calculate total distance for movement style modifiers
-    const totalDistance = Math.sqrt(
-        Math.pow(col - gameState.currentCol, 2) + 
-        Math.pow(row - gameState.currentRow, 2)
-    );
-    
-    // Calculate pump costs - same for all movement styles now
-    // Movement styles only affect success chance, not pump cost
-    const staticPump = Math.round(basePumpCost);
-    const regularPump = Math.round(basePumpCost);
-    const dynamicPump = Math.round(basePumpCost);
-    
-    gripCost = Math.round(gripCost);
-    
-    // Find best movement style based on success bonus (not pump)
-    const horizontalDist = Math.abs(col - gameState.currentCol);
-    let best = { style: 'Regular', cost: regularPump };
-    if (horizontalDist <= 1) {
-        best = { style: 'Static', cost: staticPump }; // +10% success on close
-    } else if (horizontalDist >= 2) {
-        best = { style: 'Dynamic', cost: dynamicPump }; // +10% success on far
-    }
-    
-    // Determine move description
-    let moveDesc = 'Easy';
-    if (moveDifficulty > 0.2) moveDesc = 'Hard';
-    else if (moveDifficulty > 0.1) moveDesc = 'Moderate';
-    
-    // Calculate actual success chance with fatigue AND movement style
-    let displaySuccessChance = hold.difficulty;
-    
-    // Apply fatigue penalty
-    if (gameState.fatiguePenalty > 0) {
-        displaySuccessChance -= gameState.fatiguePenalty;
-        displaySuccessChance = Math.max(0.05, displaySuccessChance);
-    }
-    
-    // Apply movement style modifiers (same as moveToHold)
-    let movementBonus = 0;
-    const techniqueMultiplier = 1 + (gameState.technique * 0.1);
-    const horizontalDistance = Math.abs(col - gameState.currentCol);
-    
-    if (gameState.movementStyle === 'static') {
-        if (horizontalDistance <= 1) {
-            movementBonus = 0.10 * techniqueMultiplier; // +10% on close/medium
-        } else {
-            movementBonus = 0; // No benefit on far
-        }
-    } else if (gameState.movementStyle === 'regular') {
-        movementBonus = 0; // No bonus
-    } else if (gameState.movementStyle === 'dynamic') {
-        if (horizontalDistance >= 2) {
-            movementBonus = 0.10 * techniqueMultiplier; // +10% on far
-        } else {
-            movementBonus = 0; // No benefit on close/medium
-        }
-    }
-    
-    displaySuccessChance += movementBonus;
-    displaySuccessChance = Math.max(0.05, Math.min(0.99, displaySuccessChance));
-    
-    // Build fatigue warning
-    let fatigueText = '';
-    if (gameState.fatiguePenalty > 0) {
-        const penaltyPercent = Math.round(gameState.fatiguePenalty * 100);
-        fatigueText = `<div style="color: #f5aaa2; font-size: 0.75em; margin-top: 4px; padding: 4px; background: rgba(245, 170, 162, 0.1); border-radius: 4px;">
-            ⚠️ Fatigued: -${penaltyPercent}% success from resting on bad holds
-        </div>`;
-    }
-    
-    // Determine success bonuses for each style
-    const staticBonusPercent = Math.round((horizontalDist <= 1 ? 0.10 * techniqueMultiplier : 0) * 100);
-    const dynamicBonusPercent = Math.round((horizontalDist >= 2 ? 0.10 * techniqueMultiplier : 0) * 100);
-    const staticBonus = staticBonusPercent > 0 ? `+${staticBonusPercent}%` : '';
-    const dynamicBonus = dynamicBonusPercent > 0 ? `+${dynamicBonusPercent}%` : '';
-    
-    // Build tooltip content with movement style comparison
+
+    const idealWeight = getIdealWeight(hold.angle);
+    const restLabel = hold.isRest ? ' (REST)' : '';
+
     tooltipBox.innerHTML = `
         <div style="width: 100%; text-align: left;">
-            <div style="font-size: 1em; color: #fad882; font-weight: bold; margin-bottom: 6px; text-align: center;">
-                ${hold.label} (${Math.round(displaySuccessChance * 100)}% grab)
+            <div style="font-size: 1em; color: ${hold.color || '#fad882'}; font-weight: bold; margin-bottom: 6px; text-align: center;">
+                ${hold.label} ${hold.angle}°${restLabel}
             </div>
-            ${fatigueText}
-            <div style="font-size: 0.85em; line-height: 1.4; margin-bottom: 6px;">
-                <div style="color: #f5aaa2;">${moveDesc} move • Grip: -${gripCost} • Pump: +${regularPump}</div>
+            <div style="font-size: 0.85em; line-height: 1.6; margin-bottom: 6px;">
+                <div>Pump Rating: ${hold.pumpRating} | Grip Drain: ${hold.gripDrain}</div>
+                <div>Ideal Weight: ${idealWeight}${isExtendedMove ? ' | +2 distance' : ''}</div>
             </div>
-            <div style="padding-top: 4px; border-top: 1px solid #738078; font-size: 0.8em; line-height: 1.5;">
-                <div style="color: ${best.style === 'Static' ? '#a8db60' : '#bdb9ae'};">Static: ${staticBonus ? staticBonus + ' success' : 'no bonus'}</div>
-                <div style="color: ${best.style === 'Regular' ? '#a8db60' : '#bdb9ae'};">Regular: no cooldown</div>
-                <div style="color: ${best.style === 'Dynamic' ? '#a8db60' : '#bdb9ae'};">Dynamic: ${dynamicBonus ? dynamicBonus + ' success' : 'no bonus'}</div>
+            <div style="padding-top: 4px; border-top: 1px solid #738078; font-size: 0.85em; line-height: 1.6;">
+                <div style="color: ${penaltyColors[penaltyL]};">Left hand: ${penaltyNames[penaltyL]} (${estimatePump(penaltyL)} pump)</div>
+                <div style="color: ${penaltyColors[penaltyR]};">Right hand: ${penaltyNames[penaltyR]} (${estimatePump(penaltyR)} pump)</div>
             </div>
-            <div style="margin-top: 4px; font-size: 0.8em; color: #6dbce3; font-style: italic;">
-                Best: ${best.style}
+            <div style="margin-top: 4px; font-size: 0.8em; color: #bdb9ae;">
+                Weight: ${gameState.weight} | ${hold.matchable ? 'Matchable' : 'No match'}
             </div>
         </div>
     `;
@@ -212,95 +132,79 @@ function hideLocationTooltip() {
 function renderGrid() {
     const gridEl = document.getElementById('grid');
     gridEl.innerHTML = '';
-    
+
+    // Determine which holds are reachable from current position
+    const playerVRow = routeRowToViewportRow(gameState.currentRow);
+
     for (let row = 0; row < 5; row++) {
         for (let col = 0; col < 5; col++) {
             const cell = document.createElement('div');
             cell.className = 'grid-cell';
             cell.dataset.row = row;
             cell.dataset.col = col;
-            
-            // Highlight row 3 (next climbable row)
-            if (row === 3 && gameState.grid[row][col]) {
+
+            // Check if this cell's hold is reachable
+            const routeRow = viewportRowToRouteRow(row);
+            const dy = routeRow - gameState.currentRow;
+            const dx = Math.abs(col - gameState.currentCol);
+            const isReachable = dy > 0 && dy <= 2 && dx <= 2;
+
+            if (isReachable && gameState.grid[row][col]) {
                 cell.classList.add('next-row');
             }
-            
-            // Hold exists - render it first
+
             if (gameState.grid[row][col]) {
                 const hold = gameState.grid[row][col];
                 const holdEl = document.createElement('div');
-                holdEl.className = `hold ${hold.type}`;
+                holdEl.className = 'hold semicircle';
+                holdEl.style.setProperty('--hold-angle', `${hold.angle}deg`);
+                holdEl.style.backgroundColor = hold.color || '#738078';
+
                 if (hold.matchable) holdEl.classList.add('matchable');
-                if (hold.isRestHold) holdEl.classList.add('rest-hold');
-                
-                // Check if this is the high point hold
-                const routeKey = `${gameState.currentLocation.id}-${gameState.currentRoute.id}`;
-                const progress = gameState.routeProgress[routeKey];
-                const highPoint = progress ? progress.highPoint : 0;
-                const isHighPoint = (gameState.holdsClimbed + (4 - row)) === highPoint && highPoint > 0;
-                
-                // Display hold label and difficulty
-                const difficultyPercent = Math.round(hold.difficulty * 100);
-                const restIcon = hold.isRestHold ? ' ⚓' : '';
-                const highPointIcon = isHighPoint ? ' 🏔️' : '';
+                if (hold.isRest) holdEl.classList.add('rest-hold');
+
+                // Hold label
+                const restIcon = hold.isRest ? ' R' : '';
                 holdEl.innerHTML = `
-                    <span>${hold.label}${restIcon}${highPointIcon}</span>
-                    <div style="font-size: 0.7em; color: #bdb9ae; margin-top: 2px;">${difficultyPercent}%</div>
+                    <span class="hold-label">${hold.label}${restIcon}</span>
+                    <div class="hold-angle-indicator">${hold.angle}°</div>
                 `;
-                
-                // Add fatigue visual indicator for row 3 (next climbable holds) if fatigued
-                if (row === 3 && gameState.fatiguePenalty > 0) {
-                    const fatigueOverlay = document.createElement('div');
-                    fatigueOverlay.style.position = 'absolute';
-                    fatigueOverlay.style.top = '0';
-                    fatigueOverlay.style.left = '0';
-                    fatigueOverlay.style.width = '100%';
-                    fatigueOverlay.style.height = '100%';
-                    fatigueOverlay.style.border = '2px solid rgba(245, 170, 162, 0.8)';
-                    fatigueOverlay.style.boxShadow = '0 0 10px rgba(245, 170, 162, 0.5)';
-                    fatigueOverlay.style.pointerEvents = 'none';
-                    fatigueOverlay.style.borderRadius = '4px';
-                    fatigueOverlay.style.zIndex = '1';
-                    holdEl.appendChild(fatigueOverlay);
+
+                // Show hand indicator on player's current hold
+                const isPlayerHold = (routeRow === gameState.currentRow && col === gameState.currentCol);
+                if (isPlayerHold && gameState.lastHandUsed) {
+                    const handInd = document.createElement('div');
+                    handInd.className = `hand-indicator ${gameState.lastHandUsed}`;
+                    handInd.textContent = gameState.lastHandUsed === 'left' ? 'L' : 'R';
+                    holdEl.appendChild(handInd);
                 }
-                
-                // Show hand indicator for the last hand used
-                if (gameState.lastHandUsed === 'left') {
-                    const leftInd = document.createElement('div');
-                    leftInd.className = 'hand-indicator left';
-                    leftInd.textContent = 'L';
-                    holdEl.appendChild(leftInd);
-                } else if (gameState.lastHandUsed === 'right') {
-                    const rightInd = document.createElement('div');
-                    rightInd.className = 'hand-indicator right';
-                    rightInd.textContent = 'R';
-                    holdEl.appendChild(rightInd);
-                }
-                
+
                 cell.appendChild(holdEl);
-                
-                // Only make row 3 holds clickable
-                if (row === 3) {
+
+                // Reachable holds are clickable and show tooltips
+                if (isReachable) {
                     cell.classList.add('has-hold');
                     cell.addEventListener('click', () => moveToHold(row, col));
-                    // Add hover events for static tooltip box
                     cell.addEventListener('mouseover', (e) => showHoldTooltip(hold, row, col, e));
                     cell.addEventListener('mouseout', () => hideHoldTooltip());
-                } else if (row === 4) {
-                    // Row 4 (current position) - not clickable but show tooltip
+                } else if (isPlayerHold) {
                     cell.addEventListener('mouseover', (e) => showHoldTooltip(hold, row, col, e));
                     cell.addEventListener('mouseout', () => hideHoldTooltip());
-                    holdEl.style.opacity = '1.0'; // Full opacity for current hold
-                    holdEl.style.cursor = 'help'; // Help cursor for info
+                    holdEl.style.cursor = 'help';
+                } else if (routeRow < gameState.currentRow) {
+                    // Below player — dim
+                    holdEl.style.opacity = '0.35';
+                    holdEl.style.cursor = 'default';
                 } else {
-                    // Make non-clickable holds visually distinct
+                    // Above but out of reach — slightly dimmed
                     holdEl.style.opacity = '0.6';
                     holdEl.style.cursor = 'default';
                 }
             }
-            
-            // Player position - add player emoji ON TOP of hold
-            if (row === gameState.currentRow && col === gameState.currentCol) {
+
+            // Player position
+            const isPlayerCell = (routeRow === gameState.currentRow && col === gameState.currentCol);
+            if (isPlayerCell) {
                 const player = document.createElement('div');
                 player.className = 'player';
                 player.textContent = '🧗';
@@ -314,32 +218,12 @@ function renderGrid() {
                 player.style.justifyContent = 'center';
                 player.style.fontSize = '2em';
                 player.style.zIndex = '10';
-                player.style.pointerEvents = 'none'; // Allow hover through to hold
+                player.style.pointerEvents = 'none';
                 cell.appendChild(player);
             }
-            
+
             gridEl.appendChild(cell);
         }
-    }
-    
-    // Add NO FALL ZONE red line visual if in no-fall zone
-    if (gameState.currentRoute && gameState.currentRoute.noFallZone && 
-        gameState.holdsClimbed >= gameState.currentRoute.noFallZone) {
-        
-        // Add red line below the grid
-        const redLine = document.createElement('div');
-        redLine.className = 'no-fall-zone-line';
-        redLine.style.position = 'absolute';
-        redLine.style.width = '100%';
-        redLine.style.height = '4px';
-        redLine.style.backgroundColor = '#f5aaa2';
-        redLine.style.bottom = '-8px';
-        redLine.style.left = '0';
-        redLine.style.boxShadow = '0 0 15px rgba(245, 170, 162, 0.8)';
-        redLine.style.animation = 'danger-pulse 1s infinite';
-        
-        gridEl.style.position = 'relative';
-        gridEl.appendChild(redLine);
     }
 }
 
@@ -376,51 +260,6 @@ function selectMovementStyle(style) {
     };
     addFeedback(`${styleNames[style]} selected`, 'neutral');
     updateUI();
-}
-
-// Trigger bump animation when grab fails
-function triggerBumpAnimation(targetRow, targetCol) {
-    console.log('triggerBumpAnimation called', { targetRow, targetCol });
-    
-    // Find the player element (🧗 emoji)
-    const playerElement = document.querySelector('.player');
-    console.log('playerElement found:', playerElement);
-    
-    if (!playerElement) {
-        console.error('No player element found!');
-        return;
-    }
-    
-    // Calculate direction to target
-    const currentColPos = gameState.currentCol;
-    const deltaCol = targetCol - currentColPos;
-    
-    console.log('Animation details:', { 
-        currentColPos, 
-        targetCol, 
-        deltaCol 
-    });
-    
-    // Convert grid position delta to pixels
-    // Each cell is 80px + 8px gap = 88px
-    const bumpX = deltaCol * 44; // Half the distance to make it subtle
-    const bumpY = -30; // Move up slightly toward next row
-    
-    console.log('Bump pixels:', { bumpX, bumpY });
-    
-    // Set CSS variables for the animation
-    playerElement.style.setProperty('--bump-x', `${bumpX}px`);
-    playerElement.style.setProperty('--bump-y', `${bumpY}px`);
-    
-    // Add the bumping class
-    playerElement.classList.add('bumping');
-    console.log('Added bumping class, classList:', playerElement.classList);
-    
-    // Remove the class after animation completes
-    setTimeout(() => {
-        playerElement.classList.remove('bumping');
-        console.log('Removed bumping class');
-    }, 350);
 }
 
 function updateSkillActionButtons() {
@@ -674,6 +513,14 @@ function updateUI() {
         dynamicBtn.classList.add('selected');
     }
     
+    // Update weight indicator
+    const weightIndicator = document.getElementById('weight-indicator');
+    if (weightIndicator) {
+        const weightLabels = { left: '← LEFT', center: 'CENTER', right: 'RIGHT →' };
+        weightIndicator.textContent = weightLabels[gameState.weight] || 'CENTER';
+        weightIndicator.className = `weight-indicator weight-${gameState.weight}`;
+    }
+
     // Update action buttons (shake and chalk)
     const shakeBtn = document.getElementById('shake-btn');
     const chalkBtn = document.getElementById('chalk-btn');
