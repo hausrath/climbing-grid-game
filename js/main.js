@@ -44,6 +44,9 @@ document.addEventListener('keydown', (e) => {
     else if (key === 'q') useShake();
     else if (key === 'e') useChalk();
     else if (key === 'r') activateCommit();
+    else if (key === 'z') setWeight('left');
+    else if (key === 'x') setWeight('center');
+    else if (key === 'c') setWeight('right');
 });
 
 // Start game from title screen
@@ -231,11 +234,13 @@ function showRouteSelection(location) {
         effectsText = `<div style="font-size: 0.9em; margin-top: 8px;">${effects.join(' | ')}</div>`;
     }
     
-    // No energy warning
-    const noEnergyWarning = gameState.energy <= 0 ? `
+    // Fatigue warning
+    const availablePump = getAvailablePump();
+    const availableGrip = getAvailableGrip();
+    const fatigueWarning = (availablePump <= 0 || availableGrip <= 0) ? `
         <div style="text-align: center; margin-bottom: 20px; padding: 15px; background: rgba(245, 170, 162, 0.2); border: 2px solid #f5aaa2; border-radius: 8px;">
-            <div style="color: #f5aaa2; font-weight: bold; font-size: 1.1em;">⚡ No Energy!</div>
-            <div style="color: #bdb9ae; font-size: 0.9em; margin-top: 5px;">You don't have enough energy to climb!</div>
+            <div style="color: #f5aaa2; font-weight: bold; font-size: 1.1em;">💤 Too Fatigued!</div>
+            <div style="color: #bdb9ae; font-size: 0.9em; margin-top: 5px;">You're too tired to climb!</div>
             <div style="color: #a8db60; font-size: 0.9em; margin-top: 5px;">Go back to camp to rest.</div>
         </div>
     ` : '';
@@ -247,12 +252,12 @@ function showRouteSelection(location) {
         <p style="text-align: center; color: #bdb9ae; margin-bottom: 10px;">
             ${location.isBoss ? '👑 BOSS LOCATION' : location.difficultyTier.toUpperCase() + ' TIER'}
         </p>
-        ${noEnergyWarning}
+        ${fatigueWarning}
         <div style="text-align: center; margin-bottom: 20px; padding: 10px; background: rgba(15, 19, 26, 0.4); border-radius: 8px;">
             <div style="color: #738078; font-size: 0.85em; margin-bottom: 5px;">${getTimeIcon()} ${gameState.timeOfDay.charAt(0).toUpperCase() + gameState.timeOfDay.slice(1)} - Day ${gameState.day}</div>
             ${conditionsHtml}
             ${effectsText}
-            <div style="margin-top: 8px; color: ${gameState.energy > 0 ? '#a8db60' : '#f5aaa2'};">⚡ Energy: ${gameState.energy}/${gameState.maxEnergy}</div>
+            <div style="margin-top: 8px; color: ${(availablePump > 0 && availableGrip > 0) ? '#a8db60' : '#f5aaa2'};">💪 Available: ${availablePump} Pump / ${availableGrip} Grip</div>
         </div>
         <div id="routes-list"></div>
         <div style="text-align: center;">
@@ -327,13 +332,14 @@ function startClimb(location, route) {
     }
 
     // Check energy before starting climb
-    if (!hasEnergy()) {
-        addFeedback(`You don't have enough energy to climb! Return to camp to rest!`, 'penalty');
+    // Check if player has enough available resources to attempt this route
+    const availablePump = getAvailablePump();
+    const availableGrip = getAvailableGrip();
+
+    if (availablePump <= 0 || availableGrip <= 0) {
+        addFeedback(`You're too fatigued to climb! Return to camp to rest!`, 'penalty');
         return;
     }
-
-    // Use 1 energy for this climb attempt
-    useEnergy();
 
     gameState.gameMode = 'climbing';
 

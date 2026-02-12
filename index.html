@@ -73,9 +73,14 @@
                 </div>
             </div>
 
-            <!-- Weight Indicator -->
+            <!-- Weight Controls -->
             <div class="section-title" style="margin-top: 15px;">Body Weight</div>
-            <div id="weight-indicator" class="weight-indicator weight-center">CENTER</div>
+            <div style="display: flex; gap: 5px; justify-content: center; margin-bottom: 5px;">
+                <button class="hand-button" onclick="setWeight('left')" id="weight-left-btn" style="flex: 1; padding: 8px;">LEFT</button>
+                <button class="hand-button" onclick="setWeight('center')" id="weight-center-btn" style="flex: 1; padding: 8px;">CENTER</button>
+                <button class="hand-button" onclick="setWeight('right')" id="weight-right-btn" style="flex: 1; padding: 8px;">RIGHT</button>
+            </div>
+            <div id="weight-indicator" class="weight-indicator weight-center" style="font-size: 0.85em; text-align: center; color: #bdb9ae;">Current: CENTER</div>
 
             <!-- Combo Indicator -->
             <div id="combo-indicator" style="margin-top: 15px; padding: 10px; border: 2px solid #6dbce3; border-radius: 8px; background: rgba(109, 188, 227, 0.1); display: none;">
@@ -304,23 +309,7 @@
                 </div>
             </div>
 
-            <!-- Energy Display -->
-            <div class="sidebar-info-box" id="sidebar-energy">
-                <div class="box-title">⚡ Energy</div>
-                <div class="box-content">
-                    <div class="energy-display">
-                        <div class="energy-pips" id="energy-pips">
-                            <div class="energy-pip filled"></div>
-                            <div class="energy-pip filled"></div>
-                            <div class="energy-pip filled"></div>
-                            <div class="energy-pip filled"></div>
-                            <div class="energy-pip filled"></div>
-                        </div>
-                        <span id="energy-text">5/5</span>
-                    </div>
-                    <div style="font-size: 0.8em; color: #738078;">Rest at camp to recover</div>
-                </div>
-            </div>
+            <!-- Energy system removed - replaced with fatigue system -->
 
             <!-- Camp Button -->
             <div style="margin-top: 15px;">

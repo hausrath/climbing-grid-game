@@ -3,46 +3,84 @@ function showHoldTooltip(hold, row, col, event) {
 
     const tooltipBox = document.getElementById('hold-tooltip-static');
 
-    // Convert viewport to route coords for penalty preview
+    // Convert viewport to route coords for calculation preview
     const routeRow = viewportRowToRouteRow(row);
     const dy = routeRow - gameState.currentRow;
     const dx = Math.abs(col - gameState.currentCol);
     const isExtendedMove = (dy >= 2 || dx >= 2);
-
-    // Preview penalty for left and right hand
     const direction = getMoveDirection(gameState.currentCol, gameState.currentRow, col, routeRow);
-    const penaltyL = lookupPenalty(direction, 'L', hold.angle, gameState.weight);
-    const penaltyR = lookupPenalty(direction, 'R', hold.angle, gameState.weight);
 
     const penaltyNames = ['Perfect', 'Slight', 'Moderate', 'Severe', 'FALL'];
     const penaltyColors = ['#a8db60', '#fad882', '#f5aaa2', '#f55', '#f00'];
 
-    // Calculate estimated pump for each hand
-    function estimatePump(penalty) {
-        if (penalty === 4) return 'FALL';
-        let pump = hold.pumpRating + (PENALTY_PUMP_MULTIPLIERS[penalty] || 0);
-        if (isExtendedMove) pump += 2;
-        return `+${pump}`;
+    // Build pump breakdown for a given hand
+    function buildHandBreakdown(hand) {
+        const handLabel = hand === 'left' ? 'Left' : 'Right';
+        const penaltyLevel = lookupPenalty(direction, hand, hold.angle, gameState.weight);
+
+        if (penaltyLevel === 4) {
+            return `<div style="color: #f00; font-weight: bold;">${handLabel}: INSTANT FALL</div>`;
+        }
+
+        const basePump = hold.pumpRating || 0;
+        const handMod = getHandHoldPumpModifier(hold.type, hand, hold.angle) || 0;
+        const penaltyPump = PENALTY_PUMP_MULTIPLIERS[penaltyLevel] || 0;
+        let distancePump = 0;
+        let staticReduction = 0;
+
+        if (isExtendedMove) {
+            distancePump = (gameState.movementStyle === 'dynamic') ? 0 : 2;
+        }
+        if (gameState.movementStyle === 'static' && handMod > 0) {
+            staticReduction = 1;
+        }
+
+        const totalPump = Math.max(0, basePump + handMod + penaltyPump + distancePump - staticReduction);
+
+        let details = `Base ${basePump}`;
+        if (handMod > 0) details += ` <span style="color:#f5aaa2;">+${handMod} hand</span>`;
+        if (penaltyPump > 0) details += ` <span style="color:${penaltyColors[penaltyLevel]};">+${penaltyPump} ${penaltyNames[penaltyLevel].toLowerCase()}</span>`;
+        if (distancePump > 0) details += ` <span style="color:#f5aaa2;">+${distancePump} dist</span>`;
+        if (gameState.movementStyle === 'dynamic' && isExtendedMove) details += ` <span style="color:#a8db60;">dyn</span>`;
+        if (staticReduction > 0) details += ` <span style="color:#a8db60;">-${staticReduction} static</span>`;
+
+        return `<div style="color: ${penaltyColors[penaltyLevel]};">${handLabel}: +${totalPump} pump (${details})</div>`;
     }
+
+    // Grip breakdown
+    const baseGrip = hold.gripDrain || 0;
+    const weightMod = getWeightDirectionGripModifier(gameState.weight, direction, hold.angle);
+    const totalGrip = baseGrip + weightMod;
+    let gripDetails = `Base ${baseGrip}`;
+    if (weightMod > 0) gripDetails += ` <span style="color:#f5aaa2;">+${weightMod} weight</span>`;
 
     const idealWeight = getIdealWeight(hold.angle);
     const restLabel = hold.isRest ? ' (REST)' : '';
+    const styleLabel = gameState.movementStyle !== 'regular' ? gameState.movementStyle.toUpperCase() : '';
+
+    // Show selected hand only, or both if none selected
+    let handHtml;
+    if (gameState.selectedHand) {
+        handHtml = buildHandBreakdown(gameState.selectedHand);
+    } else {
+        handHtml = buildHandBreakdown('left') + buildHandBreakdown('right');
+    }
 
     tooltipBox.innerHTML = `
         <div style="width: 100%; text-align: left;">
             <div style="font-size: 1em; color: ${hold.color || '#fad882'}; font-weight: bold; margin-bottom: 6px; text-align: center;">
                 ${hold.label} ${hold.angle}°${restLabel}
             </div>
-            <div style="font-size: 0.85em; line-height: 1.6; margin-bottom: 6px;">
-                <div>Pump Rating: ${hold.pumpRating} | Grip Drain: ${hold.gripDrain}</div>
-                <div>Ideal Weight: ${idealWeight}${isExtendedMove ? ' | +2 distance' : ''}</div>
+            <div style="padding-top: 4px; border-top: 1px solid #738078; font-size: 0.85em; line-height: 1.8;">
+                <div style="color: #fad882; font-weight: bold; margin-bottom: 2px;">PUMP${styleLabel ? ' (' + styleLabel + ')' : ''}</div>
+                ${handHtml}
             </div>
-            <div style="padding-top: 4px; border-top: 1px solid #738078; font-size: 0.85em; line-height: 1.6;">
-                <div style="color: ${penaltyColors[penaltyL]};">Left hand: ${penaltyNames[penaltyL]} (${estimatePump(penaltyL)} pump)</div>
-                <div style="color: ${penaltyColors[penaltyR]};">Right hand: ${penaltyNames[penaltyR]} (${estimatePump(penaltyR)} pump)</div>
+            <div style="padding-top: 4px; border-top: 1px solid #738078; font-size: 0.85em; line-height: 1.8; margin-top: 4px;">
+                <div style="color: #6dbce3; font-weight: bold; margin-bottom: 2px;">GRIP</div>
+                <div style="color: ${weightMod > 0 ? '#f5aaa2' : '#bdb9ae'};">-${totalGrip} grip (${gripDetails})</div>
             </div>
-            <div style="margin-top: 4px; font-size: 0.8em; color: #bdb9ae;">
-                Weight: ${gameState.weight} | ${hold.matchable ? 'Matchable' : 'No match'}
+            <div style="margin-top: 4px; font-size: 0.8em; color: #bdb9ae; border-top: 1px solid #738078; padding-top: 4px;">
+                Ideal Weight: ${idealWeight} | ${hold.matchable ? 'Matchable' : 'No match'}
             </div>
         </div>
     `;
@@ -234,10 +272,47 @@ function selectHand(hand) {
         addFeedback(`Can't use ${hand} hand again! Must alternate or match.`, 'penalty');
         return;
     }
-    
+
     gameState.selectedHand = hand;
     addFeedback(`${hand.charAt(0).toUpperCase() + hand.slice(1)} hand selected`, 'neutral');
     updateUI();
+}
+
+// Set body weight (only one adjacent shift per move: left↔center↔right)
+function setWeight(weight) {
+    const current = gameState.weight;
+    if (current === weight) return;
+
+    if (gameState.weightShiftedThisMove) {
+        addFeedback(`Already shifted weight this move!`, 'penalty');
+        return;
+    }
+
+    const adjacent = { left: ['center'], center: ['left', 'right'], right: ['center'] };
+    if (!adjacent[current].includes(weight)) {
+        addFeedback(`Can't shift from ${current} to ${weight}! Move one step at a time.`, 'penalty');
+        return;
+    }
+
+    gameState.weight = weight;
+    gameState.weightShiftedThisMove = true;
+
+    // Update button states
+    const leftBtn = document.getElementById('weight-left-btn');
+    const centerBtn = document.getElementById('weight-center-btn');
+    const rightBtn = document.getElementById('weight-right-btn');
+
+    if (leftBtn) leftBtn.classList.toggle('selected', weight === 'left');
+    if (centerBtn) centerBtn.classList.toggle('selected', weight === 'center');
+    if (rightBtn) rightBtn.classList.toggle('selected', weight === 'right');
+
+    // Update indicator text
+    const indicator = document.getElementById('weight-indicator');
+    if (indicator) {
+        indicator.textContent = `Current: ${weight.toUpperCase()}`;
+    }
+
+    addFeedback(`Weight shifted to ${weight}`, 'neutral');
 }
 
 // Select movement style
@@ -378,71 +453,8 @@ function updateSkillActionButtons() {
 }
 
 
-function gainXP(amount, reason) {
-    gameState.xp += amount;
-    addFeedback(`+${amount} XP: ${reason}`, 'bonus');
-    
-    // Check for level up
-    while (gameState.xp >= gameState.xpToNextLevel) {
-        levelUp();
-    }
-    
-    updateUI();
-}
+// XP and leveling system removed - progression now through route completion
 
-// Level up
-function levelUp() {
-    gameState.level++;
-    gameState.xp -= gameState.xpToNextLevel;
-    gameState.xpToNextLevel = Math.floor(gameState.xpToNextLevel * 1.5); // 1.5x scaling
-    
-    // Grant 3 stat points and 1 skill point per level
-    gameState.unspentStatPoints += 3;
-    gameState.unspentSkillPoints += 1;
-    
-    addFeedback(`🎉 LEVEL UP! You are now level ${gameState.level}!`, 'bonus');
-    addFeedback(`+3 stat points! Total unspent: ${gameState.unspentStatPoints}`, 'bonus');
-    addFeedback(`+1 skill point! Total unspent: ${gameState.unspentSkillPoints}`, 'bonus');
-    addFeedback(`Next level requires ${gameState.xpToNextLevel} XP`, 'neutral');
-}
-
-// Allocate stat point
-function allocateStatPoint(stat) {
-    // Can only spend points at camp
-    if (gameState.gameMode !== 'camp') {
-        addFeedback('⛺ Return to camp to spend stat points!', 'penalty');
-        return;
-    }
-    
-    if (gameState.unspentStatPoints <= 0) {
-        addFeedback('No stat points available!', 'penalty');
-        return;
-    }
-    
-    gameState[stat]++;
-    gameState.unspentStatPoints--;
-    
-    // Update max resources based on stats
-    gameState.maxPump = 100 + (gameState.endurance * 5);
-    gameState.maxGrip = 100 + (gameState.power * 5);
-    
-    // Update cooldowns based on speed
-    gameState.cooldownLength = Math.max(1, 3 - Math.floor(gameState.speed * 0.2));
-    gameState.actionCooldownLength = Math.max(1, 5 - Math.floor(gameState.speed * 0.2));
-    
-    const statNames = {
-        endurance: 'Endurance',
-        power: 'Power',
-        speed: 'Speed',
-        technique: 'Technique'
-    };
-    
-    addFeedback(`+1 ${statNames[stat]} (now ${gameState[stat]})`, 'bonus');
-    updateUI();
-    updateCampUI();
-}
-
-// Learn a skill
 // Toggle help modal
 function toggleHelpModal() {
     const helpModal = document.getElementById('help-modal');
@@ -587,15 +599,26 @@ function updateUI() {
     document.getElementById('speed-display').textContent = gameState.speed;
     document.getElementById('technique-display').textContent = gameState.technique;
     
-    // Update resources with max values
-    const pumpPercent = Math.min(100, Math.max(0, (gameState.pump / gameState.maxPump) * 100));
-    const gripPercent = Math.min(100, Math.max(0, (gameState.grip / gameState.maxGrip) * 100));
-    
-    document.getElementById('pump-value').textContent = `${Math.round(gameState.pump)}/${gameState.maxPump}`;
+    // Update resources with fatigue system
+    const availablePump = getAvailablePump();
+    const availableGrip = getAvailableGrip();
+
+    const pumpPercent = availablePump > 0 ? Math.min(100, Math.max(0, (gameState.pump / availablePump) * 100)) : 0;
+    const gripPercent = availableGrip > 0 ? Math.min(100, Math.max(0, (gameState.grip / availableGrip) * 100)) : 100;
+
+    // Show available vs max (including fatigue)
+    const pumpText = gameState.pumpFatigue > 0
+        ? `${Math.round(gameState.pump)}/${availablePump} (${gameState.maxPump} max)`
+        : `${Math.round(gameState.pump)}/${gameState.maxPump}`;
+    const gripText = gameState.gripFatigue > 0
+        ? `${Math.round(gameState.grip)}/${availableGrip} (${gameState.maxGrip} max)`
+        : `${Math.round(gameState.grip)}/${gameState.maxGrip}`;
+
+    document.getElementById('pump-value').textContent = pumpText;
     document.getElementById('pump-bar').style.width = `${pumpPercent}%`;
     document.getElementById('pump-bar').textContent = `${Math.round(pumpPercent)}%`;
-    
-    document.getElementById('grip-value').textContent = `${Math.round(gameState.grip)}/${gameState.maxGrip}`;
+
+    document.getElementById('grip-value').textContent = gripText;
     document.getElementById('grip-bar').style.width = `${gripPercent}%`;
     document.getElementById('grip-bar').textContent = `${Math.round(gripPercent)}%`;
     
