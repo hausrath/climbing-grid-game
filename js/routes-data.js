@@ -37,8 +37,8 @@ const PENALTY_TABLE_RAW = [
     ["up-left","R",45,"L",2], ["up-left","L",45,"L",0],
     ["up-left","R",45,"R",4], ["up-left","L",45,"R",3],
     ["up-left","R",90,"C",3], ["up-left","L",90,"C",2],
-    ["up-left","R",90,"L",3], ["up-left","L",90,"L",1],
-    ["up-left","R",90,"R",4], ["up-left","L",90,"R",4],
+    ["up-left","R",90,"L",0], ["up-left","L",90,"L",1],
+    ["up-left","R",90,"R",1], ["up-left","L",90,"R",4],
     ["up-left","R",135,"C",3], ["up-left","L",135,"C",2],
     ["up-left","R",135,"L",3], ["up-left","L",135,"L",1],
     ["up-left","R",135,"R",4], ["up-left","L",135,"R",4],
@@ -49,7 +49,7 @@ const PENALTY_TABLE_RAW = [
     ["up-left","R",225,"L",3], ["up-left","L",225,"L",3],
     ["up-left","R",225,"R",2], ["up-left","L",225,"R",1],
     ["up-left","R",270,"C",2], ["up-left","L",270,"C",1],
-    ["up-left","R",270,"L",3], ["up-left","L",270,"L",2],
+    ["up-left","R",270,"L",3], ["up-left","L",270,"L",3],
     ["up-left","R",270,"R",1], ["up-left","L",270,"R",0],
     ["up-left","R",315,"C",2], ["up-left","L",315,"C",1],
     ["up-left","R",315,"L",3], ["up-left","L",315,"L",2],
@@ -63,8 +63,8 @@ const PENALTY_TABLE_RAW = [
     ["up-right","R",45,"L",0], ["up-right","L",45,"L",1],
     ["up-right","R",45,"R",2], ["up-right","L",45,"R",3],
     ["up-right","R",90,"C",1], ["up-right","L",90,"C",2],
-    ["up-right","R",90,"L",0], ["up-right","L",90,"L",1],
-    ["up-right","R",90,"R",2], ["up-right","L",90,"R",3],
+    ["up-right","R",90,"L",1], ["up-right","L",90,"L",0],
+    ["up-right","R",90,"R",3], ["up-right","L",90,"R",3],
     ["up-right","R",135,"C",1], ["up-right","L",135,"C",4],
     ["up-right","R",135,"L",1], ["up-right","L",135,"L",2],
     ["up-right","R",135,"R",3], ["up-right","L",135,"R",3],
@@ -95,6 +95,15 @@ const PENALTY_PUMP_MULTIPLIERS = {
     1: 1,    // Slight: +1 pump
     2: 3,    // Moderate: +3 pump
     3: 6,    // Severe: +6 pump
+    4: -1,   // Instant fall
+};
+
+// Penalty level -> additional grip drain (reduced rate vs pump)
+const PENALTY_GRIP_MULTIPLIERS = {
+    0: 0,    // No penalty
+    1: 0,    // Slight: no extra grip drain
+    2: 1,    // Moderate: +1 grip drain
+    3: 2,    // Severe: +2 grip drain
     4: -1,   // Instant fall
 };
 

@@ -14,8 +14,8 @@ function useShake() {
         return;
     }
 
-    // Calculate pump reduction
-    const basePumpReduction = 5;
+    // Calculate pump reduction (diminishing returns: -1 per shake used)
+    const basePumpReduction = Math.max(1, 5 - gameState.shakesUsed);
     const pumpReduction = Math.round(basePumpReduction * (1 + effectivenessBonus));
     gameState.pump = Math.max(0, gameState.pump - pumpReduction);
 
@@ -198,6 +198,16 @@ function moveToHold(row, col) {
         return;
     }
 
+    // Safety: ensure pump and grip are valid numbers
+    if (isNaN(gameState.pump)) {
+        console.error('gameState.pump is NaN! Resetting to 0');
+        gameState.pump = 0;
+    }
+    if (isNaN(gameState.grip)) {
+        console.error('gameState.grip is NaN! Resetting to maxGrip');
+        gameState.grip = gameState.maxGrip;
+    }
+
     // Must select a hand first
     if (!gameState.selectedHand) {
         addFeedback('Select a hand first (A or D)!', 'penalty');
@@ -231,7 +241,9 @@ function moveToHold(row, col) {
     const feedback = [];
 
     // ---- Step 3: Calculate PUMP cost (hold type + hand choice + penalty table) ----
-    let pumpCost = hold.pumpRating || 0; // Base pump from hold (default to 0 if undefined)
+    // Base hold pump cost (DISABLED for testing - keeping for future use)
+    // let pumpCost = (typeof hold.pumpRating === 'number' && !isNaN(hold.pumpRating)) ? hold.pumpRating : 0;
+    let pumpCost = 0;
 
     // Add hand-hold pump modifier (how hand choice affects pump for this hold angle)
     const handHoldModifier = getHandHoldPumpModifier(hold.type, hand, hold.angle) || 0;
@@ -307,37 +319,47 @@ function moveToHold(row, col) {
         }
     }
 
-    // ---- Step 4: Calculate GRIP drain (weight + direction) ----
-    let gripDrain = hold.gripDrain || 0; // Base grip from hold (default to 0 if undefined)
+    // ---- Step 4: Calculate GRIP drain (weight + direction + penalty table) ----
+    // Base hold grip drain (DISABLED for testing - keeping for future use)
+    // let gripDrain = (typeof hold.gripDrain === 'number' && !isNaN(hold.gripDrain)) ? hold.gripDrain : 0;
+    let gripDrain = 0;
 
     // Apply weight-direction grip modifier (how body position affects grip security)
-    const weightDirModifier = getWeightDirectionGripModifier(gameState.weight, direction, hold.angle);
+    const weightDirModifier = getWeightDirectionGripModifier(gameState.weight, direction, hold.angle) || 0;
     gripDrain += weightDirModifier;
 
     if (weightDirModifier > 0) {
         feedback.push({ text: `Poor weight position: +${weightDirModifier} grip drain`, type: 'penalty' });
     }
 
-    // Apply weather modifiers to grip drain
-    if (gameState.currentConditions) {
-        if (gameState.currentConditions.humidity === 'humid') {
-            gripDrain = Math.round(gripDrain * 1.5);
-            feedback.push({ text: `Humid: +50% grip drain`, type: 'penalty' });
-        } else if (gameState.currentConditions.humidity === 'dry') {
-            gripDrain = Math.round(gripDrain * 0.8);
-            feedback.push({ text: `Dry conditions: -20% grip drain`, type: 'bonus' });
-        }
+    // Apply penalty table to grip (reduced rate vs pump)
+    const penaltyGripCost = PENALTY_GRIP_MULTIPLIERS[penaltyLevel] || 0;
+    gripDrain += penaltyGripCost;
+
+    if (penaltyGripCost > 0) {
+        feedback.push({ text: `${penaltyNames[penaltyLevel]} penalty: +${penaltyGripCost} grip drain`, type: 'penalty' });
     }
 
-    // Apply weather modifiers to pump
-    if (gameState.currentConditions) {
-        if (gameState.currentConditions.temperature === 'hot') {
-            pumpCost = Math.round(pumpCost * 1.15);
-        }
-        if (gameState.currentConditions.wind === 'heavy') {
-            pumpCost = Math.round(pumpCost * 1.1);
-        }
-    }
+    // Apply weather modifiers to grip drain (DISABLED - keeping for future use)
+    // if (gameState.currentConditions) {
+    //     if (gameState.currentConditions.humidity === 'humid') {
+    //         gripDrain = Math.round(gripDrain * 1.5);
+    //         feedback.push({ text: `Humid: +50% grip drain`, type: 'penalty' });
+    //     } else if (gameState.currentConditions.humidity === 'dry') {
+    //         gripDrain = Math.round(gripDrain * 0.8);
+    //         feedback.push({ text: `Dry conditions: -20% grip drain`, type: 'bonus' });
+    //     }
+    // }
+
+    // Apply weather modifiers to pump (DISABLED - keeping for future use)
+    // if (gameState.currentConditions) {
+    //     if (gameState.currentConditions.temperature === 'hot') {
+    //         pumpCost = Math.round(pumpCost * 1.15);
+    //     }
+    //     if (gameState.currentConditions.wind === 'heavy') {
+    //         pumpCost = Math.round(pumpCost * 1.1);
+    //     }
+    // }
 
     // ---- Step 7: Apply skill modifiers ----
     const skillPumpReduction = calculateSkillPumpReduction();
@@ -363,8 +385,10 @@ function moveToHold(row, col) {
     }
 
     // Stat modifiers
-    pumpCost = Math.round(pumpCost * (1 - gameState.endurance * 0.02));
-    gripDrain = Math.round(gripDrain * (1 - gameState.power * 0.02));
+    const endurance = gameState.endurance || 0;
+    const power = gameState.power || 0;
+    pumpCost = Math.round(pumpCost * (1 - endurance * 0.02));
+    gripDrain = Math.round(gripDrain * (1 - power * 0.02));
 
     // Commit: halve pump cost
     if (gameState.commitActive) {
@@ -372,9 +396,33 @@ function moveToHold(row, col) {
         feedback.push({ text: `COMMIT: pump cost halved!`, type: 'bonus' });
     }
 
-    // Ensure minimums
-    pumpCost = Math.max(0, pumpCost);
-    gripDrain = Math.max(0, gripDrain);
+    // Climbing fatigue: pump and grip costs accelerate over the climb
+    // +5% per hold climbed (hold 1 = +5%, hold 10 = +50%, etc.)
+    const fatigueMultiplier = 1 + (gameState.holdsClimbed * 0.05);
+    if (gameState.holdsClimbed > 0) {
+        pumpCost = Math.round(pumpCost * fatigueMultiplier);
+        gripDrain = Math.round(gripDrain * fatigueMultiplier);
+        if (fatigueMultiplier >= 1.2) {
+            feedback.push({ text: `Climbing fatigue: +${Math.round((fatigueMultiplier - 1) * 100)}% costs`, type: 'penalty' });
+        }
+    }
+
+    // Ensure minimums and handle NaN
+    if (isNaN(pumpCost)) {
+        console.error('pumpCost is NaN! Resetting to 0. Hold:', hold);
+        pumpCost = 0;
+    } else {
+        pumpCost = Math.max(0, pumpCost);
+    }
+
+    if (isNaN(gripDrain)) {
+        console.error('gripDrain is NaN! Resetting to 0. Hold:', hold);
+        gripDrain = 0;
+    } else {
+        gripDrain = Math.max(0, gripDrain);
+    }
+
+    console.log('Final pumpCost:', pumpCost, 'gripDrain:', gripDrain);
 
     // ---- Step 8: Calculate penalty level for flow state ----
     // Penalty is based on total modifiers applied to the move
@@ -448,17 +496,6 @@ function moveToHold(row, col) {
     // Record familiarity
     recordSuccessfulGrab(hold.holdIndex);
 
-    // Combo tracking (flow state tracked for star challenge only)
-    gameState.comboCount++;
-    if (gameState.comboCount >= 3 && !gameState.flowStateActive) {
-        gameState.flowStateActive = true;
-    }
-
-    // Flow state tracking for star challenge
-    if (gameState.flowStateActive) {
-        gameState.holdsCompletedInFlowState++;
-    }
-
     // Handle matching
     if (hold.matchable && gameState.lastHandUsed !== null && gameState.lastHandUsed !== gameState.selectedHand) {
         feedback.push({ text: `Matched! Both hands & crosses reset`, type: 'bonus' });
@@ -475,7 +512,7 @@ function moveToHold(row, col) {
     // Reset per-move state
     gameState.selectedHand = null;
     gameState.movementStyle = 'regular';
-    gameState.weightShiftedThisMove = false;
+    gameState.weightAtMoveStart = gameState.weight;
 
     // Update viewport and render
     updateViewport();
@@ -535,14 +572,10 @@ function completeRoute() {
     const timeLimit = route.stars?.speed?.timeLimit || (route.holdCount * 5);
     const roundedTime = Math.round(timeElapsed);
 
-    // Calculate flow requirement
-    const flowRequirement = Math.ceil(route.holdCount / 2);
-
     // Check star challenges (new puzzle-based stars)
     const starResults = {
         completion: true,
         speed: roundedTime <= timeLimit,
-        flow: gameState.holdsCompletedInFlowState >= flowRequirement,
         pumpEfficiency: route.stars?.pumpEfficiency
             ? gameState.pump <= route.stars.pumpEfficiency.maxPump
             : gameState.pump <= Math.round(gameState.maxPump * 0.3),
@@ -577,7 +610,6 @@ function completeRoute() {
         gameState.completedRoutes[routeKey].starResults = {
             completion: true,
             speed: gameState.completedRoutes[routeKey].starResults?.speed || starResults.speed,
-            flow: gameState.completedRoutes[routeKey].starResults?.flow || starResults.flow,
             pumpEfficiency: gameState.completedRoutes[routeKey].starResults?.pumpEfficiency || starResults.pumpEfficiency,
             noRecovery: gameState.completedRoutes[routeKey].starResults?.noRecovery || starResults.noRecovery,
             flashClimb: gameState.completedRoutes[routeKey].starResults?.flashClimb || starResults.flashClimb
@@ -585,12 +617,10 @@ function completeRoute() {
         gameState.completedRoutes[routeKey].stars = Object.values(gameState.completedRoutes[routeKey].starResults).filter(v => v).length;
     }
 
-    // Award pump/grip banking for routes with 2+ stars
-    if (starsEarned >= 2) {
-        gameState.bankedPumpIncrease += 1;
-        gameState.bankedGripIncrease += 1;
-        addFeedback('⭐ Banked +1 max pump & +1 max grip! Rest to realize gains.', 'bonus');
-    }
+    // Award pump/grip banking for route completion (no star requirement)
+    gameState.bankedPumpIncrease += 1;
+    gameState.bankedGripIncrease += 1;
+    addFeedback('💪 Banked +1 max pump & +1 max grip! Rest to realize gains.', 'bonus');
 
     // Award loot if route has it
     const loot = awardRouteLoot(location, route);
@@ -623,10 +653,6 @@ function completeRoute() {
             <div style="font-size: 0.7em; color: #bdb9ae;">${roundedTime}s / ${timeLimit}s limit</div>
         </div>
         <div style="font-size: 1.2em; margin-bottom: 15px;">
-            ${starResults.flow ? '⭐' : '☆'} Flow Master
-            <div style="font-size: 0.7em; color: #bdb9ae;">${gameState.holdsCompletedInFlowState} / ${flowRequirement} flow holds</div>
-        </div>
-        <div style="font-size: 1.2em; margin-bottom: 15px;">
             ${starResults.pumpEfficiency ? '⭐' : '☆'} Pump Efficiency
             <div style="font-size: 0.7em; color: #bdb9ae;">${pumpEffLabel} (ended at ${gameState.pump})</div>
         </div>
@@ -647,7 +673,7 @@ function completeRoute() {
 
     title.textContent = 'ROUTE COMPLETED!';
     msg.innerHTML = `
-        <div style="font-size: 2em; margin-bottom: 20px;">${starsEarned}/6 ⭐</div>
+        <div style="font-size: 2em; margin-bottom: 20px;">${starsEarned}/5 ⭐</div>
         ${lootHtml}
         ${starDisplay}
         <div style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #738078;">

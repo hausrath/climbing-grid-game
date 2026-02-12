@@ -14,59 +14,39 @@ function updateCampUI() {
     const timeName = gameState.timeOfDay.charAt(0).toUpperCase() + gameState.timeOfDay.slice(1);
     document.getElementById('camp-subtitle').textContent = `Day ${gameState.day} - ${timeIcon} ${timeName}`;
     
-    // Update fatigue status in camp
-    const availablePump = getAvailablePump();
-    const availableGrip = getAvailableGrip();
+    // Update energy pips in camp
     const campPips = document.getElementById('camp-energy-pips');
-    if (campPips) {
-        campPips.innerHTML = `<div style="color: #bdb9ae; font-size: 0.9em;">💪 Available: ${availablePump} Pump / ${availableGrip} Grip</div>`;
+    campPips.innerHTML = '';
+    for (let i = 0; i < gameState.maxEnergy; i++) {
+        const pip = document.createElement('div');
+        pip.className = 'energy-pip' + (i < gameState.energy ? ' filled' : '');
+        campPips.appendChild(pip);
     }
-    const campEnergyText = document.getElementById('camp-energy-text');
-    if (campEnergyText) {
-        campEnergyText.textContent = gameState.pumpFatigue > 0 || gameState.gripFatigue > 0 ?
-            `Fatigue: ${gameState.pumpFatigue} Pump / ${gameState.gripFatigue} Grip` : 'Fully Rested';
-    }
-
+    document.getElementById('camp-energy-text').textContent = `${gameState.energy}/${gameState.maxEnergy}`;
+    
     // Update points notification
-    const availableStars = calculateAvailableStars();
-    const hasPoints = availableStars > 0;
-    const notification = document.getElementById('camp-points-notification');
-    if (notification) {
-        notification.style.display = hasPoints ? 'block' : 'none';
-    }
-    const statPoints = document.getElementById('camp-stat-points');
-    if (statPoints) statPoints.textContent = '0';
-    const skillPoints = document.getElementById('camp-skill-points');
-    if (skillPoints) skillPoints.textContent = availableStars;
-
-    // Update rest button (disabled if no fatigue and no banked gains)
+    const hasPoints = gameState.unspentStatPoints > 0 || gameState.unspentSkillPoints > 0;
+    document.getElementById('camp-points-notification').style.display = hasPoints ? 'block' : 'none';
+    document.getElementById('camp-stat-points').textContent = gameState.unspentStatPoints;
+    document.getElementById('camp-skill-points').textContent = gameState.unspentSkillPoints;
+    
+    // Update rest button (disabled if energy full)
     const restBtn = document.getElementById('camp-rest');
-    const hasFatigue = gameState.pumpFatigue > 0 || gameState.gripFatigue > 0;
-    const hasBankedGains = gameState.bankedPumpIncrease > 0 || gameState.bankedGripIncrease > 0;
-    if (!hasFatigue && !hasBankedGains) {
+    if (gameState.energy >= gameState.maxEnergy) {
         restBtn.classList.add('disabled');
-        restBtn.innerHTML = '<span class="icon">😴</span>Rest<br><span style="font-size: 0.7em; color: #738078;">Fully rested</span>';
+        restBtn.innerHTML = '<span class="icon">😴</span>Rest<br><span style="font-size: 0.7em; color: #738078;">Energy full</span>';
     } else {
         restBtn.classList.remove('disabled');
-        const bankedText = hasBankedGains ? `<br><span style="font-size: 0.7em; color: #fad882;">+${gameState.bankedPumpIncrease}/${gameState.bankedGripIncrease} to realize</span>` : '';
-        restBtn.innerHTML = `<span class="icon">😴</span>Rest${bankedText}`;
+        restBtn.innerHTML = '<span class="icon">😴</span>Rest';
     }
     
-    // Update spend points overlay values (legacy code - stat system removed)
-    const spendStatCount = document.getElementById('spend-stat-count');
-    if (spendStatCount) spendStatCount.textContent = '0';
-    const spendSkillCount = document.getElementById('spend-skill-count');
-    if (spendSkillCount) spendSkillCount.textContent = availableStars;
-
-    // Legacy stat displays (system removed)
-    const campEndurance = document.getElementById('camp-endurance');
-    if (campEndurance) campEndurance.textContent = '0';
-    const campPower = document.getElementById('camp-power');
-    if (campPower) campPower.textContent = '0';
-    const campSpeed = document.getElementById('camp-speed');
-    if (campSpeed) campSpeed.textContent = '0';
-    const campTechnique = document.getElementById('camp-technique');
-    if (campTechnique) campTechnique.textContent = '0';
+    // Update spend points overlay values
+    document.getElementById('spend-stat-count').textContent = gameState.unspentStatPoints;
+    document.getElementById('spend-skill-count').textContent = gameState.unspentSkillPoints;
+    document.getElementById('camp-endurance').textContent = gameState.endurance;
+    document.getElementById('camp-power').textContent = gameState.power;
+    document.getElementById('camp-speed').textContent = gameState.speed;
+    document.getElementById('camp-technique').textContent = gameState.technique;
     
     // Update commit skill button
     if (gameState.skills.commit) {
@@ -100,15 +80,16 @@ function updateCampSkillsPreview() {
     let skillsShown = 0;
     for (const [skillId, skill] of Object.entries(skillDatabase)) {
         if (skillsShown >= 6) break;
-
+        
+        const currentPoints = gameState.skills[skillId] || 0;
         const currentRank = getSkillRank(skillId);
         const maxRank = skill.ranks.length;
-
+        
         if (currentRank < maxRank) {
             const canUpgrade = canUpgradeSkill(skillId);
-            const nextRankCost = skill.starCosts[currentRank];
+            const nextRankCost = skill.pointsPerRank;
             const color = categoryColors[skill.category] || '#bdb9ae';
-
+            
             html += `
                 <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px; margin-bottom: 6px; background: rgba(0,0,0,0.2); border-radius: 4px; border-left: 3px solid ${color};">
                     <div>
@@ -116,16 +97,16 @@ function updateCampSkillsPreview() {
                         <div style="font-size: 0.7em; color: #738078;">Rank ${currentRank}/${maxRank}</div>
                     </div>
                     <button class="hand-button" onclick="learnSkill('${skillId}')" style="border-color: ${color}; padding: 4px 10px; font-size: 0.8em;" ${canUpgrade ? '' : 'disabled'}>
-                        ${nextRankCost} ⭐
+                        +${nextRankCost} pt
                     </button>
                 </div>
             `;
             skillsShown++;
         }
     }
-
+    
     if (skillsShown === 0) {
-        html = '<div style="color: #738078; font-size: 0.85em; text-align: center;">All skills maxed or no stars available</div>';
+        html = '<div style="color: #738078; font-size: 0.85em; text-align: center;">All skills maxed or no points available</div>';
     }
     
     container.innerHTML = html;
@@ -137,39 +118,28 @@ function closeCampSpendPoints() {
     updateCampUI();
 }
 
-// Rest at camp - reset fatigue, realize banked gains, and advance to next day
+// Rest at camp - recover energy and advance to next day
 function campRest() {
-    if (gameState.pumpFatigue === 0 && gameState.gripFatigue === 0 &&
-        gameState.bankedPumpIncrease === 0 && gameState.bankedGripIncrease === 0) {
-        addFeedback('You\'re already fully rested with no training to realize!', 'neutral');
+    if (gameState.energy >= gameState.maxEnergy) {
+        addFeedback('You\'re already fully rested!', 'neutral');
         return;
     }
-
-    // Realize banked pump/grip increases
-    if (gameState.bankedPumpIncrease > 0 || gameState.bankedGripIncrease > 0) {
-        gameState.maxPump += gameState.bankedPumpIncrease;
-        gameState.maxGrip += gameState.bankedGripIncrease;
-        addFeedback(`💪 Training realized! +${gameState.bankedPumpIncrease} max pump, +${gameState.bankedGripIncrease} max grip`, 'bonus');
-        gameState.bankedPumpIncrease = 0;
-        gameState.bankedGripIncrease = 0;
-    }
-
-    // Reset fatigue
-    gameState.pumpFatigue = 0;
-    gameState.gripFatigue = 0;
-
+    
+    // Recover all energy
+    gameState.energy = gameState.maxEnergy;
+    
     // Advance to next day
     gameState.day++;
     gameState.timeOfDay = 'morning';
     gameState.climbsThisPeriod = 0;
-
+    
     // Generate new conditions for the new day
     generateDailyConditions();
-
+    
     addFeedback(`😴 You rest through the night...`, 'neutral');
-    addFeedback(`☀️ Day ${gameState.day} begins! Fatigue cleared.`, 'bonus');
+    addFeedback(`☀️ Day ${gameState.day} begins! Energy fully restored.`, 'bonus');
     addFeedback(`Today's conditions: ${getConditionsDescription()}`, 'neutral');
-
+    
     updateCampUI();
     updateSidebarConditions();
 }
@@ -415,14 +385,12 @@ function showBeta(locationId, routeId) {
     const holdSequence = generateBetaHoldSequence(location, route);
     document.getElementById('beta-holds').innerHTML = holdSequence;
     
-    // Update climb button state based on fatigue
+    // Update climb button state based on energy
     const climbBtn = document.getElementById('beta-climb-btn');
-    const availablePumpCheck = getAvailablePump();
-    const availableGripCheck = getAvailableGrip();
-    if (availablePumpCheck <= 0 || availableGripCheck <= 0) {
+    if (gameState.energy <= 0) {
         climbBtn.style.opacity = '0.5';
         climbBtn.style.cursor = 'not-allowed';
-        climbBtn.textContent = '💤 Too Fatigued';
+        climbBtn.textContent = '⚡ No Energy';
     } else {
         climbBtn.style.opacity = '1';
         climbBtn.style.cursor = 'pointer';
@@ -523,10 +491,8 @@ function closeBeta() {
 // Start climbing from beta view
 function climbFromBeta() {
     if (!currentBetaLocation || !currentBetaRoute) return;
-    const availablePumpCheck = getAvailablePump();
-    const availableGripCheck = getAvailableGrip();
-    if (availablePumpCheck <= 0 || availableGripCheck <= 0) {
-        addFeedback(`💤 You're too fatigued to climb! Return to camp to rest!`, 'penalty');
+    if (gameState.energy <= 0) {
+        addFeedback(`⚡ You don't have enough energy to climb! Return to camp to rest!`, 'penalty');
         return;
     }
     
@@ -754,15 +720,15 @@ function updateSidebarConditions() {
     
     document.getElementById('conditions-display').innerHTML = conditionsHtml;
     
-    // Update fatigue display in sidebar (energy system removed)
+    // Update energy pips in sidebar
     const sidebarPips = document.getElementById('energy-pips');
-    if (sidebarPips) {
-        sidebarPips.innerHTML = ''; // Energy pips removed
+    sidebarPips.innerHTML = '';
+    for (let i = 0; i < gameState.maxEnergy; i++) {
+        const pip = document.createElement('div');
+        pip.className = 'energy-pip' + (i < gameState.energy ? ' filled' : '');
+        sidebarPips.appendChild(pip);
     }
-    const energyText = document.getElementById('energy-text');
-    if (energyText) {
-        energyText.textContent = ''; // Energy text removed
-    }
+    document.getElementById('energy-text').textContent = `${gameState.energy}/${gameState.maxEnergy}`;
 }
 
 // Update sidebar location modifiers display
@@ -836,7 +802,20 @@ function advanceTime() {
     }
 }
 
-// ============ PHASE 12: Energy System REMOVED ============
-// Energy system replaced with fatigue system
-// Fatigue is added on each climb attempt and removed when resting at camp
+// ============ PHASE 12: Energy System ============
+
+// Use energy for a climb attempt
+function useEnergy() {
+    if (gameState.energy <= 0) {
+        return false;
+    }
+    gameState.energy--;
+    updateSidebarConditions();
+    return true;
+}
+
+// Check if player has energy
+function hasEnergy() {
+    return gameState.energy > 0;
+}
 

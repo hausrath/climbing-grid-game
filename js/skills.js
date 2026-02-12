@@ -1,56 +1,27 @@
 // Get skill rank (0 = not learned, 1+ = rank)
 function getSkillRank(skillId) {
     const skill = skillDatabase[skillId];
-    if (!skill || !skill.starCosts) return 0;
-
-    const starsInvested = gameState.skills[skillId] || 0;
-
-    // Loop through star costs to determine rank based on cumulative costs
-    let cumulative = 0;
-    for (let i = 0; i < skill.starCosts.length; i++) {
-        cumulative += skill.starCosts[i];
-        if (starsInvested < cumulative) {
-            return i; // Rank i (0-indexed)
-        }
-    }
-
-    // If we've invested enough for all ranks, return max rank
-    return skill.starCosts.length;
+    if (!skill) return 0;
+    const points = gameState.skills[skillId] || 0;
+    return Math.floor(points / skill.pointsPerRank);
 }
 
 // Check if skill can be upgraded
 function canUpgradeSkill(skillId) {
     const skill = skillDatabase[skillId];
-    if (!skill || !skill.starCosts) return false;
-
-    const currentRank = getSkillRank(skillId);
-
-    // Can't upgrade if already at max rank
-    if (currentRank >= skill.starCosts.length) return false;
-
-    // Check if we have enough available stars for the next rank
-    const nextRankCost = skill.starCosts[currentRank];
-    const availableStars = calculateAvailableStars();
-
-    return availableStars >= nextRankCost;
+    if (!skill) return false;
+    const current = gameState.skills[skillId] || 0;
+    return gameState.unspentSkillPoints >= skill.pointsPerRank && current < skill.maxPoints;
 }
 
 // Upgrade a skill
 function upgradeSkill(skillId) {
     if (!canUpgradeSkill(skillId)) return false;
-
     const skill = skillDatabase[skillId];
-    const currentRank = getSkillRank(skillId);
-    const rankCost = skill.starCosts[currentRank];
-
-    // Add stars to this skill
-    gameState.skills[skillId] = (gameState.skills[skillId] || 0) + rankCost;
-
-    // Track spent stars
-    gameState.spentStars += rankCost;
-
-    const newRank = getSkillRank(skillId);
-    addFeedback(`⭐ Learned ${skill.ranks[newRank - 1].name}! (${rankCost} stars)`, 'bonus');
+    gameState.skills[skillId] = (gameState.skills[skillId] || 0) + skill.pointsPerRank;
+    gameState.unspentSkillPoints -= skill.pointsPerRank;
+    const rank = getSkillRank(skillId);
+    addFeedback(`Learned ${skill.ranks[rank - 1].name}!`, 'bonus');
     updateSidebarSkillPoints();
     return true;
 }
@@ -421,12 +392,11 @@ function updateSkillStateAfterMove(success, penalty) {
     checkAdrenalineRush();
 }
 
-// Update sidebar stars indicator
+// Update sidebar skill points indicator
 function updateSidebarSkillPoints() {
     const el = document.getElementById('sidebar-skill-points');
     if (el) {
-        const availableStars = calculateAvailableStars();
-        el.textContent = availableStars > 0 ? `(${availableStars} ⭐)` : '';
+        el.textContent = gameState.unspentSkillPoints > 0 ? `(${gameState.unspentSkillPoints})` : '';
     }
 }
 

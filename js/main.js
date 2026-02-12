@@ -368,16 +368,14 @@ function startClimb(location, route) {
     gameState.lastHandUsed = null;
     gameState.currentHand = null;
     gameState.weight = 'center';
+    gameState.weightAtMoveStart = 'center';
     gameState.consecutiveCrosses = 0;
     gameState.movementStyle = 'regular';
     gameState.staticCooldown = 0;
     gameState.dynamicCooldown = 0;
     gameState.shakeCooldown = 0;
     gameState.chalkCooldown = 0;
-    gameState.comboCount = 0;
-    gameState.flowStateActive = false;
     gameState.climbStartTime = Date.now();
-    gameState.holdsCompletedInFlowState = 0;
     gameState.shakesUsed = 0;
     gameState.chalksUsed = 0;
     gameState.chalkRemaining = gameState.maxChalk;

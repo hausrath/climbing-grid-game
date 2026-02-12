@@ -13,15 +13,20 @@ function showHoldTooltip(hold, row, col, event) {
     const penaltyNames = ['Perfect', 'Slight', 'Moderate', 'Severe', 'FALL'];
     const penaltyColors = ['#a8db60', '#fad882', '#f5aaa2', '#f55', '#f00'];
 
-    // Build pump breakdown for a given hand
+    // Fatigue multiplier preview
+    const fatigueMultiplier = 1 + (gameState.holdsClimbed * 0.05);
+    const fatiguePercent = Math.round((fatigueMultiplier - 1) * 100);
+
+    // Build pump and grip breakdown for a given hand
     function buildHandBreakdown(hand) {
         const handLabel = hand === 'left' ? 'Left' : 'Right';
         const penaltyLevel = lookupPenalty(direction, hand, hold.angle, gameState.weight);
 
         if (penaltyLevel === 4) {
-            return `<div style="color: #f00; font-weight: bold;">${handLabel}: INSTANT FALL</div>`;
+            return { pumpHtml: `<div style="color: #f00; font-weight: bold;">${handLabel}: INSTANT FALL</div>`, gripHtml: '', penaltyLevel };
         }
 
+        // Pump calculation
         const basePump = hold.pumpRating || 0;
         const handMod = getHandHoldPumpModifier(hold.type, hand, hold.angle) || 0;
         const penaltyPump = PENALTY_PUMP_MULTIPLIERS[penaltyLevel] || 0;
@@ -35,36 +40,61 @@ function showHoldTooltip(hold, row, col, event) {
             staticReduction = 1;
         }
 
-        const totalPump = Math.max(0, basePump + handMod + penaltyPump + distancePump - staticReduction);
+        const rawPump = Math.max(0, basePump + handMod + penaltyPump + distancePump - staticReduction);
+        const totalPump = gameState.holdsClimbed > 0 ? Math.round(rawPump * fatigueMultiplier) : rawPump;
 
-        let details = `Base ${basePump}`;
-        if (handMod > 0) details += ` <span style="color:#f5aaa2;">+${handMod} hand</span>`;
-        if (penaltyPump > 0) details += ` <span style="color:${penaltyColors[penaltyLevel]};">+${penaltyPump} ${penaltyNames[penaltyLevel].toLowerCase()}</span>`;
-        if (distancePump > 0) details += ` <span style="color:#f5aaa2;">+${distancePump} dist</span>`;
-        if (gameState.movementStyle === 'dynamic' && isExtendedMove) details += ` <span style="color:#a8db60;">dyn</span>`;
-        if (staticReduction > 0) details += ` <span style="color:#a8db60;">-${staticReduction} static</span>`;
+        let pumpDetails = `Base ${basePump}`;
+        if (handMod > 0) pumpDetails += ` <span style="color:#f5aaa2;">+${handMod} hand</span>`;
+        if (penaltyPump > 0) pumpDetails += ` <span style="color:${penaltyColors[penaltyLevel]};">+${penaltyPump} ${penaltyNames[penaltyLevel].toLowerCase()}</span>`;
+        if (distancePump > 0) pumpDetails += ` <span style="color:#f5aaa2;">+${distancePump} dist</span>`;
+        if (gameState.movementStyle === 'dynamic' && isExtendedMove) pumpDetails += ` <span style="color:#a8db60;">dyn</span>`;
+        if (staticReduction > 0) pumpDetails += ` <span style="color:#a8db60;">-${staticReduction} static</span>`;
 
-        return `<div style="color: ${penaltyColors[penaltyLevel]};">${handLabel}: +${totalPump} pump (${details})</div>`;
+        const pumpHtml = `<div style="color: ${penaltyColors[penaltyLevel]};">${handLabel}: +${totalPump} pump (${pumpDetails})</div>`;
+
+        // Grip penalty from this hand's penalty level
+        const penaltyGrip = PENALTY_GRIP_MULTIPLIERS[penaltyLevel] || 0;
+        return { pumpHtml, penaltyGrip, penaltyLevel };
     }
 
-    // Grip breakdown
+    // Base grip breakdown (hand-independent parts)
     const baseGrip = hold.gripDrain || 0;
     const weightMod = getWeightDirectionGripModifier(gameState.weight, direction, hold.angle);
-    const totalGrip = baseGrip + weightMod;
-    let gripDetails = `Base ${baseGrip}`;
-    if (weightMod > 0) gripDetails += ` <span style="color:#f5aaa2;">+${weightMod} weight</span>`;
 
     const idealWeight = getIdealWeight(hold.angle);
     const restLabel = hold.isRest ? ' (REST)' : '';
     const styleLabel = gameState.movementStyle !== 'regular' ? gameState.movementStyle.toUpperCase() : '';
 
-    // Show selected hand only, or both if none selected
-    let handHtml;
+    // Build hand-specific sections
+    let pumpHtml = '';
+    let gripPenaltyGrip = 0;
+    let gripPenaltyLabel = '';
+
     if (gameState.selectedHand) {
-        handHtml = buildHandBreakdown(gameState.selectedHand);
+        const result = buildHandBreakdown(gameState.selectedHand);
+        pumpHtml = result.pumpHtml;
+        gripPenaltyGrip = result.penaltyGrip || 0;
+        if (gripPenaltyGrip > 0) {
+            gripPenaltyLabel = penaltyNames[result.penaltyLevel].toLowerCase();
+        }
     } else {
-        handHtml = buildHandBreakdown('left') + buildHandBreakdown('right');
+        const resultL = buildHandBreakdown('left');
+        const resultR = buildHandBreakdown('right');
+        pumpHtml = resultL.pumpHtml + resultR.pumpHtml;
+        // Show worst-case grip penalty when no hand selected
+        gripPenaltyGrip = Math.max(resultL.penaltyGrip || 0, resultR.penaltyGrip || 0);
+        if (gripPenaltyGrip > 0) gripPenaltyLabel = 'penalty';
     }
+
+    const rawGrip = baseGrip + weightMod + gripPenaltyGrip;
+    const totalGrip = gameState.holdsClimbed > 0 ? Math.round(rawGrip * fatigueMultiplier) : rawGrip;
+    let gripDetails = `Base ${baseGrip}`;
+    if (weightMod > 0) gripDetails += ` <span style="color:#f5aaa2;">+${weightMod} weight</span>`;
+    if (gripPenaltyGrip > 0) gripDetails += ` <span style="color:#f5aaa2;">+${gripPenaltyGrip} ${gripPenaltyLabel}</span>`;
+    const hasGripPenalty = weightMod > 0 || gripPenaltyGrip > 0;
+
+    // Fatigue label
+    const fatigueHtml = fatiguePercent > 0 ? `<div style="font-size: 0.8em; color: #f5aaa2; margin-top: 2px;">Fatigue: +${fatiguePercent}% all costs</div>` : '';
 
     tooltipBox.innerHTML = `
         <div style="width: 100%; text-align: left;">
@@ -73,12 +103,13 @@ function showHoldTooltip(hold, row, col, event) {
             </div>
             <div style="padding-top: 4px; border-top: 1px solid #738078; font-size: 0.85em; line-height: 1.8;">
                 <div style="color: #fad882; font-weight: bold; margin-bottom: 2px;">PUMP${styleLabel ? ' (' + styleLabel + ')' : ''}</div>
-                ${handHtml}
+                ${pumpHtml}
             </div>
             <div style="padding-top: 4px; border-top: 1px solid #738078; font-size: 0.85em; line-height: 1.8; margin-top: 4px;">
                 <div style="color: #6dbce3; font-weight: bold; margin-bottom: 2px;">GRIP</div>
-                <div style="color: ${weightMod > 0 ? '#f5aaa2' : '#bdb9ae'};">-${totalGrip} grip (${gripDetails})</div>
+                <div style="color: ${hasGripPenalty ? '#f5aaa2' : '#bdb9ae'};">-${totalGrip} grip (${gripDetails})</div>
             </div>
+            ${fatigueHtml}
             <div style="margin-top: 4px; font-size: 0.8em; color: #bdb9ae; border-top: 1px solid #738078; padding-top: 4px;">
                 Ideal Weight: ${idealWeight} | ${hold.matchable ? 'Matchable' : 'No match'}
             </div>
@@ -89,7 +120,7 @@ function showHoldTooltip(hold, row, col, event) {
 // Hide hold information (reset to default message)
 function hideHoldTooltip() {
     const tooltipBox = document.getElementById('hold-tooltip-static');
-    tooltipBox.innerHTML = 'Hover over a hold to see details';
+    tooltipBox.innerHTML = 'Hover over hold<br>to see details';
 }
 
 // Show location modifier tooltip
@@ -163,7 +194,7 @@ function showLocationTooltip(location, event) {
 // Hide location tooltip
 function hideLocationTooltip() {
     const tooltipBox = document.getElementById('hold-tooltip-static');
-    tooltipBox.innerHTML = 'Hover over a location to see modifiers';
+    tooltipBox.innerHTML = 'Hover over location<br>to see modifiers';
 }
 
 // Render the grid
@@ -280,22 +311,17 @@ function selectHand(hand) {
 
 // Set body weight (only one adjacent shift per move: left↔center↔right)
 function setWeight(weight) {
-    const current = gameState.weight;
-    if (current === weight) return;
+    if (gameState.weight === weight) return;
 
-    if (gameState.weightShiftedThisMove) {
-        addFeedback(`Already shifted weight this move!`, 'penalty');
-        return;
-    }
-
-    const adjacent = { left: ['center'], center: ['left', 'right'], right: ['center'] };
-    if (!adjacent[current].includes(weight)) {
-        addFeedback(`Can't shift from ${current} to ${weight}! Move one step at a time.`, 'penalty');
+    // Check adjacency against starting weight for this move (can only shift one step)
+    const startWeight = gameState.weightAtMoveStart;
+    const reachable = { left: ['left', 'center'], center: ['left', 'center', 'right'], right: ['center', 'right'] };
+    if (!reachable[startWeight].includes(weight)) {
+        addFeedback(`Can't reach ${weight} from ${startWeight}! Only one step per move.`, 'penalty');
         return;
     }
 
     gameState.weight = weight;
-    gameState.weightShiftedThisMove = true;
 
     // Update button states
     const leftBtn = document.getElementById('weight-left-btn');
@@ -622,23 +648,9 @@ function updateUI() {
     document.getElementById('grip-bar').style.width = `${gripPercent}%`;
     document.getElementById('grip-bar').textContent = `${Math.round(gripPercent)}%`;
     
-    // Update combo indicator
+    // Hide combo indicator (flow state system removed)
     const comboIndicator = document.getElementById('combo-indicator');
-    const comboText = document.getElementById('combo-text');
-    
-    if (gameState.flowStateActive) {
-        comboIndicator.style.display = 'block';
-        comboIndicator.style.borderColor = '#a8db60';
-        comboIndicator.style.background = 'rgba(168, 219, 96, 0.2)';
-        comboText.style.color = '#a8db60';
-        comboText.textContent = '🌊 FLOW STATE ACTIVE!';
-    } else if (gameState.comboCount > 0) {
-        comboIndicator.style.display = 'block';
-        comboIndicator.style.borderColor = '#6dbce3';
-        comboIndicator.style.background = 'rgba(109, 188, 227, 0.1)';
-        comboText.style.color = '#6dbce3';
-        comboText.textContent = `COMBO: ${gameState.comboCount}/3`;
-    } else {
+    if (comboIndicator) {
         comboIndicator.style.display = 'none';
     }
     
