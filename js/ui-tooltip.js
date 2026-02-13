@@ -73,7 +73,8 @@ function refreshTooltip() {
         return { pumpHtml, penaltyGrip, penaltyLevel };
     }
 
-    // Grip breakdown (base hold cost disabled)
+    // Grip breakdown
+    const baseGrip = getBaseGripDrain(hold.type, hold.angle);
     const weightMod = getWeightDirectionGripModifier(gameState.weight, direction, hold.angle);
     const idealWeight = getIdealWeight(hold.angle);
     const restLabel = hold.isRest ? ' (REST)' : '';
@@ -83,11 +84,17 @@ function refreshTooltip() {
     let gripPenaltyGrip = 0;
     let gripPenaltyLabel = '';
 
+    // Determine cross-body status for selected hand (or worst case for both)
+    let crossGripCost = 0;
     if (gameState.selectedHand) {
         const result = buildHandBreakdown(gameState.selectedHand);
         pumpHtml = result.pumpHtml;
         gripPenaltyGrip = result.penaltyGrip || 0;
         if (gripPenaltyGrip > 0) gripPenaltyLabel = penaltyNames[result.penaltyLevel].toLowerCase();
+        const isCross = isCrossMove(gameState.selectedHand === 'left' ? 'L' : 'R', direction);
+        if (isCross && gameState.movementStyle !== 'static') {
+            crossGripCost = gameState.consecutiveCrosses >= 1 ? 4 : 2;
+        }
     } else {
         const resultL = buildHandBreakdown('left');
         const resultR = buildHandBreakdown('right');
@@ -96,14 +103,17 @@ function refreshTooltip() {
         if (gripPenaltyGrip > 0) gripPenaltyLabel = 'penalty';
     }
 
-    const rawGrip = weightMod + gripPenaltyGrip;
+    const rawGrip = baseGrip.total + weightMod + gripPenaltyGrip + crossGripCost;
     const totalGrip = gameState.holdsClimbed > 0 ? Math.round(rawGrip * fatigueMultiplier) : rawGrip;
 
     let gripParts = [];
+    gripParts.push(`<span style="color:#bdb9ae;">${baseGrip.typeGrip} ${hold.type}</span>`);
+    if (baseGrip.subtypeName) gripParts.push(`<span style="color:#f5aaa2;">+${baseGrip.subtypePenalty} ${baseGrip.subtypeName}</span>`);
+    if (crossGripCost > 0) gripParts.push(`<span style="color:#f5aaa2;">+${crossGripCost} cross</span>`);
     if (weightMod > 0) gripParts.push(`<span style="color:#f5aaa2;">+${weightMod} weight</span>`);
     if (gripPenaltyGrip > 0) gripParts.push(`<span style="color:#f5aaa2;">+${gripPenaltyGrip} ${gripPenaltyLabel}</span>`);
-    const gripDetails = gripParts.length > 0 ? ` (${gripParts.join(' ')})` : '';
-    const hasGripPenalty = weightMod > 0 || gripPenaltyGrip > 0;
+    const gripDetails = ` (${gripParts.join(' ')})`;
+    const hasGripPenalty = rawGrip > baseGrip.typeGrip;
 
     const fatigueHtml = fatiguePercent > 0 ? `<div style="font-size: 0.8em; color: #f5aaa2; margin-top: 2px;">Fatigue: +${fatiguePercent}% all costs</div>` : '';
 

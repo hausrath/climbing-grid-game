@@ -52,6 +52,11 @@ function useShake() {
         addFeedback(`Perfect Execution: reduced pump on next move!`, 'bonus');
     }
 
+    // Shake counts as a turn for cooldown purposes
+    if (gameState.staticCooldown > 0) gameState.staticCooldown--;
+    if (gameState.dynamicCooldown > 0) gameState.dynamicCooldown--;
+    if (gameState.commitCooldown > 0) gameState.commitCooldown--;
+
     updateUI();
 }
 
@@ -85,8 +90,8 @@ function useChalk() {
 
     gameState.chalksUsed++;
 
-    // Calculate cooldown
-    let actualCooldown = gameState.actionCooldownLength;
+    // Calculate cooldown (chalk has 1-turn cooldown)
+    let actualCooldown = 1;
     if (cooldownReduction >= 999) {
         actualCooldown = 0;
     } else {
@@ -98,11 +103,6 @@ function useChalk() {
     }
 
     addFeedback(`Chalked up! +${gripIncrease} grip (${gameState.chalkRemaining}/${gameState.maxChalk} uses left)`, 'bonus');
-    if (actualCooldown > 0) {
-        addFeedback(`Cooldown: ${actualCooldown} moves`, 'neutral');
-    } else {
-        addFeedback(`No cooldown!`, 'bonus');
-    }
 
     // Deadpoint tracking
     if (getSkillRank('deadpoint') >= 1) {
@@ -115,6 +115,11 @@ function useChalk() {
         gameState.skillState.recoveryBonus = 1;
         addFeedback(`Perfect Execution: reduced pump on next move!`, 'bonus');
     }
+
+    // Chalk counts as a turn for cooldown purposes
+    if (gameState.staticCooldown > 0) gameState.staticCooldown--;
+    if (gameState.dynamicCooldown > 0) gameState.dynamicCooldown--;
+    if (gameState.commitCooldown > 0) gameState.commitCooldown--;
 
     updateUI();
 }

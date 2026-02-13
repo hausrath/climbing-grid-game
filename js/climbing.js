@@ -97,10 +97,10 @@ function moveToHold(row, col) {
         feedback.push({ text: `${penaltyNames[penaltyLevel]} penalty: +${penaltyPumpCost} pump`, type: penaltyLevel >= 3 ? 'penalty' : 'neutral' });
     }
 
-    // Technique: Static reduces pump by small amount on awkward positions
+    // Technique: Static reduces penalty level by 1 on awkward positions
     let staticUsed = false;
     if (gameState.movementStyle === 'static' && handHoldModifier > 0) {
-        pumpCost = Math.max(hold.pumpRating, pumpCost - 1);
+        pumpCost = Math.max(0, pumpCost - 1);
         staticUsed = true;
         feedback.push({ text: `Static technique: pump reduced!`, type: 'bonus' });
     }
@@ -129,28 +129,31 @@ function moveToHold(row, col) {
         }
     }
 
-    // Consecutive cross penalty: +2 pump per consecutive cross after first
+    // Cross-body: tracked for grip penalty (applied in grip section below)
     if (crossMove) {
-        const crossModifier = getSkillCrossBodyModifier();
-        if (gameState.consecutiveCrosses > 0 && crossModifier > 0) {
-            const crossPenalty = Math.round(gameState.consecutiveCrosses * 2 * crossModifier);
-            if (crossPenalty > 0) {
-                pumpCost += crossPenalty;
-                feedback.push({ text: `Consecutive cross #${gameState.consecutiveCrosses + 1}: +${crossPenalty} pump`, type: 'penalty' });
-            } else {
-                feedback.push({ text: `Cross-body (Ambidextrous negated penalty!)`, type: 'bonus' });
-            }
-        } else if (crossModifier === 0) {
-            feedback.push({ text: `Cross-body (Ambidextrous: no penalty)`, type: 'bonus' });
-        } else {
-            feedback.push({ text: `Cross-body move`, type: 'neutral' });
-        }
+        feedback.push({ text: `Cross-body move`, type: 'neutral' });
     }
 
-    // ---- Step 4: Calculate GRIP drain (weight + direction + penalty table) ----
-    // Base hold grip drain (DISABLED for testing - keeping for future use)
-    // let gripDrain = (typeof hold.gripDrain === 'number' && !isNaN(hold.gripDrain)) ? hold.gripDrain : 0;
-    let gripDrain = 0;
+    // ---- Step 4: Calculate GRIP drain ----
+    // Base grip drain from hold type + subtype
+    const baseGrip = getBaseGripDrain(hold.type, hold.angle);
+    let gripDrain = baseGrip.total;
+
+    if (baseGrip.subtypeName) {
+        feedback.push({ text: `${hold.type} ${baseGrip.subtypeName}: ${baseGrip.typeGrip}+${baseGrip.subtypePenalty} grip`, type: 'neutral' });
+    }
+
+    // Cross-body grip penalty: +2 first cross, +4 second consecutive cross
+    if (crossMove) {
+        if (gameState.movementStyle === 'static') {
+            if (!staticUsed) staticUsed = true;
+            feedback.push({ text: `Static technique: cross-body grip penalty negated!`, type: 'bonus' });
+        } else {
+            const crossGrip = gameState.consecutiveCrosses >= 1 ? 4 : 2;
+            gripDrain += crossGrip;
+            feedback.push({ text: `Cross-body: +${crossGrip} grip drain`, type: 'penalty' });
+        }
+    }
 
     // Apply weight-direction grip modifier (how body position affects grip security)
     const weightDirModifier = getWeightDirectionGripModifier(gameState.weight, direction, hold.angle) || 0;

@@ -30,8 +30,8 @@ const PENALTY_TABLE_RAW = [
     ["up","R",315,"R",0], ["up","L",315,"R",0],
 
     // === UP-LEFT (up 1, left 1) ===
-    ["up-left","R",0,"C",2], ["up-left","L",0,"C",1],
-    ["up-left","R",0,"L",1], ["up-left","L",0,"L",0],
+    ["up-left","R",0,"C",2], ["up-left","L",0,"C",0],
+    ["up-left","R",0,"L",1], ["up-left","L",0,"L",1],
     ["up-left","R",0,"R",3], ["up-left","L",0,"R",2],
     ["up-left","R",45,"C",3], ["up-left","L",45,"C",1],
     ["up-left","R",45,"L",2], ["up-left","L",45,"L",0],
@@ -56,9 +56,9 @@ const PENALTY_TABLE_RAW = [
     ["up-left","R",315,"R",1], ["up-left","L",315,"R",0],
 
     // === UP-RIGHT (up 1, right 1) ===
-    ["up-right","R",0,"C",1], ["up-right","L",0,"C",2],
+    ["up-right","R",0,"C",0], ["up-right","L",0,"C",2],
     ["up-right","R",0,"L",2], ["up-right","L",0,"L",3],
-    ["up-right","R",0,"R",0], ["up-right","L",0,"R",1],
+    ["up-right","R",0,"R",1], ["up-right","L",0,"R",1],
     ["up-right","R",45,"C",1], ["up-right","L",45,"C",2],
     ["up-right","R",45,"L",0], ["up-right","L",45,"L",1],
     ["up-right","R",45,"R",2], ["up-right","L",45,"R",3],
@@ -124,6 +124,34 @@ function normalizeAngle(angle) {
     let a = ((angle % 360) + 360) % 360;
     // Round to nearest 45
     return Math.round(a / 45) * 45 % 360;
+}
+
+// Base grip drain by hold type
+const HOLD_TYPE_GRIP_DRAIN = {
+    jug: 1,
+    pocket: 2,
+    undercling: 2,
+    pinch: 3,
+    edge: 3,
+    crimp: 4,
+    sloper: 5
+};
+
+// Subtype grip penalty based on hold angle (stacks with hold type)
+// Sidepull: hold faces sideways (90°, 270°)
+// Gaston: hold faces diagonally down (135°, 225°)
+function getHoldSubtypeGrip(holdAngle) {
+    const a = normalizeAngle(holdAngle);
+    if (a === 90 || a === 270) return { penalty: 2, name: 'sidepull' };
+    if (a === 135 || a === 225) return { penalty: 2, name: 'gaston' };
+    return { penalty: 0, name: null };
+}
+
+// Total base grip drain for a hold (type + subtype)
+function getBaseGripDrain(holdType, holdAngle) {
+    const typeGrip = HOLD_TYPE_GRIP_DRAIN[holdType] || 1;
+    const subtype = getHoldSubtypeGrip(holdAngle);
+    return { total: typeGrip + subtype.penalty, typeGrip, subtypePenalty: subtype.penalty, subtypeName: subtype.name };
 }
 
 // Get the ideal weight position for a given hold angle
