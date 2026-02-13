@@ -5,8 +5,7 @@ const skillDatabase = {
         id: 'dyno',
         name: 'Dyno',
         category: 'athletics',
-        maxPoints: 15,
-        pointsPerRank: 3,
+        starCosts: [5, 8, 12, 17, 23], // Total: 65 stars for all 5 ranks
         description: 'Master explosive moves that skip holds and cover distance.',
         ranks: [
             { name: 'Dyno Basics', effect: 'Can skip 1 hold. -3% pump on dynamic moves.' },
@@ -20,8 +19,7 @@ const skillDatabase = {
         id: 'flowState',
         name: 'Flow State',
         category: 'athletics',
-        maxPoints: 12,
-        pointsPerRank: 3,
+        starCosts: [5, 8, 12, 17], // Total: 42 stars for all 4 ranks
         description: 'Perfect positioning builds momentum, reducing costs.',
         ranks: [
             { name: 'Finding the Rhythm', effect: 'After 3 low-penalty moves: -50% pump & grip costs.' },
@@ -34,8 +32,7 @@ const skillDatabase = {
         id: 'ironGrip',
         name: 'Iron Grip',
         category: 'athletics',
-        maxPoints: 9,
-        pointsPerRank: 3,
+        starCosts: [5, 8, 12], // Total: 25 stars for all 3 ranks
         description: 'Vice-like fingers that reduce grip drain.',
         ranks: [
             { name: 'Strong Fingers', effect: '10% chance negate grip drain. -5% grip drain.' },
@@ -47,8 +44,7 @@ const skillDatabase = {
         id: 'grit',
         name: 'Grit',
         category: 'athletics',
-        maxPoints: 9,
-        pointsPerRank: 3,
+        starCosts: [5, 8, 12], // Total: 25 stars for all 3 ranks
         description: 'Mental toughness that reduces pump when fatigued.',
         ranks: [
             { name: 'Determined', effect: '-10% pump cost when pump >80%.' },
@@ -60,8 +56,7 @@ const skillDatabase = {
         id: 'deadpoint',
         name: 'Deadpoint',
         category: 'athletics',
-        maxPoints: 1,
-        pointsPerRank: 1,
+        starCosts: [5], // Total: 5 stars for 1 rank
         description: 'Perfect timing at the moment of weightlessness.',
         ranks: [
             { name: 'Perfect Timing', effect: 'After chalk: 0 pump cost. After shake: 0 grip drain.' }
@@ -71,8 +66,7 @@ const skillDatabase = {
         id: 'kneebar',
         name: 'Kneebar Mastery',
         category: 'athletics',
-        maxPoints: 9,
-        pointsPerRank: 3,
+        starCosts: [5, 8, 12], // Total: 25 stars for all 3 ranks
         description: 'Create improvised rests using leg positions.',
         ranks: [
             { name: 'Basic Kneebar', effect: '1x/route rest. Recover 5 pump/move. 3-move cooldown.' },
@@ -84,8 +78,7 @@ const skillDatabase = {
         id: 'battleCry',
         name: 'Battle Cry',
         category: 'athletics',
-        maxPoints: 6,
-        pointsPerRank: 3,
+        starCosts: [5, 8], // Total: 13 stars for all 2 ranks
         description: 'A powerful yell that reduces pump costs.',
         ranks: [
             { name: "Warrior's Shout", effect: '1x/route. 5 moves: -30% pump cost, +20% chalk effectiveness.' },
@@ -96,8 +89,7 @@ const skillDatabase = {
         id: 'precisionFootwork',
         name: 'Precision Footwork',
         category: 'athletics',
-        maxPoints: 12,
-        pointsPerRank: 3,
+        starCosts: [5, 8, 12, 17], // Total: 42 stars for all 4 ranks
         description: 'Perfect foot placement reduces pump costs.',
         ranks: [
             { name: 'Mindful Steps', effect: '-3% pump cost per move.' },
@@ -110,8 +102,7 @@ const skillDatabase = {
         id: 'adrenalineRush',
         name: 'Adrenaline Rush',
         category: 'athletics',
-        maxPoints: 1,
-        pointsPerRank: 1,
+        starCosts: [5], // Total: 5 stars for 1 rank
         description: 'When dire, adrenaline eliminates costs.',
         ranks: [
             { name: 'Survival Instinct', effect: 'When pump >80% AND grip <30%: 4 moves with 0 pump cost, -50% grip drain. 1x/route.' }
@@ -121,8 +112,7 @@ const skillDatabase = {
         id: 'ambidextrous',
         name: 'Ambidextrous',
         category: 'athletics',
-        maxPoints: 6,
-        pointsPerRank: 3,
+        starCosts: [5, 8], // Total: 13 stars for all 2 ranks
         description: 'Train both hands equally for flexibility.',
         ranks: [
             { name: 'Dual Training', effect: '-50% cross-body pump penalty. Alternating hands: -3% pump.' },
@@ -135,8 +125,7 @@ const skillDatabase = {
         id: 'efficientRecovery',
         name: 'Efficient Recovery',
         category: 'utility',
-        maxPoints: 15,
-        pointsPerRank: 3,
+        starCosts: [5, 8, 12, 17, 23], // Total: 65 stars for all 5 ranks
         description: 'Master recovery, making chalk and shake more effective.',
         ranks: [
             { name: 'Quick Hands', effect: 'Shake/chalk cooldown -1.' },
@@ -150,8 +139,7 @@ const skillDatabase = {
         id: 'grapplingHook',
         name: 'Grappling Hook',
         category: 'utility',
-        maxPoints: 9,
-        pointsPerRank: 3,
+        starCosts: [5, 8, 12], // Total: 25 stars for all 3 ranks
         description: 'Deploy a hook to access distant holds.',
         ranks: [
             { name: 'Basic Hook', effect: '1x/route: target hold within 3 spaces (0 cost). 5-move cooldown.' },
@@ -163,8 +151,7 @@ const skillDatabase = {
         id: 'pitonPlacement',
         name: 'Piton Placement',
         category: 'utility',
-        maxPoints: 6,
-        pointsPerRank: 3,
+        starCosts: [5, 8], // Total: 13 stars for all 2 ranks
         description: 'Drive pitons for safety and rest opportunities.',
         ranks: [
             { name: 'Safety First', effect: '2x/route: place piton. 25% catch on fall. Rest 3 moves (8 pump, 5 grip/move).' },
@@ -175,8 +162,7 @@ const skillDatabase = {
         id: 'climbingSalve',
         name: 'Climbing Salve',
         category: 'utility',
-        maxPoints: 9,
-        pointsPerRank: 3,
+        starCosts: [5, 8, 12], // Total: 25 stars for all 3 ranks
         description: 'Apply salve that restores pump and grip.',
         ranks: [
             { name: 'Herbal Remedy', effect: '1x/route: restore 30 pump, 30 grip. Reduced costs for 3 moves.' },
@@ -188,8 +174,7 @@ const skillDatabase = {
         id: 'stimulant',
         name: 'Stimulant',
         category: 'utility',
-        maxPoints: 6,
-        pointsPerRank: 3,
+        starCosts: [5, 8], // Total: 13 stars for all 2 ranks
         description: 'Consume stimulant for speed and reduced cooldowns.',
         ranks: [
             { name: 'Energy Rush', effect: '1x/route. All cooldowns -2 for 8 moves. +10s speed star time.' },
@@ -200,8 +185,7 @@ const skillDatabase = {
         id: 'headlamp',
         name: 'Headlamp',
         category: 'utility',
-        maxPoints: 9,
-        pointsPerRank: 3,
+        starCosts: [5, 8, 12], // Total: 25 stars for all 3 ranks
         description: 'See more holds and route information ahead.',
         ranks: [
             { name: 'Basic Illumination', effect: 'See 2 additional holds ahead. No night penalty.' },
@@ -213,8 +197,7 @@ const skillDatabase = {
         id: 'routeJournal',
         name: 'Route Journal',
         category: 'utility',
-        maxPoints: 12,
-        pointsPerRank: 3,
+        starCosts: [5, 8, 12, 17], // Total: 42 stars for all 4 ranks
         description: 'Document routes for reduced costs on repeated attempts.',
         ranks: [
             { name: 'Taking Notes', effect: '2nd attempt: -5% pump. 3rd+: -8% pump.' },
@@ -227,8 +210,7 @@ const skillDatabase = {
         id: 'wingsuit',
         name: 'Wingsuit',
         category: 'utility',
-        maxPoints: 1,
-        pointsPerRank: 1,
+        starCosts: [5], // Total: 5 stars for 1 rank
         description: 'Deploy wingsuit to glide laterally.',
         ranks: [
             { name: 'Controlled Glide', effect: '1x/route: glide to any hold same level within 8 spaces. 0 cost. Reset to 70% pump/grip.' }
@@ -238,8 +220,7 @@ const skillDatabase = {
         id: 'crashPad',
         name: 'Crash Pad',
         category: 'utility',
-        maxPoints: 6,
-        pointsPerRank: 3,
+        starCosts: [5, 8], // Total: 13 stars for all 2 ranks
         description: 'Place pads that save you from fall consequences.',
         ranks: [
             { name: 'Safety Net', effect: '1x/route: place pad. On fall: return to last hold at 50% pump/grip.' },
@@ -250,8 +231,7 @@ const skillDatabase = {
         id: 'weatherReading',
         name: 'Weather Reading',
         category: 'utility',
-        maxPoints: 9,
-        pointsPerRank: 3,
+        starCosts: [5, 8, 12], // Total: 25 stars for all 3 ranks
         description: 'Predict and adapt to weather conditions.',
         ranks: [
             { name: 'Basic Forecasting', effect: 'See weather 3 periods ahead. -20% weather pump/grip penalties.' },
@@ -265,8 +245,7 @@ const skillDatabase = {
         id: 'transmogrify',
         name: 'Transmogrify',
         category: 'magic',
-        maxPoints: 9,
-        pointsPerRank: 3,
+        starCosts: [5, 8, 12], // Total: 25 stars for all 3 ranks
         description: 'Change hold types to adapt routes to your strengths.',
         ranks: [
             { name: 'Basic Alteration', effect: '1x/route: change hold to random type. 5-move cooldown.' },
@@ -278,8 +257,7 @@ const skillDatabase = {
         id: 'teleport',
         name: 'Teleport',
         category: 'magic',
-        maxPoints: 12,
-        pointsPerRank: 3,
+        starCosts: [5, 8, 12, 17], // Total: 42 stars for all 4 ranks
         description: 'Instantly relocate to different holds.',
         ranks: [
             { name: 'Blink', effect: '1x/route: teleport to random hold within 3 spaces. 0 cost.' },
@@ -292,8 +270,7 @@ const skillDatabase = {
         id: 'seer',
         name: 'Seer',
         category: 'magic',
-        maxPoints: 12,
-        pointsPerRank: 3,
+        starCosts: [5, 8, 12, 17], // Total: 42 stars for all 4 ranks
         description: 'Divine knowledge about routes through mystical vision.',
         ranks: [
             { name: 'Third Eye', effect: 'See hold types for next 3 holds. See penalty preview.' },
@@ -306,8 +283,7 @@ const skillDatabase = {
         id: 'timeDilation',
         name: 'Time Dilation',
         category: 'magic',
-        maxPoints: 9,
-        pointsPerRank: 3,
+        starCosts: [5, 8, 12], // Total: 25 stars for all 3 ranks
         description: 'Slow time, reducing pump and grip costs.',
         ranks: [
             { name: 'Temporal Shift', effect: '1x/route. 5 moves: -40% pump/grip costs.' },
@@ -319,8 +295,7 @@ const skillDatabase = {
         id: 'rockcreate',
         name: 'Rockcreate',
         category: 'magic',
-        maxPoints: 9,
-        pointsPerRank: 3,
+        starCosts: [5, 8, 12], // Total: 25 stars for all 3 ranks
         description: 'Conjure new holds from thin air.',
         ranks: [
             { name: 'Stone Shaping', effect: '2x/route: create random hold on adjacent tile. Lasts 8 moves.' },
@@ -332,8 +307,7 @@ const skillDatabase = {
         id: 'sunmark',
         name: 'Sunmark',
         category: 'magic',
-        maxPoints: 6,
-        pointsPerRank: 3,
+        starCosts: [5, 8], // Total: 13 stars for all 2 ranks
         description: 'Mark holds with golden light for reduced costs.',
         ranks: [
             { name: 'Blessing of Light', effect: 'Mark 2 holds: -15% pump cost, 0 grip drain.' },
@@ -344,8 +318,7 @@ const skillDatabase = {
         id: 'whisperingVines',
         name: 'Whispering Vines',
         category: 'magic',
-        maxPoints: 6,
-        pointsPerRank: 3,
+        starCosts: [5, 8], // Total: 13 stars for all 2 ranks
         description: 'Grow magical vines between holds.',
         ranks: [
             { name: "Nature's Path", effect: '1x/route: vine between 2 holds. 0 pump/grip cost. Lasts 6 moves.' },
@@ -356,8 +329,7 @@ const skillDatabase = {
         id: 'transmute',
         name: 'Transmute',
         category: 'magic',
-        maxPoints: 1,
-        pointsPerRank: 1,
+        starCosts: [5], // Total: 5 stars for 1 rank
         description: 'Swap pump and grip values.',
         ranks: [
             { name: 'Alchemical Exchange', effect: '2x/route: swap pump↔grip values. Reduced costs for 3 moves after.' }
@@ -367,8 +339,7 @@ const skillDatabase = {
         id: 'gravityShift',
         name: 'Gravity Shift',
         category: 'magic',
-        maxPoints: 6,
-        pointsPerRank: 3,
+        starCosts: [5, 8], // Total: 13 stars for all 2 ranks
         description: 'Alter gravity, making overhangs feel like slabs.',
         ranks: [
             { name: 'Weightless', effect: '1x/route. 6 moves: remove overhang penalties. -40% pump cost.' },
@@ -379,8 +350,7 @@ const skillDatabase = {
         id: 'phantomGrip',
         name: 'Phantom Grip',
         category: 'magic',
-        maxPoints: 9,
-        pointsPerRank: 3,
+        starCosts: [5, 8, 12], // Total: 25 stars for all 3 ranks
         description: 'Hands phase through reality for reduced grip drain.',
         ranks: [
             { name: 'Ghost Touch', effect: '10% chance: treat hold as jug. 0 grip drain on proc.' },
@@ -392,8 +362,7 @@ const skillDatabase = {
         id: 'energySiphon',
         name: 'Energy Siphon',
         category: 'magic',
-        maxPoints: 6,
-        pointsPerRank: 3,
+        starCosts: [5, 8], // Total: 13 stars for all 2 ranks
         description: 'Drain energy from rock to restore reserves.',
         ranks: [
             { name: 'Life Drain', effect: 'Every 3rd move: restore 5 pump, 5 grip.' },

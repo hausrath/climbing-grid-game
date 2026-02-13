@@ -1,202 +1,3 @@
-function showHoldTooltip(hold, row, col, event) {
-    if (gameState.gameMode !== 'climbing') return;
-
-    const tooltipBox = document.getElementById('hold-tooltip-static');
-
-    // Convert viewport to route coords for calculation preview
-    const routeRow = viewportRowToRouteRow(row);
-    const dy = routeRow - gameState.currentRow;
-    const dx = Math.abs(col - gameState.currentCol);
-    const isExtendedMove = (dy >= 2 || dx >= 2);
-    const direction = getMoveDirection(gameState.currentCol, gameState.currentRow, col, routeRow);
-
-    const penaltyNames = ['Perfect', 'Slight', 'Moderate', 'Severe', 'FALL'];
-    const penaltyColors = ['#a8db60', '#fad882', '#f5aaa2', '#f55', '#f00'];
-
-    // Fatigue multiplier preview
-    const fatigueMultiplier = 1 + (gameState.holdsClimbed * 0.05);
-    const fatiguePercent = Math.round((fatigueMultiplier - 1) * 100);
-
-    // Build pump and grip breakdown for a given hand
-    function buildHandBreakdown(hand) {
-        const handLabel = hand === 'left' ? 'Left' : 'Right';
-        const penaltyLevel = lookupPenalty(direction, hand, hold.angle, gameState.weight);
-
-        if (penaltyLevel === 4) {
-            return { pumpHtml: `<div style="color: #f00; font-weight: bold;">${handLabel}: INSTANT FALL</div>`, gripHtml: '', penaltyLevel };
-        }
-
-        // Pump calculation
-        const basePump = hold.pumpRating || 0;
-        const handMod = getHandHoldPumpModifier(hold.type, hand, hold.angle) || 0;
-        const penaltyPump = PENALTY_PUMP_MULTIPLIERS[penaltyLevel] || 0;
-        let distancePump = 0;
-        let staticReduction = 0;
-
-        if (isExtendedMove) {
-            distancePump = (gameState.movementStyle === 'dynamic') ? 0 : 2;
-        }
-        if (gameState.movementStyle === 'static' && handMod > 0) {
-            staticReduction = 1;
-        }
-
-        const rawPump = Math.max(0, basePump + handMod + penaltyPump + distancePump - staticReduction);
-        const totalPump = gameState.holdsClimbed > 0 ? Math.round(rawPump * fatigueMultiplier) : rawPump;
-
-        let pumpDetails = `Base ${basePump}`;
-        if (handMod > 0) pumpDetails += ` <span style="color:#f5aaa2;">+${handMod} hand</span>`;
-        if (penaltyPump > 0) pumpDetails += ` <span style="color:${penaltyColors[penaltyLevel]};">+${penaltyPump} ${penaltyNames[penaltyLevel].toLowerCase()}</span>`;
-        if (distancePump > 0) pumpDetails += ` <span style="color:#f5aaa2;">+${distancePump} dist</span>`;
-        if (gameState.movementStyle === 'dynamic' && isExtendedMove) pumpDetails += ` <span style="color:#a8db60;">dyn</span>`;
-        if (staticReduction > 0) pumpDetails += ` <span style="color:#a8db60;">-${staticReduction} static</span>`;
-
-        const pumpHtml = `<div style="color: ${penaltyColors[penaltyLevel]};">${handLabel}: +${totalPump} pump (${pumpDetails})</div>`;
-
-        // Grip penalty from this hand's penalty level
-        const penaltyGrip = PENALTY_GRIP_MULTIPLIERS[penaltyLevel] || 0;
-        return { pumpHtml, penaltyGrip, penaltyLevel };
-    }
-
-    // Base grip breakdown (hand-independent parts)
-    const baseGrip = hold.gripDrain || 0;
-    const weightMod = getWeightDirectionGripModifier(gameState.weight, direction, hold.angle);
-
-    const idealWeight = getIdealWeight(hold.angle);
-    const restLabel = hold.isRest ? ' (REST)' : '';
-    const styleLabel = gameState.movementStyle !== 'regular' ? gameState.movementStyle.toUpperCase() : '';
-
-    // Build hand-specific sections
-    let pumpHtml = '';
-    let gripPenaltyGrip = 0;
-    let gripPenaltyLabel = '';
-
-    if (gameState.selectedHand) {
-        const result = buildHandBreakdown(gameState.selectedHand);
-        pumpHtml = result.pumpHtml;
-        gripPenaltyGrip = result.penaltyGrip || 0;
-        if (gripPenaltyGrip > 0) {
-            gripPenaltyLabel = penaltyNames[result.penaltyLevel].toLowerCase();
-        }
-    } else {
-        const resultL = buildHandBreakdown('left');
-        const resultR = buildHandBreakdown('right');
-        pumpHtml = resultL.pumpHtml + resultR.pumpHtml;
-        // Show worst-case grip penalty when no hand selected
-        gripPenaltyGrip = Math.max(resultL.penaltyGrip || 0, resultR.penaltyGrip || 0);
-        if (gripPenaltyGrip > 0) gripPenaltyLabel = 'penalty';
-    }
-
-    const rawGrip = baseGrip + weightMod + gripPenaltyGrip;
-    const totalGrip = gameState.holdsClimbed > 0 ? Math.round(rawGrip * fatigueMultiplier) : rawGrip;
-    let gripDetails = `Base ${baseGrip}`;
-    if (weightMod > 0) gripDetails += ` <span style="color:#f5aaa2;">+${weightMod} weight</span>`;
-    if (gripPenaltyGrip > 0) gripDetails += ` <span style="color:#f5aaa2;">+${gripPenaltyGrip} ${gripPenaltyLabel}</span>`;
-    const hasGripPenalty = weightMod > 0 || gripPenaltyGrip > 0;
-
-    // Fatigue label
-    const fatigueHtml = fatiguePercent > 0 ? `<div style="font-size: 0.8em; color: #f5aaa2; margin-top: 2px;">Fatigue: +${fatiguePercent}% all costs</div>` : '';
-
-    tooltipBox.innerHTML = `
-        <div style="width: 100%; text-align: left;">
-            <div style="font-size: 1em; color: ${hold.color || '#fad882'}; font-weight: bold; margin-bottom: 6px; text-align: center;">
-                ${hold.label} ${hold.angle}°${restLabel}
-            </div>
-            <div style="padding-top: 4px; border-top: 1px solid #738078; font-size: 0.85em; line-height: 1.8;">
-                <div style="color: #fad882; font-weight: bold; margin-bottom: 2px;">PUMP${styleLabel ? ' (' + styleLabel + ')' : ''}</div>
-                ${pumpHtml}
-            </div>
-            <div style="padding-top: 4px; border-top: 1px solid #738078; font-size: 0.85em; line-height: 1.8; margin-top: 4px;">
-                <div style="color: #6dbce3; font-weight: bold; margin-bottom: 2px;">GRIP</div>
-                <div style="color: ${hasGripPenalty ? '#f5aaa2' : '#bdb9ae'};">-${totalGrip} grip (${gripDetails})</div>
-            </div>
-            ${fatigueHtml}
-            <div style="margin-top: 4px; font-size: 0.8em; color: #bdb9ae; border-top: 1px solid #738078; padding-top: 4px;">
-                Ideal Weight: ${idealWeight} | ${hold.matchable ? 'Matchable' : 'No match'}
-            </div>
-        </div>
-    `;
-}
-
-// Hide hold information (reset to default message)
-function hideHoldTooltip() {
-    const tooltipBox = document.getElementById('hold-tooltip-static');
-    tooltipBox.innerHTML = 'Hover over hold<br>to see details';
-}
-
-// Show location modifier tooltip
-function showLocationTooltip(location, event) {
-    if (gameState.gameMode !== 'worldmap') return;
-    
-    const tooltipBox = document.getElementById('hold-tooltip-static');
-    const modifier = location.modifier;
-    
-    // Build modifier effects display
-    let effectsList = '';
-    if (modifier.pumpMult) {
-        const change = ((modifier.pumpMult - 1) * 100).toFixed(0);
-        effectsList += `<div style="margin: 4px 0;">Pump: ${change > 0 ? '+' : ''}${change}%</div>`;
-    }
-    if (modifier.gripMult) {
-        const change = ((modifier.gripMult - 1) * 100).toFixed(0);
-        effectsList += `<div style="margin: 4px 0;">Grip loss: ${change > 0 ? '+' : ''}${change}%</div>`;
-    }
-    if (modifier.gripCost) {
-        effectsList += `<div style="margin: 4px 0;">Grip cost: +${modifier.gripCost}</div>`;
-    }
-    if (modifier.gripRecovery) {
-        effectsList += `<div style="margin: 4px 0;">Grip recovery: +${modifier.gripRecovery}</div>`;
-    }
-    if (modifier.farPenalty) {
-        effectsList += `<div style="margin: 4px 0;">Far moves: -${Math.round(modifier.farPenalty * 100)}% success</div>`;
-    }
-    if (modifier.crimpBonus) {
-        effectsList += `<div style="margin: 4px 0; color: #a8db60;">Crimps: +${Math.round(modifier.crimpBonus * 100)}% success</div>`;
-    }
-    if (modifier.sloperBonus) {
-        effectsList += `<div style="margin: 4px 0; color: #a8db60;">Slopers: +${Math.round(modifier.sloperBonus * 100)}% success</div>`;
-    }
-    if (modifier.pinchBonus) {
-        effectsList += `<div style="margin: 4px 0; color: #a8db60;">Pinches: +${Math.round(modifier.pinchBonus * 100)}% success</div>`;
-    }
-    if (modifier.pocketBonus) {
-        effectsList += `<div style="margin: 4px 0; color: #a8db60;">Pockets: +${Math.round(modifier.pocketBonus * 100)}% success</div>`;
-    }
-    if (modifier.allBonus) {
-        effectsList += `<div style="margin: 4px 0; color: #a8db60;">All holds: +${Math.round(modifier.allBonus * 100)}% success</div>`;
-    }
-    if (modifier.allPenalty) {
-        effectsList += `<div style="margin: 4px 0; color: #f5aaa2;">All holds: -${Math.round(modifier.allPenalty * 100)}% success</div>`;
-    }
-    
-    tooltipBox.innerHTML = `
-        <div style="width: 100%; text-align: left;">
-            <div style="font-size: 1.1em; color: #fad882; font-weight: bold; margin-bottom: 8px; text-align: center;">
-                ${location.name}
-            </div>
-            <div style="font-size: 0.9em; color: #bdb9ae; margin-bottom: 8px; text-align: center;">
-                ${location.difficultyTier.toUpperCase()} ${location.isBoss ? '👑' : ''}
-            </div>
-            <div style="padding: 8px; background: rgba(115, 128, 120, 0.2); border-radius: 4px; margin-bottom: 8px;">
-                <div style="font-size: 0.9em; color: #c178de; font-weight: bold; margin-bottom: 4px;">
-                    ${modifier.name}
-                </div>
-                <div style="font-size: 0.85em; color: #bdb9ae; font-style: italic;">
-                    ${modifier.effect}
-                </div>
-            </div>
-            <div style="font-size: 0.85em; line-height: 1.4;">
-                ${effectsList}
-            </div>
-        </div>
-    `;
-}
-
-// Hide location tooltip
-function hideLocationTooltip() {
-    const tooltipBox = document.getElementById('hold-tooltip-static');
-    tooltipBox.innerHTML = 'Hover over location<br>to see modifiers';
-}
-
 // Render the grid
 function renderGrid() {
     const gridEl = document.getElementById('grid');
@@ -306,6 +107,7 @@ function selectHand(hand) {
 
     gameState.selectedHand = hand;
     addFeedback(`${hand.charAt(0).toUpperCase() + hand.slice(1)} hand selected`, 'neutral');
+    refreshTooltip();
     updateUI();
 }
 
@@ -339,6 +141,7 @@ function setWeight(weight) {
     }
 
     addFeedback(`Weight shifted to ${weight}`, 'neutral');
+    refreshTooltip();
 }
 
 // Select movement style
@@ -352,7 +155,7 @@ function selectMovementStyle(style) {
         addFeedback(`Dynamic on cooldown! ${gameState.dynamicCooldown} moves remaining.`, 'penalty');
         return;
     }
-    
+
     gameState.movementStyle = style;
     const styleNames = {
         'static': 'Static (precise, short range)',
@@ -360,15 +163,16 @@ function selectMovementStyle(style) {
         'dynamic': 'Dynamic (powerful, long range)'
     };
     addFeedback(`${styleNames[style]} selected`, 'neutral');
+    refreshTooltip();
     updateUI();
 }
 
 function updateSkillActionButtons() {
     const skillRow = document.getElementById('skill-actions-row');
     if (!skillRow) return;
-    
+
     let anyVisible = false;
-    
+
     // Salve button
     const salveBtn = document.getElementById('salve-btn');
     if (salveBtn) {
@@ -379,7 +183,7 @@ function updateSkillActionButtons() {
         salveBtn.disabled = usesLeft <= 0;
         if (hasSkill) anyVisible = true;
     }
-    
+
     // Stimulant button
     const stimBtn = document.getElementById('stimulant-btn');
     if (stimBtn) {
@@ -391,7 +195,7 @@ function updateSkillActionButtons() {
         stimBtn.disabled = usesLeft <= 0 || active;
         if (hasSkill) anyVisible = true;
     }
-    
+
     // Hook button
     const hookBtn = document.getElementById('hook-btn');
     if (hookBtn) {
@@ -403,7 +207,7 @@ function updateSkillActionButtons() {
         hookBtn.disabled = usesLeft <= 0 || cooldown > 0;
         if (hasSkill) anyVisible = true;
     }
-    
+
     // Piton button
     const pitonBtn = document.getElementById('piton-btn');
     if (pitonBtn) {
@@ -414,7 +218,7 @@ function updateSkillActionButtons() {
         pitonBtn.disabled = placementsLeft <= 0;
         if (hasSkill) anyVisible = true;
     }
-    
+
     // Crash Pad button
     const padBtn = document.getElementById('crashpad-btn');
     if (padBtn) {
@@ -425,7 +229,7 @@ function updateSkillActionButtons() {
         padBtn.disabled = placementsLeft <= 0;
         if (hasSkill) anyVisible = true;
     }
-    
+
     // Wingsuit button
     const wingsuitBtn = document.getElementById('wingsuit-btn');
     if (wingsuitBtn) {
@@ -436,9 +240,9 @@ function updateSkillActionButtons() {
         wingsuitBtn.disabled = !available;
         if (hasSkill) anyVisible = true;
     }
-    
+
     // === MAGIC SKILL BUTTONS ===
-    
+
     // Time Dilation button
     const timeBtn = document.getElementById('timedilation-btn');
     if (timeBtn) {
@@ -450,7 +254,7 @@ function updateSkillActionButtons() {
         timeBtn.disabled = usesLeft <= 0 || active;
         if (hasSkill) anyVisible = true;
     }
-    
+
     // Transmute button
     const transmuteBtn = document.getElementById('transmute-btn');
     if (transmuteBtn) {
@@ -461,7 +265,7 @@ function updateSkillActionButtons() {
         transmuteBtn.disabled = usesLeft <= 0;
         if (hasSkill) anyVisible = true;
     }
-    
+
     // Gravity Shift button
     const gravityBtn = document.getElementById('gravity-btn');
     if (gravityBtn) {
@@ -473,7 +277,7 @@ function updateSkillActionButtons() {
         gravityBtn.disabled = usesLeft <= 0 || active;
         if (hasSkill) anyVisible = true;
     }
-    
+
     // Show/hide the skill actions row
     skillRow.style.display = anyVisible ? 'flex' : 'none';
 }
@@ -497,11 +301,11 @@ function updateUI() {
     const rightBtn = document.getElementById('right-hand-btn');
     const leftStatus = document.getElementById('left-hand-status');
     const rightStatus = document.getElementById('right-hand-status');
-    
+
     // Disable the hand that was just used
     leftBtn.disabled = (gameState.lastHandUsed === 'left');
     rightBtn.disabled = (gameState.lastHandUsed === 'right');
-    
+
     // Show which hand is selected
     if (gameState.selectedHand === 'left') {
         leftBtn.classList.add('selected');
@@ -513,36 +317,36 @@ function updateUI() {
         leftBtn.classList.remove('selected');
         rightBtn.classList.remove('selected');
     }
-    
+
     // Update status indicators
     leftStatus.className = (gameState.lastHandUsed === 'left') ? 'hand-status-item in-use' : 'hand-status-item available';
     rightStatus.className = (gameState.lastHandUsed === 'right') ? 'hand-status-item in-use' : 'hand-status-item available';
-    
+
     // Update movement style buttons
     const staticBtn = document.getElementById('static-btn');
     const regularBtn = document.getElementById('regular-btn');
     const dynamicBtn = document.getElementById('dynamic-btn');
-    
+
     // Disable buttons on cooldown and show cooldown counter
     staticBtn.disabled = gameState.staticCooldown > 0;
     dynamicBtn.disabled = gameState.dynamicCooldown > 0;
-    
+
     if (gameState.staticCooldown > 0) {
         staticBtn.textContent = `CD: ${gameState.staticCooldown}`;
     } else {
         staticBtn.textContent = 'SELECT (3)';
     }
-    
+
     if (gameState.dynamicCooldown > 0) {
         dynamicBtn.textContent = `CD: ${gameState.dynamicCooldown}`;
     } else {
         dynamicBtn.textContent = 'SELECT (1)';
     }
-    
+
     staticBtn.classList.remove('selected');
     regularBtn.classList.remove('selected');
     dynamicBtn.classList.remove('selected');
-    
+
     if (gameState.movementStyle === 'static') {
         staticBtn.classList.add('selected');
     } else if (gameState.movementStyle === 'regular') {
@@ -550,7 +354,7 @@ function updateUI() {
     } else if (gameState.movementStyle === 'dynamic') {
         dynamicBtn.classList.add('selected');
     }
-    
+
     // Update weight indicator
     const weightIndicator = document.getElementById('weight-indicator');
     if (weightIndicator) {
@@ -562,16 +366,16 @@ function updateUI() {
     // Update action buttons (shake and chalk)
     const shakeBtn = document.getElementById('shake-btn');
     const chalkBtn = document.getElementById('chalk-btn');
-    
+
     shakeBtn.disabled = gameState.shakeCooldown > 0;
     chalkBtn.disabled = gameState.chalkCooldown > 0;
-    
+
     if (gameState.shakeCooldown > 0) {
         shakeBtn.textContent = `CD: ${gameState.shakeCooldown}`;
     } else {
         shakeBtn.textContent = 'SHAKE (Q)';
     }
-    
+
     if (gameState.chalkCooldown > 0) {
         chalkBtn.textContent = `CD: ${gameState.chalkCooldown}`;
     } else if (gameState.chalkRemaining <= 0) {
@@ -581,13 +385,13 @@ function updateUI() {
         chalkBtn.textContent = `CHALK (E) ${gameState.chalkRemaining}/${gameState.maxChalk}`;
         chalkBtn.style.opacity = '1';
     }
-    
+
     // Update move counter with no-fall zone indicator
     const moveCountEl = document.getElementById('move-count');
     if (moveCountEl) {
         moveCountEl.textContent = gameState.holdsClimbed;
     }
-    
+
     // Show no-fall zone warning in move counter area
     const moveCounter = document.querySelector('.move-counter');
     if (moveCounter) {
@@ -610,21 +414,21 @@ function updateUI() {
             moveCounter.style.boxShadow = 'none';
         }
     }
-    
+
     // Update level and XP display
     document.getElementById('level-display').textContent = gameState.level;
     document.getElementById('xp-display').textContent = gameState.xp;
     document.getElementById('xp-needed-display').textContent = gameState.xpToNextLevel;
     const xpPercent = (gameState.xp / gameState.xpToNextLevel) * 100;
     document.getElementById('xp-bar').style.width = `${xpPercent}%`;
-    
+
     // Update stat display
     document.getElementById('unspent-points-display').textContent = `(${gameState.unspentStatPoints} pts)`;
     document.getElementById('endurance-display').textContent = gameState.endurance;
     document.getElementById('power-display').textContent = gameState.power;
     document.getElementById('speed-display').textContent = gameState.speed;
     document.getElementById('technique-display').textContent = gameState.technique;
-    
+
     // Update resources with fatigue system
     const availablePump = getAvailablePump();
     const availableGrip = getAvailableGrip();
@@ -647,28 +451,28 @@ function updateUI() {
     document.getElementById('grip-value').textContent = gripText;
     document.getElementById('grip-bar').style.width = `${gripPercent}%`;
     document.getElementById('grip-bar').textContent = `${Math.round(gripPercent)}%`;
-    
+
     // Hide combo indicator (flow state system removed)
     const comboIndicator = document.getElementById('combo-indicator');
     if (comboIndicator) {
         comboIndicator.style.display = 'none';
     }
-    
+
     // Update skill points display
     document.getElementById('unspent-skill-points-display').textContent = `(${gameState.unspentSkillPoints} pts)`;
-    
+
     // Update Commit button
     const commitBtn = document.getElementById('commit-btn');
     const commitLearnBtn = document.getElementById('commit-learn-btn');
-    
+
     // Show/hide learn button based on whether skill is learned
     if (gameState.skills.commit) {
         commitBtn.style.display = 'inline-block';
         commitLearnBtn.style.display = 'none';
-        
+
         // Update Commit button state
         commitBtn.disabled = gameState.commitCooldown > 0 || gameState.commitActive;
-        
+
         if (gameState.commitActive) {
             commitBtn.textContent = 'ACTIVE!';
             commitBtn.style.borderColor = '#a8db60';
@@ -684,7 +488,7 @@ function updateUI() {
         commitLearnBtn.style.display = 'inline-block';
         commitLearnBtn.disabled = gameState.unspentSkillPoints <= 0;
     }
-    
+
     // Update utility skill action buttons
     updateSkillActionButtons();
 }
@@ -697,7 +501,7 @@ function addFeedback(text, type) {
     message.textContent = text;
     feedback.appendChild(message);
     feedback.scrollTop = feedback.scrollHeight;
-    
+
     while (feedback.children.length > 15) {
         feedback.removeChild(feedback.firstChild);
     }

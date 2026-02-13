@@ -28,11 +28,7 @@ const gameState = {
     },
     collectedLoot: {}, // Track which routes have had their loot collected: "locationId-routeId": true
     
-    // Energy system
-    energy: 5,
-    maxEnergy: 5,
-    
-    // Time of day system
+    // Time of day system (time advances after 3 climbs, affects conditions only)
     timeOfDay: 'morning', // 'morning', 'noon', 'evening'
     climbsThisPeriod: 0, // Counts toward time advancement (3 max)
     day: 1, // Current day number
@@ -44,19 +40,26 @@ const gameState = {
         wind: 'calm' // 'calm', 'moderate', 'heavy'
     },
     
+    // Character stats
+    endurance: 0, // Reduces pump cost per move (2% per point)
+    power: 0,     // Reduces grip drain per move (2% per point)
+
     // Puzzle climbing state
     weight: 'center', // 'left', 'center', 'right'
+    weightAtMoveStart: 'center', // Weight at start of move (limits shifting to one step)
     currentHand: null, // Which hand is currently on the wall ('left' or 'right')
 
     pump: 0,
-    grip: 100,
-    maxPump: 100,
-    maxGrip: 100,
-    level: 1,
-    xp: 0,
-    xpToNextLevel: 100,
-    unspentStatPoints: 0,
-    unspentSkillPoints: 0,
+    grip: 12,
+    maxPump: 12,
+    maxGrip: 12,
+
+    // New progression system
+    bankedPumpIncrease: 0,
+    bankedGripIncrease: 0,
+    pumpFatigue: 0,
+    gripFatigue: 0,
+    spentStars: 0, // Stars spent on skills
     
     // Skills system - points invested in each skill
     skills: {
@@ -158,11 +161,6 @@ const gameState = {
     
     commitCooldown: 0,
     commitActive: false,
-    // Player stats
-    endurance: 0,
-    power: 0,
-    speed: 0,
-    technique: 0,
     selectedHand: null,
     lastHandUsed: null, // Track which hand was used last
     movementStyle: 'regular', // 'static', 'regular', 'dynamic'
@@ -277,6 +275,21 @@ function calculateTotalStars() {
         total += route.stars || 0;
     });
     return total;
+}
+
+// Calculate available stars (total - spent)
+function calculateAvailableStars() {
+    return calculateTotalStars() - gameState.spentStars;
+}
+
+// Calculate available pump (max - fatigue)
+function getAvailablePump() {
+    return Math.max(0, gameState.maxPump - gameState.pumpFatigue);
+}
+
+// Calculate available grip (max - fatigue)
+function getAvailableGrip() {
+    return Math.max(0, gameState.maxGrip - gameState.gripFatigue);
 }
 
 // Calculate stars earned at a specific location
