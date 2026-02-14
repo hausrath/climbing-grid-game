@@ -83,10 +83,10 @@ function useChalk() {
 
     gameState.chalkRemaining--;
 
-    // Calculate grip increase
-    const baseGripIncrease = 5;
-    const gripIncrease = Math.round(baseGripIncrease * (1 + effectivenessBonus));
-    gameState.grip = Math.min(gameState.maxGrip, gameState.grip + gripIncrease);
+    // Restore grip fully to available max (max - fatigue)
+    const availableGrip = getAvailableGrip();
+    const gripIncrease = Math.max(0, availableGrip - gameState.grip);
+    gameState.grip = availableGrip;
 
     gameState.chalksUsed++;
 

@@ -26,6 +26,11 @@ function moveToHold(row, col) {
         return;
     }
 
+    if (gameState.pump >= getAvailablePump()) {
+        endGame(false, `Pump maxed out! Your forearms gave out.`);
+        return;
+    }
+
     // Safety: ensure pump and grip are valid numbers
     if (isNaN(gameState.pump)) {
         console.error('gameState.pump is NaN! Resetting to 0');
@@ -351,8 +356,8 @@ function moveToHold(row, col) {
     updateUI();
 
     // ---- Step 12: Check win/loss ----
-    if (gameState.pump >= gameState.maxPump) {
-        endGame(false, `Pump reached ${gameState.maxPump}! Your forearms gave out.`);
+    if (gameState.pump >= getAvailablePump()) {
+        endGame(false, `Pump maxed out! Your forearms gave out.`);
     } else if (gameState.grip <= 0) {
         endGame(false, `Grip depleted! Your skin couldn't hold on.`);
     } else if (gameState.currentRoute && gameState.holdsClimbed >= gameState.currentRoute.holdCount) {
