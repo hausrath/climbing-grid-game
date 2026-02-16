@@ -110,3 +110,40 @@ Replace 31 RPG-style skills with ~7 deterministic puzzle tools, unlocked by loca
 ### Removed unused holdType fields
 - **File:** `js/constants.js`
 - Removed `basePumpRating` and `baseGripDrain` from holdTypes array (unused in deterministic system)
+
+---
+
+## Route Redesign: Areas 0-7 (24 Hand-Crafted Puzzle Routes)
+
+### Overview
+Replaced 7 placeholder routes in Area 0 with 24 skill-teaching puzzle routes across Areas 0-7 (3 routes per area). Each route is a verified solvable puzzle that teaches the area's new skill while reinforcing prior skills.
+
+### Route Structure Per Area
+- **Route 1 (Tutorial)**: Gentle introduction to the new skill
+- **Route 2 (Practice)**: Combines new skill with 1-2 prior skills
+- **Route 3 (Mastery)**: Requires ALL skills learned up to that area
+
+### Area Breakdown
+| Area | Location | Skill Taught | Routes | Hold Range |
+|------|----------|-------------|--------|------------|
+| 0 | Boulder Garden | Hand selection, direction | First Steps, Zig-Zag, Reading the Wall | 6-8 |
+| 1 | Crimp Canyon | Cross (gaston/cross-body -1) | Gaston Lesson, Cross Country, The Crimp Crux | 8-10 |
+| 2 | Overhang Alley | Reach (negate distance +1) | The Long Reach, Stretch and Cross, The Overhang | 8-12 |
+| 3 | Slab Valley | Weight Shift (manual weight) | Weight Control, Balanced Traverse, The Slab Master | 8-12 |
+| 4 | Jug Junction | Match (reset hands) | Match Point, Match and Shift, The Junction Test | 10-12 |
+| 5 | Pinch Peak | Deadpoint (recovery empowers) | Dead On, Peak Performance, The Pinch Gauntlet | 12-14 |
+| 6 | Pocket Paradise | Commit (penalty -1, 10-CD) | Committed, Pick Your Battle, Paradise Lost | 12-14 |
+| 7 | Steep Street | Bump (reposition) | Bump and Go, Street Smarts, The Grand Wall | 12-16 |
+
+### Design Principles
+- Every route verified solvable with optimal play
+- Penalty math based on direction + hand + angle + weight lookup table
+- Gaston modifier (L@135°, R@225°) creates key Cross teaching moments
+- Weight auto-shift creates traps that Weight Shift resolves
+- Extended moves (2+ spaces) create Reach teaching moments
+- `pumpRating`/`gripDrain` kept on holds for visual progress bar display
+- Star challenges: completion, speed, pump efficiency, no recovery, flash climb
+
+### Notes
+- Bump skill (Area 7) is not yet implemented in code — routes designed for future implementation
+- Match triggers automatically on matchable holds (not gated behind skill unlock in current code)
