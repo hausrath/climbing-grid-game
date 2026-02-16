@@ -1,39 +1,23 @@
 // ============ CORE MOVE RESOLVER ============
 function moveToHold(row, col) {
-    console.log('moveToHold called:', row, col);
-
     // Convert viewport click to route coordinates
     const routeRow = viewportRowToRouteRow(row);
     const routeCol = col;
-
-    console.log('routeRow:', routeRow, 'routeCol:', routeCol);
 
     // Find the hold in the route grid
     const hold = gameState.routeGrid && gameState.routeGrid[routeRow]
         ? gameState.routeGrid[routeRow][routeCol]
         : null;
 
-    console.log('hold found:', hold);
-    if (hold) {
-        console.log('hold.pumpRating:', hold.pumpRating);
-        console.log('hold.gripDrain:', hold.gripDrain);
-        console.log('hold.type:', hold.type);
-        console.log('hold.angle:', hold.angle);
-    }
-
     if (!hold) {
         addFeedback('No hold there!', 'penalty');
         return;
     }
 
-    // Safety: ensure pump and grip are valid numbers
-    if (isNaN(gameState.pump)) {
-        console.error('gameState.pump is NaN! Resetting to 0');
-        gameState.pump = 0;
-    }
-    if (isNaN(gameState.grip)) {
-        console.error('gameState.grip is NaN! Resetting to maxGrip');
-        gameState.grip = gameState.maxGrip;
+    // Check pump state before move
+    if (gameState.pumpState >= 3) {
+        endGame(false, `Pump maxed out! Your forearms gave out.`);
+        return;
     }
 
     // Must select a hand first
@@ -56,225 +40,150 @@ function moveToHold(row, col) {
         return;
     }
 
-    // Determine if this is an extended move (2+ spaces in any direction)
     const isExtendedMove = (dy >= 2 || dx >= 2);
 
-    // ---- Step 1: Determine direction ----
+    // ---- Step 1: Direction and cross-body ----
     const direction = getMoveDirection(gameState.currentCol, gameState.currentRow, routeCol, routeRow);
-
-    // ---- Step 2: Determine if cross ----
-    const hand = gameState.selectedHand; // 'left' or 'right'
-    const crossMove = isCrossMove(hand === 'left' ? 'L' : 'R', direction);
+    const hand = gameState.selectedHand;
+    const crossMove = isCrossMove(hand, direction);
 
     const feedback = [];
 
-    // ---- Step 3: Calculate PUMP cost (hold type + hand choice + penalty table) ----
-    // Base hold pump cost (DISABLED for testing - keeping for future use)
-    // let pumpCost = (typeof hold.pumpRating === 'number' && !isNaN(hold.pumpRating)) ? hold.pumpRating : 0;
-    let pumpCost = 0;
+    // ---- Step 2: Calculate EFFECTIVE PENALTY LEVEL for pump ----
+    // Base penalty from the table (direction + hand + angle + weight)
+    const basePenaltyLevel = lookupPenalty(direction, hand, hold.angle, gameState.weight);
 
-    // Add hand-hold pump modifier (how hand choice affects pump for this hold angle)
-    const handHoldModifier = getHandHoldPumpModifier(hold.type, hand, hold.angle) || 0;
-    pumpCost += handHoldModifier;
-
-    if (handHoldModifier > 0) {
-        feedback.push({ text: `Awkward hand placement: +${handHoldModifier} pump`, type: 'penalty' });
-    }
-
-    // Apply penalty table (direction + hand + angle + weight)
-    const penaltyLevel = lookupPenalty(direction, hand, hold.angle, gameState.weight);
-    if (penaltyLevel === 4) {
-        // Instant fall
+    // Level 4 = instant fall regardless of modifiers
+    if (basePenaltyLevel === 4) {
         addFeedback(`Impossible position! You fell!`, 'penalty');
         endGame(false, `The combination of direction, hand, angle, and weight made the hold impossible.`);
         return;
     }
-    const penaltyPumpCost = PENALTY_PUMP_MULTIPLIERS[penaltyLevel] || 0;
-    pumpCost += penaltyPumpCost;
 
-    const penaltyNames = ['Perfect', 'Slight', 'Moderate', 'Severe'];
-    if (penaltyLevel > 0) {
-        feedback.push({ text: `${penaltyNames[penaltyLevel]} penalty: +${penaltyPumpCost} pump`, type: penaltyLevel >= 3 ? 'penalty' : 'neutral' });
+    // Calculate modifier bumps to effective penalty level
+    let effectiveLevel = basePenaltyLevel;
+    let levelBumps = [];
+
+    // +1 from hand-hold awkwardness (gaston at 135/225)
+    const handHoldModifier = getHandHoldPumpModifier(hold.type, hand, hold.angle) || 0;
+    if (handHoldModifier > 0) {
+        effectiveLevel += 1;
+        levelBumps.push('gaston');
     }
 
-    // Technique: Static reduces penalty level by 1 on awkward positions
-    let staticUsed = false;
-    if (gameState.movementStyle === 'static' && handHoldModifier > 0) {
-        pumpCost = Math.max(0, pumpCost - 1);
-        staticUsed = true;
-        feedback.push({ text: `Static technique: pump reduced!`, type: 'bonus' });
-    }
-
-    // Hold transition cost: crimp <-> sloper = +2 pump
-    if (gameState.currentHand !== null) {
-        const prevHold = findCurrentHold();
-        if (prevHold) {
-            const transition = [prevHold.type, hold.type].sort().join('-');
-            if (transition === 'crimp-sloper') {
-                pumpCost += 2;
-                feedback.push({ text: `Crimp/sloper transition: +2 pump`, type: 'penalty' });
-            }
-        }
-    }
-
-    // Distance surcharge: +2 pump for extended moves
-    let dynamicUsed = false;
+    // +1 from distance surcharge (2+ spaces)
+    let reachUsed = false;
     if (isExtendedMove) {
-        if (gameState.movementStyle === 'dynamic') {
-            dynamicUsed = true;
-            feedback.push({ text: `Dynamic technique: distance surcharge negated!`, type: 'bonus' });
+        if (gameState.movementStyle === 'reach') {
+            reachUsed = true;
+            feedback.push({ text: `Reach: distance penalty negated!`, type: 'bonus' });
         } else {
-            pumpCost += 2;
-            feedback.push({ text: `Extended reach: +2 pump`, type: 'penalty' });
+            effectiveLevel += 1;
+            levelBumps.push('distance');
         }
     }
 
-    // Cross-body: tracked for grip penalty (applied in grip section below)
+    // Cross-body: penalty is already in the base table, Cross reduces it by 1
+    let crossUsed = false;
     if (crossMove) {
-        feedback.push({ text: `Cross-body move`, type: 'neutral' });
-    }
-
-    // ---- Step 4: Calculate GRIP drain ----
-    // Base grip drain from hold type + subtype
-    const baseGrip = getBaseGripDrain(hold.type, hold.angle);
-    let gripDrain = baseGrip.total;
-
-    if (baseGrip.subtypeName) {
-        feedback.push({ text: `${hold.type} ${baseGrip.subtypeName}: ${baseGrip.typeGrip}+${baseGrip.subtypePenalty} grip`, type: 'neutral' });
-    }
-
-    // Cross-body grip penalty: +2 first cross, +4 second consecutive cross
-    if (crossMove) {
-        if (gameState.movementStyle === 'static') {
-            if (!staticUsed) staticUsed = true;
-            feedback.push({ text: `Static technique: cross-body grip penalty negated!`, type: 'bonus' });
+        if (gameState.movementStyle === 'cross') {
+            crossUsed = true;
+            effectiveLevel = Math.max(0, effectiveLevel - 1);
+            feedback.push({ text: `Cross: cross-body penalty negated!`, type: 'bonus' });
         } else {
-            const crossGrip = gameState.consecutiveCrosses >= 1 ? 4 : 2;
-            gripDrain += crossGrip;
-            feedback.push({ text: `Cross-body: +${crossGrip} grip drain`, type: 'penalty' });
+            levelBumps.push('cross-body');
         }
     }
 
-    // Apply weight-direction grip modifier (how body position affects grip security)
-    const weightDirModifier = getWeightDirectionGripModifier(gameState.weight, direction, hold.angle) || 0;
-    gripDrain += weightDirModifier;
-
-    if (weightDirModifier > 0) {
-        feedback.push({ text: `Poor weight position: +${weightDirModifier} grip drain`, type: 'penalty' });
+    // Cross can also reduce gaston if not already used for cross-body
+    if (!crossUsed && gameState.movementStyle === 'cross' && handHoldModifier > 0) {
+        effectiveLevel = Math.max(0, effectiveLevel - 1);
+        crossUsed = true;
+        feedback.push({ text: `Cross: gaston penalty reduced!`, type: 'bonus' });
     }
 
-    // Apply penalty table to grip (reduced rate vs pump)
-    const penaltyGripCost = PENALTY_GRIP_MULTIPLIERS[penaltyLevel] || 0;
-    gripDrain += penaltyGripCost;
-
-    if (penaltyGripCost > 0) {
-        feedback.push({ text: `${penaltyNames[penaltyLevel]} penalty: +${penaltyGripCost} grip drain`, type: 'penalty' });
+    // Commit: reduce effective penalty level by 1
+    if (gameState.commitActive && effectiveLevel > 0) {
+        effectiveLevel = Math.max(0, effectiveLevel - 1);
+        feedback.push({ text: `COMMIT: penalty reduced!`, type: 'bonus' });
     }
 
-    // Apply weather modifiers to grip drain (DISABLED - keeping for future use)
-    // if (gameState.currentConditions) {
-    //     if (gameState.currentConditions.humidity === 'humid') {
-    //         gripDrain = Math.round(gripDrain * 1.5);
-    //         feedback.push({ text: `Humid: +50% grip drain`, type: 'penalty' });
-    //     } else if (gameState.currentConditions.humidity === 'dry') {
-    //         gripDrain = Math.round(gripDrain * 0.8);
-    //         feedback.push({ text: `Dry conditions: -20% grip drain`, type: 'bonus' });
-    //     }
-    // }
+    // Clamp effective level
+    effectiveLevel = Math.min(effectiveLevel, 4);
 
-    // Apply weather modifiers to pump (DISABLED - keeping for future use)
-    // if (gameState.currentConditions) {
-    //     if (gameState.currentConditions.temperature === 'hot') {
-    //         pumpCost = Math.round(pumpCost * 1.15);
-    //     }
-    //     if (gameState.currentConditions.wind === 'heavy') {
-    //         pumpCost = Math.round(pumpCost * 1.1);
-    //     }
-    // }
+    // ---- Step 3: Map effective level to pump state change ----
+    let pumpStateChange = 0;
+    if (effectiveLevel >= 3) {
+        // Severe or worse = instant fall
+        feedback.push({ text: `Severe penalty — you fell!`, type: 'penalty' });
+        addFeedback(`Severe penalty — you fell!`, 'penalty');
+        feedback.forEach(f => addFeedback(f.text, f.type));
+        endGame(false, `Severe penalty! The move was too much for your body.`);
+        return;
+    } else if (effectiveLevel === 2) {
+        pumpStateChange = 2;
+    } else if (effectiveLevel === 1) {
+        pumpStateChange = 1;
+    }
+    // effectiveLevel 0 = no pump state change
 
-    // ---- Step 7: Apply skill modifiers ----
-    const skillPumpReduction = calculateSkillPumpReduction();
-    if (skillPumpReduction > 0) {
-        pumpCost = Math.round(pumpCost * (1 - skillPumpReduction));
+    // Deadpoint: after shake, no pump state change
+    if (isSkillUnlocked('deadpoint') && gameState.skillState.justShook && pumpStateChange > 0) {
+        feedback.push({ text: `Deadpoint! Pump penalty negated after shake`, type: 'bonus' });
+        pumpStateChange = 0;
     }
 
-    const skillGripReduction = calculateSkillGripReduction(hold);
-    if (skillGripReduction > 0) {
-        gripDrain = Math.round(gripDrain * (1 - skillGripReduction));
+    // Show penalty feedback
+    if (pumpStateChange > 0) {
+        const levelName = PENALTY_LEVEL_NAMES[effectiveLevel] || 'Unknown';
+        const bumpStr = levelBumps.length > 0 ? ` (${levelBumps.join(', ')})` : '';
+        feedback.push({ text: `${levelName} penalty${bumpStr}: pump +${pumpStateChange} state`, type: pumpStateChange >= 2 ? 'penalty' : 'neutral' });
+    } else if (effectiveLevel === 0 && basePenaltyLevel === 0) {
+        feedback.push({ text: `Clean move!`, type: 'bonus' });
     }
 
-    // Iron Grip proc
-    if (checkIronGripProc()) {
-        gripDrain = 0;
-        feedback.push({ text: `Iron Grip! No grip drain`, type: 'bonus' });
+    // Apply pump state change
+    const newPumpState = gameState.pumpState + pumpStateChange;
+
+    // ---- Step 4: Grip decay (time-based) ----
+    let gripAdvanced = false;
+    let gripDecayBlocked = false;
+
+    // Deadpoint: after chalk, no grip decay this move
+    if (isSkillUnlocked('deadpoint') && gameState.skillState.justChalked) {
+        gripDecayBlocked = true;
+        feedback.push({ text: `Deadpoint! Grip decay blocked after chalk`, type: 'bonus' });
     }
 
-    // Deadpoint: reduced costs after shake/chalk
-    if (getSkillRank('deadpoint') >= 1) {
-        if (gameState.skillState.justChalked) pumpCost = 0;
-        if (gameState.skillState.justShook) gripDrain = 0;
-    }
-
-    // Stat modifiers
-    const endurance = gameState.endurance || 0;
-    const power = gameState.power || 0;
-    pumpCost = Math.round(pumpCost * (1 - endurance * 0.02));
-    gripDrain = Math.round(gripDrain * (1 - power * 0.02));
-
-    // Commit: halve pump cost
-    if (gameState.commitActive) {
-        pumpCost = Math.round(pumpCost * 0.5);
-        feedback.push({ text: `COMMIT: pump cost halved!`, type: 'bonus' });
-    }
-
-    // Climbing fatigue: pump and grip costs accelerate over the climb
-    // +5% per hold climbed (hold 1 = +5%, hold 10 = +50%, etc.)
-    const fatigueMultiplier = 1 + (gameState.holdsClimbed * 0.05);
-    if (gameState.holdsClimbed > 0) {
-        pumpCost = Math.round(pumpCost * fatigueMultiplier);
-        gripDrain = Math.round(gripDrain * fatigueMultiplier);
-        if (fatigueMultiplier >= 1.2) {
-            feedback.push({ text: `Climbing fatigue: +${Math.round((fatigueMultiplier - 1) * 100)}% costs`, type: 'penalty' });
+    if (!gripDecayBlocked) {
+        gameState.gripDecayCounter++;
+        if (gameState.gripDecayCounter >= 3) {
+            gameState.gripDecayCounter = 0;
+            gameState.gripState++;
+            gripAdvanced = true;
         }
     }
 
-    // Ensure minimums and handle NaN
-    if (isNaN(pumpCost)) {
-        console.error('pumpCost is NaN! Resetting to 0. Hold:', hold);
-        pumpCost = 0;
+    // Grip decay feedback
+    if (gripAdvanced) {
+        const gripLabel = GRIP_STATE_LABELS[gameState.gripState] || 'Critical';
+        feedback.push({ text: `Grip decayed to: ${gripLabel}`, type: gameState.gripState >= 2 ? 'penalty' : 'neutral' });
     } else {
-        pumpCost = Math.max(0, pumpCost);
+        const movesUntilDecay = 3 - gameState.gripDecayCounter;
+        feedback.push({ text: `Grip decay in ${movesUntilDecay} move${movesUntilDecay !== 1 ? 's' : ''}`, type: 'neutral' });
     }
 
-    if (isNaN(gripDrain)) {
-        console.error('gripDrain is NaN! Resetting to 0. Hold:', hold);
-        gripDrain = 0;
-    } else {
-        gripDrain = Math.max(0, gripDrain);
-    }
+    // ---- Step 5: Apply pump state ----
+    gameState.pumpState = newPumpState;
 
-    console.log('Final pumpCost:', pumpCost, 'gripDrain:', gripDrain);
+    // Main move summary
+    const pumpLabel = PUMP_STATE_LABELS[gameState.pumpState] || 'Critical';
+    const gripLabel = GRIP_STATE_LABELS[gameState.gripState] || 'Critical';
+    feedback.push({ text: `${hold.label} (${hold.angle}°) — Pump: ${pumpLabel}, Grip: ${gripLabel}`, type: 'neutral' });
 
-    // ---- Step 8: Calculate penalty level for flow state ----
-    // Penalty is based on total modifiers applied to the move
-    let penalty = 0;
-    if (handHoldModifier > 0) penalty++;
-    if (weightDirModifier > 0) penalty++;
-    if (crossMove && gameState.consecutiveCrosses > 0) penalty++;
-    if (isExtendedMove && !dynamicUsed) penalty++;
-    // Cap penalty at 0-3 range
-    penalty = Math.min(3, penalty);
-
-    // ---- Step 9: Apply costs ----
-    gameState.pump += pumpCost;
-    gameState.grip -= gripDrain;
-
-    // Main move feedback
-    feedback.push({ text: `${hold.label} (${hold.angle}°) — Pump +${pumpCost}, Grip -${gripDrain}`, type: 'neutral' });
-
-    // ---- Step 10: Decrement cooldowns ----
-    if (gameState.staticCooldown > 0) gameState.staticCooldown--;
-    if (gameState.dynamicCooldown > 0) gameState.dynamicCooldown--;
+    // ---- Step 6: Decrement cooldowns ----
+    if (gameState.crossCooldown > 0) gameState.crossCooldown--;
+    if (gameState.reachCooldown > 0) gameState.reachCooldown--;
     if (gameState.shakeCooldown > 0) gameState.shakeCooldown--;
     if (gameState.chalkCooldown > 0) gameState.chalkCooldown--;
     if (gameState.commitCooldown > 0) gameState.commitCooldown--;
@@ -287,24 +196,23 @@ function moveToHold(row, col) {
     }
 
     // Set technique cooldowns
-    if (staticUsed) {
-        gameState.staticCooldown = gameState.cooldownLength;
-        feedback.push({ text: `Static cooldown: ${gameState.cooldownLength} moves`, type: 'neutral' });
+    if (crossUsed) {
+        gameState.crossCooldown = gameState.cooldownLength;
+        feedback.push({ text: `Cross cooldown: ${gameState.cooldownLength} moves`, type: 'neutral' });
     }
-    if (dynamicUsed) {
-        gameState.dynamicCooldown = gameState.cooldownLength;
-        feedback.push({ text: `Dynamic cooldown: ${gameState.cooldownLength} moves`, type: 'neutral' });
+    if (reachUsed) {
+        gameState.reachCooldown = gameState.cooldownLength;
+        feedback.push({ text: `Reach cooldown: ${gameState.cooldownLength} moves`, type: 'neutral' });
     }
 
-    // ---- Step 11: Update state ----
-    // Update consecutive crosses
+    // ---- Step 7: Update state ----
     if (crossMove) {
         gameState.consecutiveCrosses++;
     } else {
         gameState.consecutiveCrosses = 0;
     }
 
-    // Weight shift: move one step toward hold's ideal weight
+    // Weight shift toward ideal
     const idealWeight = getIdealWeight(hold.angle);
     const weightOrder = ['left', 'center', 'right'];
     const currentWeightIdx = weightOrder.indexOf(gameState.weight);
@@ -334,8 +242,8 @@ function moveToHold(row, col) {
         gameState.consecutiveCrosses = 0;
     }
 
-    // Update skill state (pass penalty for flow state tracking)
-    updateSkillStateAfterMove(true, penalty);
+    // Update skill state
+    updateSkillStateAfterMove(true, effectiveLevel);
 
     // Display all feedback
     feedback.forEach(f => addFeedback(f.text, f.type));
@@ -350,10 +258,10 @@ function moveToHold(row, col) {
     renderGrid();
     updateUI();
 
-    // ---- Step 12: Check win/loss ----
-    if (gameState.pump >= gameState.maxPump) {
-        endGame(false, `Pump reached ${gameState.maxPump}! Your forearms gave out.`);
-    } else if (gameState.grip <= 0) {
+    // ---- Step 8: Check win/loss ----
+    if (gameState.pumpState >= 3) {
+        endGame(false, `Pump maxed out! Your forearms gave out.`);
+    } else if (gameState.gripState >= 3) {
         endGame(false, `Grip depleted! Your skin couldn't hold on.`);
     } else if (gameState.currentRoute && gameState.holdsClimbed >= gameState.currentRoute.holdCount) {
         completeRoute();

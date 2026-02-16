@@ -16,125 +16,62 @@ function closeSkills() {
 }
 
 function renderSkillsScreen() {
-    document.getElementById('skill-points-count').textContent = gameState.unspentSkillPoints;
-    
+    const skillPointsEl = document.getElementById('skill-points-count');
+    if (skillPointsEl) skillPointsEl.textContent = 'Location-based';
+
     const container = document.getElementById('skills-categories');
-    const categories = { 
-        athletics: { name: 'Athletics', icon: '🔴', skills: [] },
-        utility: { name: 'Utility', icon: '🟡', skills: [] },
-        magic: { name: 'Magic', icon: '🟢', skills: [] }
-    };
-    
-    for (const [id, skill] of Object.entries(skillDatabase)) {
-        if (categories[skill.category]) {
-            categories[skill.category].skills.push(skill);
-        }
-    }
-    
-    let html = '';
-    for (const [catId, category] of Object.entries(categories)) {
-        if (category.skills.length === 0) continue;
-        
+    if (!container) return;
+
+    let html = '<div style="padding: 10px;"><h3 style="color: #fad882; text-align: center; margin-bottom: 15px;">Skill Progression</h3>';
+
+    for (const skillId of SKILL_UNLOCK_ORDER) {
+        const skill = skillDatabase[skillId];
+        if (!skill) continue;
+
+        const unlocked = isSkillUnlocked(skillId);
+        const locationName = locationNames[skill.unlockLocation] || `Location ${skill.unlockLocation}`;
+        const color = unlocked ? '#a8db60' : '#738078';
+        const icon = unlocked ? '✓' : '🔒';
+
         html += `
-            <div class="skills-category">
-                <div class="skills-category-header">
-                    <span>${category.icon}</span>
-                    <span class="skills-category-title">${category.name}</span>
+            <div style="padding: 12px; margin-bottom: 8px; background: rgba(0,0,0,0.3); border-radius: 6px; border-left: 3px solid ${color};">
+                <div style="color: ${color}; font-size: 1em; font-weight: bold;">${icon} ${skill.name} ${skill.key ? '(' + skill.key.toUpperCase() + ')' : ''}</div>
+                <div style="font-size: 0.85em; color: #bdb9ae; margin-top: 4px;">${skill.description}</div>
+                <div style="font-size: 0.8em; color: ${unlocked ? '#a8db60' : '#738078'}; margin-top: 4px;">
+                    ${unlocked ? skill.effect : `Unlock: Visit ${locationName}`}
                 </div>
-                <div class="skills-grid">
+            </div>
         `;
-        
-        for (const skill of category.skills) {
-            const current = gameState.skills[skill.id] || 0;
-            const rank = getSkillRank(skill.id);
-            const maxed = current >= skill.maxPoints;
-            const hasPoints = current > 0;
-            const progress = (current / skill.maxPoints) * 100;
-            const rankName = rank > 0 ? skill.ranks[rank - 1].name : 'Not Learned';
-            
-            html += `
-                <div class="skill-card ${hasPoints ? 'has-points' : ''} ${maxed ? 'maxed' : ''}" 
-                     onclick="showSkillDetail('${skill.id}')">
-                    <div class="skill-card-header">
-                        <div class="skill-card-name">${skill.name}</div>
-                        <div class="skill-card-points">${current}/${skill.maxPoints}</div>
-                    </div>
-                    <div class="skill-card-desc">${skill.description}</div>
-                    <div class="skill-card-rank ${!hasPoints ? 'inactive' : ''}">
-                        ${hasPoints ? `Rank ${rank}: ${rankName}` : 'Click to learn'}
-                    </div>
-                    <div class="skill-progress-bar">
-                        <div class="skill-progress-fill" style="width: ${progress}%;"></div>
-                    </div>
-                </div>
-            `;
-        }
-        
-        html += `</div></div>`;
     }
-    
+
+    html += '</div>';
     container.innerHTML = html;
 }
 
 function showSkillDetail(skillId) {
     const skill = skillDatabase[skillId];
     if (!skill) return;
-    
-    const current = gameState.skills[skillId] || 0;
-    const currentRank = getSkillRank(skillId);
-    const canUp = canUpgradeSkill(skillId);
-    const maxed = current >= skill.maxPoints;
-    
-    let ranksHtml = '';
-    for (let i = 0; i < skill.ranks.length; i++) {
-        const rankData = skill.ranks[i];
-        const rankNum = i + 1;
-        const isUnlocked = currentRank >= rankNum;
-        const isCurrent = currentRank === rankNum;
-        const isNext = currentRank === rankNum - 1;
-        
-        let tierClass = isCurrent ? 'current' : isUnlocked ? 'unlocked' : isNext ? 'next' : '';
-        const icon = isUnlocked ? '✓' : isNext ? '→' : '○';
-        
-        ranksHtml += `
-            <div class="skill-rank-tier ${tierClass}">
-                <div class="skill-rank-label">${icon} Rank ${rankNum} (${rankNum * skill.pointsPerRank} pts): ${rankData.name}</div>
-                <div class="skill-rank-effect">${rankData.effect}</div>
-            </div>
-        `;
-    }
-    
-    const upgradeButton = maxed 
-        ? `<div style="color: #fad882; text-align: center; padding: 10px;">⭐ MAXED OUT</div>`
-        : canUp 
-            ? `<button class="camp-button primary" onclick="learnSkill('${skillId}')" style="width: 100%; margin-top: 15px;">
-                Learn Rank ${currentRank + 1} (${skill.pointsPerRank} points)
-               </button>`
-            : `<div style="color: #738078; text-align: center; padding: 10px; margin-top: 15px;">
-                Need ${skill.pointsPerRank} skill points to upgrade
-               </div>`;
-    
+
+    const unlocked = isSkillUnlocked(skillId);
+    const locationName = locationNames[skill.unlockLocation] || `Location ${skill.unlockLocation}`;
+
     closeSkillDetail();
-    
+
     const modal = document.createElement('div');
     modal.className = 'skill-detail-modal';
     modal.id = 'skill-detail-modal';
     modal.innerHTML = `
-        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
-            <div>
-                <div style="font-size: 1.3em; font-weight: bold; color: #6dbce3;">${skill.name}</div>
-                <div style="color: #738078; font-size: 0.9em;">${skill.category.toUpperCase()}</div>
-            </div>
-            <div style="color: #c178de; background: rgba(193, 120, 222, 0.2); padding: 4px 12px; border-radius: 10px;">
-                ${current}/${skill.maxPoints}
-            </div>
+        <div style="margin-bottom: 15px;">
+            <div style="font-size: 1.3em; font-weight: bold; color: ${unlocked ? '#a8db60' : '#738078'};">${unlocked ? '✓' : '🔒'} ${skill.name}</div>
         </div>
         <div style="color: #bdb9ae; font-style: italic; margin-bottom: 15px;">${skill.description}</div>
-        ${ranksHtml}
-        ${upgradeButton}
+        <div style="color: #bdb9ae; margin-bottom: 10px;">${skill.effect}</div>
+        <div style="color: ${unlocked ? '#a8db60' : '#738078'}; margin-bottom: 15px;">
+            ${unlocked ? 'UNLOCKED' : `Unlock: Visit ${locationName}`}
+        </div>
         <button class="camp-button" onclick="closeSkillDetail()" style="width: 100%; margin-top: 10px;">Close</button>
     `;
-    
+
     document.body.appendChild(modal);
 }
 
@@ -144,43 +81,12 @@ function closeSkillDetail() {
 }
 
 function learnSkill(skillId) {
-    // Handle legacy commit skill (boolean)
-    if (skillId === 'commit') {
-        // Can only spend points at camp
-        if (gameState.gameMode !== 'camp') {
-            addFeedback('⛺ Return to camp to spend skill points!', 'penalty');
-            return;
-        }
-        
-        if (gameState.unspentSkillPoints <= 0) {
-            addFeedback('No skill points available!', 'penalty');
-            return;
-        }
-        
-        if (gameState.skills.commit) {
-            addFeedback('Skill already learned!', 'penalty');
-            return;
-        }
-        
-        gameState.skills.commit = true;
-        gameState.unspentSkillPoints--;
-        
-        addFeedback(`🎓 Learned skill: Commit!`, 'bonus');
-        
-        // Show the skill button in actions
-        document.getElementById('commit-btn').style.display = 'inline-block';
-        document.getElementById('commit-learn-btn').style.display = 'none';
-        
-        updateUI();
-        updateCampUI();
-        updateSidebarSkillPoints();
-        updateCampSkillsPreview();
-        return;
-    }
-    
-    // Handle new skills system
-    if (upgradeSkill(skillId)) {
-        // Update camp preview if we're in the spend points overlay
+    // Skills are now location-gated — no manual purchasing
+    addFeedback('Skills unlock automatically by visiting locations!', 'neutral');
+    return;
+
+    // Legacy code below kept for reference but unreachable
+    if (false) {
         updateCampSkillsPreview();
         updateCampUI();
         

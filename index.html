@@ -45,127 +45,15 @@
                 </div>
             </div>
 
-            <div class="section-title" style="margin-top: 25px;">Movement Style</div>
-
-            <div class="hand-status">
-                <div class="hand-status-item" id="static-status">
-                    <span style="color: #a8db60;">● STATIC</span>
-                    <button class="hand-button" id="static-btn" onclick="selectMovementStyle('static')" style="border-color: #a8db60;">
-                        SELECT (3)
-                    </button>
-                </div>
-                <div class="hand-status-item" id="regular-status">
-                    <span style="color: #fad882;">● REGULAR</span>
-                    <button class="hand-button" id="regular-btn" onclick="selectMovementStyle('regular')" style="border-color: #fad882;">
-                        SELECT (2)
-                    </button>
-                </div>
-                <div class="hand-status-item" id="dynamic-status">
-                    <span style="color: #f5aaa2;">● DYNAMIC</span>
-                    <button class="hand-button" id="dynamic-btn" onclick="selectMovementStyle('dynamic')" style="border-color: #f5aaa2;">
-                        SELECT (1)
-                    </button>
-                </div>
-                <div style="margin-top: 10px; font-size: 0.75em; color: #bdb9ae; line-height: 1.4;">
-                    Static: Reduces penalty level by 1 (3 move CD)<br>
-                    Regular: Balanced, always available<br>
-                    Dynamic: Negates distance surcharge (3 move CD)
-                </div>
-            </div>
-
-            <!-- Weight Controls -->
-            <div class="section-title" style="margin-top: 15px;">Body Weight</div>
+            <!-- Weight Controls (hidden until Weight Shift skill unlocked) -->
+            <div id="weight-section" style="margin-top: 25px;">
+            <div class="section-title">Body Weight</div>
             <div style="display: flex; gap: 5px; justify-content: center; margin-bottom: 5px;">
                 <button class="hand-button" onclick="setWeight('left')" id="weight-left-btn" style="flex: 1; padding: 8px;">LEFT</button>
                 <button class="hand-button" onclick="setWeight('center')" id="weight-center-btn" style="flex: 1; padding: 8px;">CENTER</button>
                 <button class="hand-button" onclick="setWeight('right')" id="weight-right-btn" style="flex: 1; padding: 8px;">RIGHT</button>
             </div>
             <div id="weight-indicator" class="weight-indicator weight-center" style="font-size: 0.85em; text-align: center; color: #bdb9ae;">Current: CENTER</div>
-
-            <!-- Combo Indicator -->
-            <div id="combo-indicator" style="margin-top: 15px; padding: 10px; border: 2px solid #6dbce3; border-radius: 8px; background: rgba(109, 188, 227, 0.1); display: none;">
-                <div style="text-align: center; font-family: 'Righteous', cursive; color: #6dbce3; font-size: 0.9em;">
-                    <span id="combo-text">COMBO: 0/3</span>
-                </div>
-            </div>
-
-            <div class="section-title" style="margin-top: 25px;">
-                Player Stats
-                <span style="color: #a8db60; font-size: 0.9em;" id="unspent-points-display">(0 pts)</span>
-            </div>
-            <div style="display: flex; flex-direction: column; gap: 10px;">
-                <div class="hand-status-item">
-                    <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-                        <span style="color: #f5aaa2;">ENDURANCE: <span id="endurance-display">0</span></span>
-                        <button class="hand-button" onclick="allocateStatPoint('endurance')" style="border-color: #f5aaa2; padding: 5px 15px; font-size: 0.8em;">
-                            +
-                        </button>
-                    </div>
-                    <div style="font-size: 0.7em; color: #bdb9ae; margin-top: 5px;">
-                        -2% pump per point<br>
-                        +5 max pump per point
-                    </div>
-                </div>
-
-                <div class="hand-status-item">
-                    <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-                        <span style="color: #c178de;">POWER: <span id="power-display">0</span></span>
-                        <button class="hand-button" onclick="allocateStatPoint('power')" style="border-color: #c178de; padding: 5px 15px; font-size: 0.8em;">
-                            +
-                        </button>
-                    </div>
-                    <div style="font-size: 0.7em; color: #bdb9ae; margin-top: 5px;">
-                        -2% grip loss per point<br>
-                        +5 max grip per point
-                    </div>
-                </div>
-
-                <div class="hand-status-item">
-                    <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-                        <span style="color: #6dbce3;">SPEED: <span id="speed-display">0</span></span>
-                        <button class="hand-button" onclick="allocateStatPoint('speed')" style="border-color: #6dbce3; padding: 5px 15px; font-size: 0.8em;">
-                            +
-                        </button>
-                    </div>
-                    <div style="font-size: 0.7em; color: #bdb9ae; margin-top: 5px;">
-                        Reduces cooldowns<br>
-                        (every 5 points: -1 turn)
-                    </div>
-                </div>
-
-                <div class="hand-status-item">
-                    <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-                        <span style="color: #fad882;">TECHNIQUE: <span id="technique-display">0</span></span>
-                        <button class="hand-button" onclick="allocateStatPoint('technique')" style="border-color: #fad882; padding: 5px 15px; font-size: 0.8em;">
-                            +
-                        </button>
-                    </div>
-                    <div style="font-size: 0.7em; color: #bdb9ae; margin-top: 5px;">
-                        +10% movement bonuses<br>
-                        (static/dynamic effectiveness)
-                    </div>
-                </div>
-            </div>
-
-            <div class="section-title" style="margin-top: 25px;">
-                Skills
-                <span style="color: #c178de; font-size: 0.9em;" id="unspent-skill-points-display">(0 pts)</span>
-            </div>
-            <div style="display: flex; flex-direction: column; gap: 10px;">
-                <div class="hand-status-item" id="commit-skill-container">
-                    <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-                        <span style="color: #f5aaa2;">COMMIT</span>
-                        <button class="hand-button" id="commit-learn-btn" onclick="learnSkill('commit')" style="border-color: #f5aaa2; padding: 5px 15px; font-size: 0.8em;">
-                            LEARN (1 pt)
-                        </button>
-                    </div>
-                    <div style="font-size: 0.7em; color: #bdb9ae; margin-top: 5px;">
-                        ⚠️ HIGH RISK ⚠️<br>
-                        Double success chance<br>
-                        If fail: Instant game over<br>
-                        Cooldown: 10 moves
-                    </div>
-                </div>
             </div>
         </div>
 
@@ -178,7 +66,7 @@
             <div style="margin-top: 20px;">
                 <div style="background: rgba(55, 51, 59, 0.6); border: 2px solid #738078; border-radius: 8px; padding: 15px; display: flex; flex-direction: column; align-items: center;">
                     <div style="font-family: 'Righteous', cursive; font-size: 1em; color: #fad882; text-align: center; margin-bottom: 10px;">ACTIONS</div>
-                    <!-- Row 1: Core actions -->
+                    <!-- Row 1: Recovery actions (always available) -->
                     <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
                         <button class="hand-button" id="shake-btn" onclick="useShake()" style="border-color: #6dbce3; padding: 10px 20px;">
                             SHAKE (Q)
@@ -186,39 +74,20 @@
                         <button class="hand-button" id="chalk-btn" onclick="useChalk()" style="border-color: #fad882; padding: 10px 20px;">
                             CHALK (E)
                         </button>
-                        <button class="hand-button" id="commit-btn" onclick="activateCommit()" style="border-color: #f5aaa2; padding: 10px 20px; display: none;">
-                            COMMIT (R)
-                        </button>
                     </div>
-                    <!-- Row 2: Skill actions (hidden until learned) -->
-                    <div id="skill-actions-row" style="display: none; margin-top: 10px; gap: 8px; justify-content: center; flex-wrap: wrap;">
-                        <button class="hand-button" id="salve-btn" onclick="useSalve()" style="border-color: #a8db60; padding: 8px 12px; font-size: 0.85em; display: none;">
-                            🧴 SALVE
+                    <!-- Row 2: Skill actions (shown when unlocked) -->
+                    <div id="skill-actions-row" style="display: flex; margin-top: 10px; gap: 8px; justify-content: center; flex-wrap: wrap;">
+                        <button class="hand-button" id="cross-btn" onclick="selectMovementStyle('cross')" style="border-color: #a8db60; padding: 8px 16px; display: none;">
+                            CROSS (3)
                         </button>
-                        <button class="hand-button" id="stimulant-btn" onclick="useStimulant()" style="border-color: #c178de; padding: 8px 12px; font-size: 0.85em; display: none;">
-                            💊 STIM
+                        <button class="hand-button" id="regular-btn" onclick="selectMovementStyle('regular')" style="border-color: #fad882; padding: 8px 16px; display: none;">
+                            REGULAR (2)
                         </button>
-                        <button class="hand-button" id="hook-btn" onclick="useGrapplingHook()" style="border-color: #6dbce3; padding: 8px 12px; font-size: 0.85em; display: none;">
-                            🪝 HOOK
+                        <button class="hand-button" id="reach-btn" onclick="selectMovementStyle('reach')" style="border-color: #f5aaa2; padding: 8px 16px; display: none;">
+                            REACH (1)
                         </button>
-                        <button class="hand-button" id="piton-btn" onclick="usePiton()" style="border-color: #738078; padding: 8px 12px; font-size: 0.85em; display: none;">
-                            🔩 PITON
-                        </button>
-                        <button class="hand-button" id="crashpad-btn" onclick="useCrashPad()" style="border-color: #f5aaa2; padding: 8px 12px; font-size: 0.85em; display: none;">
-                            🛡️ PAD
-                        </button>
-                        <button class="hand-button" id="wingsuit-btn" onclick="useWingsuit()" style="border-color: #6c5ead; padding: 8px 12px; font-size: 0.85em; display: none;">
-                            🦅 GLIDE
-                        </button>
-                        <!-- Magic skill buttons -->
-                        <button class="hand-button" id="timedilation-btn" onclick="useTimeDilation()" style="border-color: #a8db60; padding: 8px 12px; font-size: 0.85em; display: none;">
-                            ⏰ TIME
-                        </button>
-                        <button class="hand-button" id="transmute-btn" onclick="useTransmute()" style="border-color: #c178de; padding: 8px 12px; font-size: 0.85em; display: none;">
-                            🔄 SWAP
-                        </button>
-                        <button class="hand-button" id="gravity-btn" onclick="useGravityShift()" style="border-color: #6dbce3; padding: 8px 12px; font-size: 0.85em; display: none;">
-                            🌀 GRAV
+                        <button class="hand-button" id="commit-btn" onclick="activateCommit()" style="border-color: #f5aaa2; padding: 8px 16px; display: none;">
+                            COMMIT (R)
                         </button>
                     </div>
                 </div>
@@ -234,24 +103,11 @@
                 </div>
             </div>
 
-            <!-- Row below actions/tooltip: Holds Climbed (left) and Level & XP (right) -->
-            <div style="display: flex; gap: 20px; justify-content: space-between; margin-top: 20px;">
-                <div style="background: rgba(55, 51, 59, 0.6); border: 2px solid #738078; border-radius: 8px; padding: 15px; flex: 1;">
+            <!-- Holds Climbed counter -->
+            <div style="margin-top: 20px;">
+                <div style="background: rgba(55, 51, 59, 0.6); border: 2px solid #738078; border-radius: 8px; padding: 15px;">
                     <div style="font-family: 'Righteous', cursive; font-size: 1em; color: #fad882; text-align: center; margin-bottom: 5px;">HOLDS CLIMBED</div>
                     <div style="text-align: center; font-size: 2em; color: #a8db60; font-weight: bold;" id="move-count">0</div>
-                </div>
-
-                <div style="background: rgba(55, 51, 59, 0.6); border: 2px solid #738078; border-radius: 8px; padding: 15px; flex: 1;">
-                    <div style="font-family: 'Righteous', cursive; font-size: 1em; color: #fad882; text-align: center; margin-bottom: 10px;">LEVEL & XP</div>
-                    <div style="text-align: center; font-size: 1.2em; color: #a8db60; margin-bottom: 5px;">
-                        Level <span id="level-display">1</span>
-                    </div>
-                    <div style="font-size: 0.9em; color: #bdb9ae; text-align: center;">
-                        <span id="xp-display">0</span> / <span id="xp-needed-display">100</span> XP
-                    </div>
-                    <div style="height: 10px; background: rgba(15, 19, 26, 0.8); border: 1px solid #738078; border-radius: 5px; margin-top: 8px; overflow: hidden;">
-                        <div id="xp-bar" style="height: 100%; background: linear-gradient(90deg, #a8db60, #6dbce3); width: 0%; transition: width 0.3s ease;"></div>
-                    </div>
                 </div>
             </div>
         </div>
@@ -263,11 +119,11 @@
             <div class="resource-bar">
                 <div class="resource-label">
                     <span>PUMP</span>
-                    <span id="pump-value">0/100</span>
+                    <span id="pump-value" style="color: #a8db60;">Fresh</span>
                 </div>
                 <div class="bar-container">
                     <div class="bar-fill pump-bar" id="pump-bar" style="width: 0%">
-                        0%
+                        Fresh
                     </div>
                 </div>
             </div>
@@ -275,11 +131,11 @@
             <div class="resource-bar">
                 <div class="resource-label">
                     <span>GRIP</span>
-                    <span id="grip-value">100/100</span>
+                    <span id="grip-value" style="color: #a8db60;">Chalked</span>
                 </div>
                 <div class="bar-container">
-                    <div class="bar-fill grip-bar" id="grip-bar" style="width: 100%">
-                        100%
+                    <div class="bar-fill grip-bar" id="grip-bar" style="width: 0%">
+                        Chalked (decay in 3)
                     </div>
                 </div>
             </div>

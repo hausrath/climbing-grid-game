@@ -1,79 +1,45 @@
-// ============ SHAKE (reduces pump) ============
+// ============ SHAKE (reduces pump state by 1) ============
 function useShake() {
-    const effRecRank = getSkillRank('efficientRecovery');
-    let cooldownReduction = effRecRank >= 5 ? 999 : effRecRank >= 4 ? 4 : effRecRank >= 3 ? 3 : effRecRank >= 2 ? 2 : effRecRank >= 1 ? 1 : 0;
-    let effectivenessBonus = effRecRank >= 5 ? 0.50 : effRecRank >= 4 ? 0.30 : effRecRank >= 3 ? 0.20 : effRecRank >= 2 ? 0.10 : 0;
-
-    // Check stimulant effect
-    if (gameState.skillState.stimulant.active && gameState.skillState.stimulant.movesLeft > 0) {
-        cooldownReduction = 999;
-    }
-
     if (gameState.shakeCooldown > 0) {
         addFeedback(`Shake on cooldown! ${gameState.shakeCooldown} moves remaining.`, 'penalty');
         return;
     }
 
-    // Calculate pump reduction (diminishing returns: -1 per shake used)
-    const basePumpReduction = Math.max(1, 5 - gameState.shakesUsed);
-    const pumpReduction = Math.round(basePumpReduction * (1 + effectivenessBonus));
-    gameState.pump = Math.max(0, gameState.pump - pumpReduction);
+    if (gameState.pumpState <= 0) {
+        addFeedback(`Already fresh — no pump to shake off!`, 'neutral');
+        return;
+    }
+
+    // Reduce pump state by 1
+    const oldState = gameState.pumpState;
+    gameState.pumpState = Math.max(0, gameState.pumpState - 1);
+    const newLabel = PUMP_STATE_LABELS[gameState.pumpState] || 'Fresh';
 
     gameState.shakesUsed++;
+    gameState.shakeCooldown = gameState.actionCooldownLength;
 
-    // Calculate cooldown
-    let actualCooldown = gameState.actionCooldownLength;
-    if (cooldownReduction >= 999) {
-        actualCooldown = 0;
-    } else {
-        actualCooldown = Math.max(0, actualCooldown - cooldownReduction);
-    }
-
-    if (actualCooldown > 0) {
-        gameState.shakeCooldown = actualCooldown;
-    }
-
-    addFeedback(`Shook out! -${pumpReduction} pump`, 'bonus');
-    if (actualCooldown > 0) {
-        addFeedback(`Cooldown: ${actualCooldown} moves`, 'neutral');
-    } else {
-        addFeedback(`No cooldown!`, 'bonus');
-    }
+    addFeedback(`Shook out! Pump: ${PUMP_STATE_LABELS[oldState]} -> ${newLabel}`, 'bonus');
+    addFeedback(`Cooldown: ${gameState.shakeCooldown} moves`, 'neutral');
 
     // Deadpoint tracking
-    if (getSkillRank('deadpoint') >= 1) {
+    if (isSkillUnlocked('deadpoint')) {
         gameState.skillState.justShook = true;
-        addFeedback(`Deadpoint ready! Next move: reduced grip drain`, 'bonus');
-    }
-
-    // Efficient Recovery rank 5 bonus
-    if (effRecRank >= 5) {
-        gameState.skillState.recoveryBonus = 1;
-        addFeedback(`Perfect Execution: reduced pump on next move!`, 'bonus');
+        addFeedback(`Deadpoint ready! Next move: no pump state change`, 'bonus');
     }
 
     // Shake counts as a turn for cooldown purposes
-    if (gameState.staticCooldown > 0) gameState.staticCooldown--;
-    if (gameState.dynamicCooldown > 0) gameState.dynamicCooldown--;
+    if (gameState.crossCooldown > 0) gameState.crossCooldown--;
+    if (gameState.reachCooldown > 0) gameState.reachCooldown--;
     if (gameState.commitCooldown > 0) gameState.commitCooldown--;
 
     updateUI();
 }
 
-// ============ CHALK (restores grip) ============
+// ============ CHALK (resets grip state to 0) ============
 function useChalk() {
     if (gameState.chalkRemaining <= 0) {
         addFeedback(`Out of chalk! No uses remaining this climb.`, 'penalty');
         return;
-    }
-
-    const effRecRank = getSkillRank('efficientRecovery');
-    let cooldownReduction = effRecRank >= 5 ? 999 : effRecRank >= 4 ? 4 : effRecRank >= 3 ? 3 : effRecRank >= 2 ? 2 : effRecRank >= 1 ? 1 : 0;
-    let effectivenessBonus = effRecRank >= 5 ? 0.50 : effRecRank >= 4 ? 0.30 : effRecRank >= 3 ? 0.20 : effRecRank >= 2 ? 0.10 : 0;
-
-    // Check stimulant effect
-    if (gameState.skillState.stimulant.active && gameState.skillState.stimulant.movesLeft > 0) {
-        cooldownReduction = 999;
     }
 
     if (gameState.chalkCooldown > 0) {
@@ -83,42 +49,25 @@ function useChalk() {
 
     gameState.chalkRemaining--;
 
-    // Calculate grip increase
-    const baseGripIncrease = 5;
-    const gripIncrease = Math.round(baseGripIncrease * (1 + effectivenessBonus));
-    gameState.grip = Math.min(gameState.maxGrip, gameState.grip + gripIncrease);
+    // Reset grip state and decay counter
+    const oldGripLabel = GRIP_STATE_LABELS[gameState.gripState] || 'Critical';
+    gameState.gripState = 0;
+    gameState.gripDecayCounter = 0;
 
     gameState.chalksUsed++;
+    gameState.chalkCooldown = 1; // 1-turn cooldown
 
-    // Calculate cooldown (chalk has 1-turn cooldown)
-    let actualCooldown = 1;
-    if (cooldownReduction >= 999) {
-        actualCooldown = 0;
-    } else {
-        actualCooldown = Math.max(0, actualCooldown - cooldownReduction);
-    }
-
-    if (actualCooldown > 0) {
-        gameState.chalkCooldown = actualCooldown;
-    }
-
-    addFeedback(`Chalked up! +${gripIncrease} grip (${gameState.chalkRemaining}/${gameState.maxChalk} uses left)`, 'bonus');
+    addFeedback(`Chalked up! Grip: ${oldGripLabel} -> Chalked (${gameState.chalkRemaining}/${gameState.maxChalk} uses left)`, 'bonus');
 
     // Deadpoint tracking
-    if (getSkillRank('deadpoint') >= 1) {
+    if (isSkillUnlocked('deadpoint')) {
         gameState.skillState.justChalked = true;
-        addFeedback(`Deadpoint ready! Next move: reduced pump`, 'bonus');
-    }
-
-    // Efficient Recovery rank 5 bonus
-    if (effRecRank >= 5) {
-        gameState.skillState.recoveryBonus = 1;
-        addFeedback(`Perfect Execution: reduced pump on next move!`, 'bonus');
+        addFeedback(`Deadpoint ready! Next move: grip decay skipped`, 'bonus');
     }
 
     // Chalk counts as a turn for cooldown purposes
-    if (gameState.staticCooldown > 0) gameState.staticCooldown--;
-    if (gameState.dynamicCooldown > 0) gameState.dynamicCooldown--;
+    if (gameState.crossCooldown > 0) gameState.crossCooldown--;
+    if (gameState.reachCooldown > 0) gameState.reachCooldown--;
     if (gameState.commitCooldown > 0) gameState.commitCooldown--;
 
     updateUI();
@@ -158,7 +107,7 @@ function recordSuccessfulGrab(holdIndex) {
 
 // ============ COMMIT SKILL ============
 function activateCommit() {
-    if (!gameState.skills.commit) {
+    if (!isSkillUnlocked('commit')) {
         addFeedback('Commit skill not learned!', 'penalty');
         return;
     }
@@ -171,7 +120,7 @@ function activateCommit() {
         return;
     }
     gameState.commitActive = true;
-    addFeedback('COMMIT ACTIVATED! Next move: halved pump cost OR instant fall!', 'bonus');
+    addFeedback('COMMIT ACTIVATED! Next move: penalty reduced by 1 level!', 'bonus');
     updateUI();
 }
 
@@ -194,10 +143,6 @@ function completeRoute() {
     const location = gameState.currentLocation;
     const route = gameState.currentRoute;
     const routeKey = `${location.id}-${route.id}`;
-
-    // Add fatigue for this attempt
-    gameState.pumpFatigue += 1;
-    gameState.gripFatigue += 1;
 
     advanceTime();
 
@@ -222,9 +167,7 @@ function completeRoute() {
     const starResults = {
         completion: true,
         speed: roundedTime <= timeLimit,
-        pumpEfficiency: route.stars?.pumpEfficiency
-            ? gameState.pump <= route.stars.pumpEfficiency.maxPump
-            : gameState.pump <= Math.round(gameState.maxPump * 0.3),
+        pumpEfficiency: gameState.pumpState === 0,
         noRecovery: gameState.shakesUsed === 0 && gameState.chalksUsed === 0,
         flashClimb: gameState.routeAttempts <= 1
     };
@@ -263,10 +206,6 @@ function completeRoute() {
         gameState.completedRoutes[routeKey].stars = Object.values(gameState.completedRoutes[routeKey].starResults).filter(v => v).length;
     }
 
-    // Award pump/grip banking for route completion (no star requirement)
-    gameState.bankedPumpIncrease += 1;
-    gameState.bankedGripIncrease += 1;
-    addFeedback('💪 Banked +1 max pump & +1 max grip! Rest to realize gains.', 'bonus');
 
     // Award loot if route has it
     const loot = awardRouteLoot(location, route);
@@ -285,9 +224,7 @@ function completeRoute() {
     unlockAdjacentLocations(location);
 
     // Build star display
-    const pumpEffLabel = route.stars?.pumpEfficiency
-        ? `Pump <= ${route.stars.pumpEfficiency.maxPump}`
-        : `Pump <= ${Math.round(gameState.maxPump * 0.3)}`;
+    const pumpEffLabel = 'Finish with Fresh pump';
 
     const starDisplay = `
         <div style="font-size: 1.2em; margin-bottom: 15px;">
@@ -300,7 +237,7 @@ function completeRoute() {
         </div>
         <div style="font-size: 1.2em; margin-bottom: 15px;">
             ${starResults.pumpEfficiency ? '⭐' : '☆'} Pump Efficiency
-            <div style="font-size: 0.7em; color: #bdb9ae;">${pumpEffLabel} (ended at ${gameState.pump})</div>
+            <div style="font-size: 0.7em; color: #bdb9ae;">${pumpEffLabel} (ended: ${PUMP_STATE_LABELS[gameState.pumpState] || 'Critical'})</div>
         </div>
         <div style="font-size: 1.2em; margin-bottom: 15px;">
             ${starResults.noRecovery ? '⭐' : '☆'} No Recovery
@@ -338,10 +275,6 @@ function unlockAdjacentLocations(currentLocation) {
 
 // End game (fall/failure)
 function endGame(victory, message) {
-    // Add fatigue for this attempt
-    gameState.pumpFatigue += 1;
-    gameState.gripFatigue += 1;
-
     advanceTime();
 
     const routeKey = `${gameState.currentLocation.id}-${gameState.currentRoute.id}`;
@@ -368,14 +301,14 @@ function endGame(victory, message) {
     const msg = document.getElementById('game-over-message');
 
     title.textContent = 'YOU FELL!';
-    const availablePump = getAvailablePump();
-    const availableGrip = getAvailableGrip();
+    const pumpLabel = PUMP_STATE_LABELS[gameState.pumpState] || 'Critical';
+    const gripLabel = GRIP_STATE_LABELS[gameState.gripState] || 'Critical';
     msg.innerHTML = `
         <div style="margin-bottom: 20px;">${message}</div>
         <div>Holds Climbed: ${gameState.holdsClimbed} / ${gameState.currentRoute.holdCount}</div>
         ${isNewHighPoint ? `<div style="color: #fad882; margin: 10px 0;">NEW HIGH POINT!</div>` :
             (highPoint > 0 ? `<div style="color: #738078; margin: 10px 0;">High Point: ${highPoint}</div>` : '')}
-        <div style="margin-bottom: 10px; color: #bdb9ae;">💪 Available: ${availablePump} Pump / ${availableGrip} Grip</div>
+        <div style="margin-bottom: 10px; color: #bdb9ae;">Pump: ${pumpLabel} | Grip: ${gripLabel}</div>
         <button class="back-button" onclick="retryRoute()">Retry</button>
         <button class="back-button" onclick="returnToRouteSelection()">Routes</button>
         <button class="back-button" onclick="returnToWorldMap()">World Map</button>
@@ -403,7 +336,6 @@ function showVictoryScreen() {
         </div>
         <div style="margin: 20px 0; padding: 15px; background: rgba(168, 219, 96, 0.2); border-radius: 8px;">
             <div style="font-size: 1.1em; margin-bottom: 8px;">Final Stats:</div>
-            <div>Level: ${gameState.level}</div>
             <div>Total Stars: ${totalStars}</div>
             <div>Routes Completed: ${Object.keys(gameState.completedRoutes).length}</div>
         </div>

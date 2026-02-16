@@ -49,124 +49,27 @@ const gameState = {
     weightAtMoveStart: 'center', // Weight at start of move (limits shifting to one step)
     currentHand: null, // Which hand is currently on the wall ('left' or 'right')
 
-    pump: 0,
-    grip: 12,
-    maxPump: 12,
-    maxGrip: 12,
+    // State-based pump/grip system (0=fresh, 1=moderate, 2=critical, 3+=fall)
+    pumpState: 0,       // 0: Fresh, 1: Pumped, 2: Struggling, 3+: Fall
+    gripState: 0,       // 0: Chalked, 1: Weakening, 2: Slipping, 3+: Fall
+    gripDecayCounter: 0, // Counts moves since last chalk (advances grip state every 3)
+    // Skills - location-gated unlocks (no star purchasing)
+    unlockedSkills: [], // Array of skill IDs unlocked by visiting locations
 
-    // New progression system
-    bankedPumpIncrease: 0,
-    bankedGripIncrease: 0,
-    pumpFatigue: 0,
-    gripFatigue: 0,
-    spentStars: 0, // Stars spent on skills
-    
-    // Skills system - points invested in each skill
-    skills: {
-        // === ATHLETICS SKILLS ===
-        dyno: 0,              // Max 15 pts (5 ranks) - renamed from dynamicMovement
-        flowState: 0,         // Max 12 pts (4 ranks)
-        ironGrip: 0,          // Max 9 pts (3 ranks)
-        grit: 0,              // Max 9 pts (3 ranks)
-        deadpoint: 0,         // Max 1 pt
-        kneebar: 0,           // Max 9 pts (3 ranks)
-        battleCry: 0,         // Max 6 pts (2 ranks)
-        precisionFootwork: 0, // Max 12 pts (4 ranks)
-        adrenalineRush: 0,    // Max 1 pt
-        ambidextrous: 0,      // Max 6 pts (2 ranks)
-        
-        // === UTILITY SKILLS ===
-        efficientRecovery: 0, // Max 15 pts (5 ranks)
-        grapplingHook: 0,     // Max 9 pts (3 ranks)
-        pitonPlacement: 0,    // Max 6 pts (2 ranks)
-        climbingSalve: 0,     // Max 9 pts (3 ranks)
-        stimulant: 0,         // Max 6 pts (2 ranks)
-        headlamp: 0,          // Max 9 pts (3 ranks)
-        routeJournal: 0,      // Max 12 pts (4 ranks)
-        wingsuit: 0,          // Max 1 pt
-        crashPad: 0,          // Max 6 pts (2 ranks)
-        weatherReading: 0,    // Max 9 pts (3 ranks)
-        
-        // === MAGIC SKILLS ===
-        transmogrify: 0,      // Max 9 pts (3 ranks)
-        teleport: 0,          // Max 12 pts (4 ranks)
-        seer: 0,              // Max 12 pts (4 ranks)
-        timeDilation: 0,      // Max 9 pts (3 ranks)
-        rockcreate: 0,        // Max 9 pts (3 ranks)
-        sunmark: 0,           // Max 6 pts (2 ranks)
-        whisperingVines: 0,   // Max 6 pts (2 ranks)
-        transmute: 0,         // Max 1 pt
-        gravityShift: 0,      // Max 6 pts (2 ranks)
-        phantomGrip: 0,       // Max 9 pts (3 ranks)
-        energySiphon: 0,      // Max 6 pts (2 ranks)
-        
-        // Legacy
-        commit: false,
-    },
-    
     // Skill state tracking (per-climb, reset each attempt)
     skillState: {
-        justChalked: false,
-        justShook: false,
-        ironGripProcBonus: 0,
-        adrenalineTriggered: false,
-        adrenalineMovesLeft: 0,
-        battleCryUsesLeft: 0,
-        battleCryActive: false,
-        battleCryMovesLeft: 0,
-        battleCryFailImmunity: false,
-        kneebar: {
-            available: false,
-            active: false,
-            movesInKneebar: 0,
-            cooldown: 0,
-            postKneebarBonus: 0
-        },
-        flowFailureBuffer: 0,
-        flowPaused: false,
-        flowStackBonus: 0,
-        dynamicLandingBonus: 0,
-        footworkMoveCount: 0,
-        
-        // === UTILITY SKILL STATE ===
-        grapplingHook: {
-            usesLeft: 0,
-            cooldown: 0
-        },
-        piton: {
-            placementsLeft: 0,
-            placed: false,  // Is there a piton on current hold?
-            restMovesLeft: 0
-        },
-        salve: {
-            usesLeft: 0,
-            bonusMovesLeft: 0,
-            weatherImmunityLeft: 0
-        },
-        stimulant: {
-            usesLeft: 0,
-            active: false,
-            movesLeft: 0
-        },
-        crashPad: {
-            placementsLeft: 0,
-            placed: false,
-            lastSafeHold: null
-        },
-        wingsuit: {
-            available: false
-        },
-        recoveryBonus: 0  // +success after recovery (Efficient Recovery rank 5)
+        justChalked: false, // Deadpoint: after chalk, next move skips grip decay
+        justShook: false    // Deadpoint: after shake, next move has no pump change
     },
     
     commitCooldown: 0,
     commitActive: false,
     selectedHand: null,
     lastHandUsed: null, // Track which hand was used last
-    movementStyle: 'regular', // 'static', 'regular', 'dynamic'
+    movementStyle: 'regular', // 'cross', 'regular', 'reach'
     consecutiveCrosses: 0, // Track consecutive cross-overs
-    staticCooldown: 0, // Turns until static is available again
-    dynamicCooldown: 0, // Turns until dynamic is available again
+    crossCooldown: 0, // Turns until Cross is available again
+    reachCooldown: 0, // Turns until Reach is available again
     shakeCooldown: 0, // Turns until shake is available again
     chalkCooldown: 0, // Turns until chalk is available again
     cooldownLength: 3, // Number of turns for movement cooldown
@@ -282,15 +185,9 @@ function calculateAvailableStars() {
     return calculateTotalStars() - gameState.spentStars;
 }
 
-// Calculate available pump (max - fatigue)
-function getAvailablePump() {
-    return Math.max(0, gameState.maxPump - gameState.pumpFatigue);
-}
-
-// Calculate available grip (max - fatigue)
-function getAvailableGrip() {
-    return Math.max(0, gameState.maxGrip - gameState.gripFatigue);
-}
+// Pump state labels
+const PUMP_STATE_LABELS = ['Fresh', 'Pumped', 'Struggling'];
+const GRIP_STATE_LABELS = ['Chalked', 'Weakening', 'Slipping'];
 
 // Calculate stars earned at a specific location
 function calculateLocationStars(locationId) {

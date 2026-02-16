@@ -29,93 +29,91 @@ function refreshTooltip() {
     const isExtendedMove = (dy >= 2 || dx >= 2);
     const direction = getMoveDirection(gameState.currentCol, gameState.currentRow, col, routeRow);
 
-    const penaltyNames = ['Perfect', 'Slight', 'Moderate', 'Severe', 'FALL'];
     const penaltyColors = ['#a8db60', '#fad882', '#f5aaa2', '#f55', '#f00'];
-
-    const fatigueMultiplier = 1 + (gameState.holdsClimbed * 0.05);
-    const fatiguePercent = Math.round((fatigueMultiplier - 1) * 100);
-
-    // Build pump breakdown for a given hand (base hold cost disabled)
-    function buildHandBreakdown(hand) {
-        const handLabel = hand === 'left' ? 'Left' : 'Right';
-        const penaltyLevel = lookupPenalty(direction, hand, hold.angle, gameState.weight);
-
-        if (penaltyLevel === 4) {
-            return { pumpHtml: `<div style="color: #f00; font-weight: bold;">${handLabel}: INSTANT FALL</div>`, penaltyGrip: 0, penaltyLevel };
-        }
-
-        const handMod = getHandHoldPumpModifier(hold.type, hand, hold.angle) || 0;
-        const penaltyPump = PENALTY_PUMP_MULTIPLIERS[penaltyLevel] || 0;
-        let distancePump = 0;
-        let staticReduction = 0;
-
-        if (isExtendedMove) {
-            distancePump = (gameState.movementStyle === 'dynamic') ? 0 : 2;
-        }
-        if (gameState.movementStyle === 'static' && handMod > 0) {
-            staticReduction = 1;
-        }
-
-        const rawPump = Math.max(0, handMod + penaltyPump + distancePump - staticReduction);
-        const totalPump = gameState.holdsClimbed > 0 ? Math.round(rawPump * fatigueMultiplier) : rawPump;
-
-        // Build details showing only active modifiers
-        let parts = [];
-        if (handMod > 0) parts.push(`<span style="color:#f5aaa2;">+${handMod} hand</span>`);
-        if (penaltyPump > 0) parts.push(`<span style="color:${penaltyColors[penaltyLevel]};">+${penaltyPump} ${penaltyNames[penaltyLevel].toLowerCase()}</span>`);
-        if (distancePump > 0) parts.push(`<span style="color:#f5aaa2;">+${distancePump} dist</span>`);
-        if (gameState.movementStyle === 'dynamic' && isExtendedMove) parts.push(`<span style="color:#a8db60;">dyn</span>`);
-        if (staticReduction > 0) parts.push(`<span style="color:#a8db60;">-${staticReduction} static</span>`);
-        const details = parts.length > 0 ? ` (${parts.join(' ')})` : '';
-
-        const pumpHtml = `<div style="color: ${penaltyColors[penaltyLevel]};">${handLabel}: +${totalPump} pump${details}</div>`;
-        const penaltyGrip = PENALTY_GRIP_MULTIPLIERS[penaltyLevel] || 0;
-        return { pumpHtml, penaltyGrip, penaltyLevel };
-    }
-
-    // Grip breakdown
-    const baseGrip = getBaseGripDrain(hold.type, hold.angle);
-    const weightMod = getWeightDirectionGripModifier(gameState.weight, direction, hold.angle);
     const idealWeight = getIdealWeight(hold.angle);
     const restLabel = hold.isRest ? ' (REST)' : '';
     const styleLabel = gameState.movementStyle !== 'regular' ? gameState.movementStyle.toUpperCase() : '';
 
-    let pumpHtml = '';
-    let gripPenaltyGrip = 0;
-    let gripPenaltyLabel = '';
+    // Build effective penalty breakdown for a given hand
+    function buildHandBreakdown(hand) {
+        const handLabel = hand === 'left' ? 'Left' : 'Right';
+        const basePenalty = lookupPenalty(direction, hand, hold.angle, gameState.weight);
 
-    // Determine cross-body status for selected hand (or worst case for both)
-    let crossGripCost = 0;
-    if (gameState.selectedHand) {
-        const result = buildHandBreakdown(gameState.selectedHand);
-        pumpHtml = result.pumpHtml;
-        gripPenaltyGrip = result.penaltyGrip || 0;
-        if (gripPenaltyGrip > 0) gripPenaltyLabel = penaltyNames[result.penaltyLevel].toLowerCase();
-        const isCross = isCrossMove(gameState.selectedHand === 'left' ? 'L' : 'R', direction);
-        if (isCross && gameState.movementStyle !== 'static') {
-            crossGripCost = gameState.consecutiveCrosses >= 1 ? 4 : 2;
+        if (basePenalty === 4) {
+            return `<div style="color: #f00; font-weight: bold;">${handLabel}: INSTANT FALL</div>`;
         }
-    } else {
-        const resultL = buildHandBreakdown('left');
-        const resultR = buildHandBreakdown('right');
-        pumpHtml = resultL.pumpHtml + resultR.pumpHtml;
-        gripPenaltyGrip = Math.max(resultL.penaltyGrip || 0, resultR.penaltyGrip || 0);
-        if (gripPenaltyGrip > 0) gripPenaltyLabel = 'penalty';
+
+        let effective = basePenalty;
+        let bumps = [];
+
+        const handMod = getHandHoldPumpModifier(hold.type, hand, hold.angle) || 0;
+        if (handMod > 0) { effective += 1; bumps.push('gaston'); }
+
+        const isCross = isCrossMove(hand, direction);
+        if (isCross) {
+            if (gameState.movementStyle === 'cross') {
+                effective = Math.max(0, effective - 1);
+                bumps.push('<span style="color:#a8db60">cross</span>');
+            } else {
+                bumps.push('cross-body');
+            }
+        }
+
+        if (isExtendedMove) {
+            if (gameState.movementStyle === 'reach') {
+                bumps.push('<span style="color:#a8db60">reach</span>');
+            } else {
+                effective += 1; bumps.push('distance');
+            }
+        }
+
+        // Cross skill can also reduce gaston if not used for cross-body
+        if (!isCross && gameState.movementStyle === 'cross' && handMod > 0) {
+            effective = Math.max(0, effective - 1);
+            bumps.push('<span style="color:#a8db60">cross</span>');
+        }
+
+        if (gameState.commitActive && effective > 0) {
+            effective = Math.max(0, effective - 1);
+            bumps.push('<span style="color:#a8db60">commit</span>');
+        }
+
+        effective = Math.min(effective, 4);
+
+        // Map to state change
+        let stateChange;
+        let resultColor;
+        if (effective >= 3) {
+            stateChange = 'FALL';
+            resultColor = '#f00';
+        } else if (effective === 2) {
+            stateChange = '+2 states';
+            resultColor = '#f5aaa2';
+        } else if (effective === 1) {
+            stateChange = '+1 state';
+            resultColor = '#fad882';
+        } else {
+            stateChange = 'clean';
+            resultColor = '#a8db60';
+        }
+
+        const levelName = PENALTY_LEVEL_NAMES[effective] || 'None';
+        const bumpStr = bumps.length > 0 ? ` (${bumps.join(' ')})` : '';
+        return `<div style="color: ${resultColor};">${handLabel}: ${levelName} → ${stateChange}${bumpStr}</div>`;
     }
 
-    const rawGrip = baseGrip.total + weightMod + gripPenaltyGrip + crossGripCost;
-    const totalGrip = gameState.holdsClimbed > 0 ? Math.round(rawGrip * fatigueMultiplier) : rawGrip;
+    // Build pump section
+    let pumpHtml = '';
+    if (gameState.selectedHand) {
+        pumpHtml = buildHandBreakdown(gameState.selectedHand);
+    } else {
+        pumpHtml = buildHandBreakdown('left') + buildHandBreakdown('right');
+    }
 
-    let gripParts = [];
-    gripParts.push(`<span style="color:#bdb9ae;">${baseGrip.typeGrip} ${hold.type}</span>`);
-    if (baseGrip.subtypeName) gripParts.push(`<span style="color:#f5aaa2;">+${baseGrip.subtypePenalty} ${baseGrip.subtypeName}</span>`);
-    if (crossGripCost > 0) gripParts.push(`<span style="color:#f5aaa2;">+${crossGripCost} cross</span>`);
-    if (weightMod > 0) gripParts.push(`<span style="color:#f5aaa2;">+${weightMod} weight</span>`);
-    if (gripPenaltyGrip > 0) gripParts.push(`<span style="color:#f5aaa2;">+${gripPenaltyGrip} ${gripPenaltyLabel}</span>`);
-    const gripDetails = ` (${gripParts.join(' ')})`;
-    const hasGripPenalty = rawGrip > baseGrip.typeGrip;
-
-    const fatigueHtml = fatiguePercent > 0 ? `<div style="font-size: 0.8em; color: #f5aaa2; margin-top: 2px;">Fatigue: +${fatiguePercent}% all costs</div>` : '';
+    // Grip section (time-based decay)
+    const movesUntilDecay = 3 - gameState.gripDecayCounter;
+    const gripLabel = GRIP_STATE_LABELS[gameState.gripState] || 'Critical';
+    const gripColor = ['#a8db60', '#fad882', '#f5aaa2'][gameState.gripState] || '#f5aaa2';
 
     tooltipBox.innerHTML = `
         <div style="width: 100%; text-align: left;">
@@ -128,9 +126,9 @@ function refreshTooltip() {
             </div>
             <div style="padding-top: 4px; border-top: 1px solid #738078; font-size: 0.85em; line-height: 1.8; margin-top: 4px;">
                 <div style="color: #6dbce3; font-weight: bold; margin-bottom: 2px;">GRIP</div>
-                <div style="color: ${hasGripPenalty ? '#f5aaa2' : '#bdb9ae'};">-${totalGrip} grip${gripDetails}</div>
+                <div style="color: ${gripColor};">State: ${gripLabel} | Decay in ${movesUntilDecay} move${movesUntilDecay !== 1 ? 's' : ''}</div>
+                <div style="color: #bdb9ae; font-size: 0.9em;">Chalk: ${gameState.chalkRemaining}/${gameState.maxChalk} uses</div>
             </div>
-            ${fatigueHtml}
             <div style="margin-top: 4px; font-size: 0.8em; color: #bdb9ae; border-top: 1px solid #738078; padding-top: 4px;">
                 Ideal Weight: ${idealWeight} | ${hold.matchable ? 'Matchable' : 'No match'}
             </div>

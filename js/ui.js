@@ -147,139 +147,29 @@ function setWeight(weight) {
 // Select movement style
 function selectMovementStyle(style) {
     // Check if style is on cooldown
-    if (style === 'static' && gameState.staticCooldown > 0) {
-        addFeedback(`Static on cooldown! ${gameState.staticCooldown} moves remaining.`, 'penalty');
+    if (style === 'cross' && gameState.crossCooldown > 0) {
+        addFeedback(`Cross on cooldown! ${gameState.crossCooldown} moves remaining.`, 'penalty');
         return;
     }
-    if (style === 'dynamic' && gameState.dynamicCooldown > 0) {
-        addFeedback(`Dynamic on cooldown! ${gameState.dynamicCooldown} moves remaining.`, 'penalty');
+    if (style === 'reach' && gameState.reachCooldown > 0) {
+        addFeedback(`Reach on cooldown! ${gameState.reachCooldown} moves remaining.`, 'penalty');
         return;
     }
 
     gameState.movementStyle = style;
     const styleNames = {
-        'static': 'Static (precise, short range)',
+        'cross': 'Cross (negates cross-body penalty)',
         'regular': 'Regular (balanced)',
-        'dynamic': 'Dynamic (powerful, long range)'
+        'reach': 'Reach (negates distance penalty)'
     };
     addFeedback(`${styleNames[style]} selected`, 'neutral');
     refreshTooltip();
     updateUI();
 }
 
+// Update skill action buttons (placeholder — will be reworked in UI step)
 function updateSkillActionButtons() {
-    const skillRow = document.getElementById('skill-actions-row');
-    if (!skillRow) return;
-
-    let anyVisible = false;
-
-    // Salve button
-    const salveBtn = document.getElementById('salve-btn');
-    if (salveBtn) {
-        const hasSkill = getSkillRank('climbingSalve') >= 1;
-        const usesLeft = gameState.skillState.salve?.usesLeft || 0;
-        salveBtn.style.display = hasSkill ? 'inline-block' : 'none';
-        salveBtn.textContent = `🧴 SALVE (${usesLeft})`;
-        salveBtn.disabled = usesLeft <= 0;
-        if (hasSkill) anyVisible = true;
-    }
-
-    // Stimulant button
-    const stimBtn = document.getElementById('stimulant-btn');
-    if (stimBtn) {
-        const hasSkill = getSkillRank('stimulant') >= 1;
-        const usesLeft = gameState.skillState.stimulant?.usesLeft || 0;
-        const active = gameState.skillState.stimulant?.active;
-        stimBtn.style.display = hasSkill ? 'inline-block' : 'none';
-        stimBtn.textContent = active ? `💊 ACTIVE` : `💊 STIM (${usesLeft})`;
-        stimBtn.disabled = usesLeft <= 0 || active;
-        if (hasSkill) anyVisible = true;
-    }
-
-    // Hook button
-    const hookBtn = document.getElementById('hook-btn');
-    if (hookBtn) {
-        const hasSkill = getSkillRank('grapplingHook') >= 1;
-        const usesLeft = gameState.skillState.grapplingHook?.usesLeft || 0;
-        const cooldown = gameState.skillState.grapplingHook?.cooldown || 0;
-        hookBtn.style.display = hasSkill ? 'inline-block' : 'none';
-        hookBtn.textContent = cooldown > 0 ? `🪝 CD:${cooldown}` : `🪝 HOOK (${usesLeft})`;
-        hookBtn.disabled = usesLeft <= 0 || cooldown > 0;
-        if (hasSkill) anyVisible = true;
-    }
-
-    // Piton button
-    const pitonBtn = document.getElementById('piton-btn');
-    if (pitonBtn) {
-        const hasSkill = getSkillRank('pitonPlacement') >= 1;
-        const placementsLeft = gameState.skillState.piton?.placementsLeft || 0;
-        pitonBtn.style.display = hasSkill ? 'inline-block' : 'none';
-        pitonBtn.textContent = `🔩 PITON (${placementsLeft})`;
-        pitonBtn.disabled = placementsLeft <= 0;
-        if (hasSkill) anyVisible = true;
-    }
-
-    // Crash Pad button
-    const padBtn = document.getElementById('crashpad-btn');
-    if (padBtn) {
-        const hasSkill = getSkillRank('crashPad') >= 1;
-        const placementsLeft = gameState.skillState.crashPad?.placementsLeft || 0;
-        padBtn.style.display = hasSkill ? 'inline-block' : 'none';
-        padBtn.textContent = `🛡️ PAD (${placementsLeft})`;
-        padBtn.disabled = placementsLeft <= 0;
-        if (hasSkill) anyVisible = true;
-    }
-
-    // Wingsuit button
-    const wingsuitBtn = document.getElementById('wingsuit-btn');
-    if (wingsuitBtn) {
-        const hasSkill = getSkillRank('wingsuit') >= 1;
-        const available = gameState.skillState.wingsuit?.available;
-        wingsuitBtn.style.display = hasSkill ? 'inline-block' : 'none';
-        wingsuitBtn.textContent = available ? `🦅 GLIDE` : `🦅 USED`;
-        wingsuitBtn.disabled = !available;
-        if (hasSkill) anyVisible = true;
-    }
-
-    // === MAGIC SKILL BUTTONS ===
-
-    // Time Dilation button
-    const timeBtn = document.getElementById('timedilation-btn');
-    if (timeBtn) {
-        const hasSkill = getSkillRank('timeDilation') >= 1;
-        const usesLeft = gameState.skillState.timeDilation?.usesLeft || 0;
-        const active = gameState.skillState.timeDilation?.active;
-        timeBtn.style.display = hasSkill ? 'inline-block' : 'none';
-        timeBtn.textContent = active ? `⏰ ACTIVE` : `⏰ TIME (${usesLeft})`;
-        timeBtn.disabled = usesLeft <= 0 || active;
-        if (hasSkill) anyVisible = true;
-    }
-
-    // Transmute button
-    const transmuteBtn = document.getElementById('transmute-btn');
-    if (transmuteBtn) {
-        const hasSkill = getSkillRank('transmute') >= 1;
-        const usesLeft = gameState.skillState.transmute?.usesLeft || 0;
-        transmuteBtn.style.display = hasSkill ? 'inline-block' : 'none';
-        transmuteBtn.textContent = `🔄 SWAP (${usesLeft})`;
-        transmuteBtn.disabled = usesLeft <= 0;
-        if (hasSkill) anyVisible = true;
-    }
-
-    // Gravity Shift button
-    const gravityBtn = document.getElementById('gravity-btn');
-    if (gravityBtn) {
-        const hasSkill = getSkillRank('gravityShift') >= 1;
-        const usesLeft = gameState.skillState.gravityShift?.usesLeft || 0;
-        const active = gameState.skillState.gravityShift?.active;
-        gravityBtn.style.display = hasSkill ? 'inline-block' : 'none';
-        gravityBtn.textContent = active ? `🌀 ACTIVE` : `🌀 GRAV (${usesLeft})`;
-        gravityBtn.disabled = usesLeft <= 0 || active;
-        if (hasSkill) anyVisible = true;
-    }
-
-    // Show/hide the skill actions row
-    skillRow.style.display = anyVisible ? 'flex' : 'none';
+    // Legacy skill buttons removed — new skill UI handled in Step 6
 }
 
 
@@ -322,37 +212,46 @@ function updateUI() {
     leftStatus.className = (gameState.lastHandUsed === 'left') ? 'hand-status-item in-use' : 'hand-status-item available';
     rightStatus.className = (gameState.lastHandUsed === 'right') ? 'hand-status-item in-use' : 'hand-status-item available';
 
-    // Update movement style buttons
-    const staticBtn = document.getElementById('static-btn');
+    // Update skill action buttons (Cross, Reach, Commit — shown when unlocked)
+    const crossBtn = document.getElementById('cross-btn');
     const regularBtn = document.getElementById('regular-btn');
-    const dynamicBtn = document.getElementById('dynamic-btn');
+    const reachBtn = document.getElementById('reach-btn');
 
-    // Disable buttons on cooldown and show cooldown counter
-    staticBtn.disabled = gameState.staticCooldown > 0;
-    dynamicBtn.disabled = gameState.dynamicCooldown > 0;
+    const crossUnlocked = isSkillUnlocked('cross');
+    const reachUnlocked = isSkillUnlocked('reach');
 
-    if (gameState.staticCooldown > 0) {
-        staticBtn.textContent = `CD: ${gameState.staticCooldown}`;
-    } else {
-        staticBtn.textContent = 'SELECT (3)';
+    // Show/hide based on unlock
+    if (crossBtn) crossBtn.style.display = crossUnlocked ? 'inline-block' : 'none';
+    if (reachBtn) reachBtn.style.display = reachUnlocked ? 'inline-block' : 'none';
+    // Regular button shows when either Cross or Reach is unlocked (to toggle back)
+    if (regularBtn) regularBtn.style.display = (crossUnlocked || reachUnlocked) ? 'inline-block' : 'none';
+
+    // Disable on cooldown
+    if (crossBtn) {
+        crossBtn.disabled = gameState.crossCooldown > 0;
+        crossBtn.textContent = gameState.crossCooldown > 0 ? `CROSS CD:${gameState.crossCooldown}` : 'CROSS (3)';
+    }
+    if (reachBtn) {
+        reachBtn.disabled = gameState.reachCooldown > 0;
+        reachBtn.textContent = gameState.reachCooldown > 0 ? `REACH CD:${gameState.reachCooldown}` : 'REACH (1)';
     }
 
-    if (gameState.dynamicCooldown > 0) {
-        dynamicBtn.textContent = `CD: ${gameState.dynamicCooldown}`;
-    } else {
-        dynamicBtn.textContent = 'SELECT (1)';
-    }
+    if (crossBtn) crossBtn.classList.remove('selected');
+    if (regularBtn) regularBtn.classList.remove('selected');
+    if (reachBtn) reachBtn.classList.remove('selected');
 
-    staticBtn.classList.remove('selected');
-    regularBtn.classList.remove('selected');
-    dynamicBtn.classList.remove('selected');
-
-    if (gameState.movementStyle === 'static') {
-        staticBtn.classList.add('selected');
-    } else if (gameState.movementStyle === 'regular') {
+    if (gameState.movementStyle === 'cross' && crossBtn) {
+        crossBtn.classList.add('selected');
+    } else if (gameState.movementStyle === 'regular' && regularBtn) {
         regularBtn.classList.add('selected');
-    } else if (gameState.movementStyle === 'dynamic') {
-        dynamicBtn.classList.add('selected');
+    } else if (gameState.movementStyle === 'reach' && reachBtn) {
+        reachBtn.classList.add('selected');
+    }
+
+    // Gate weight section behind Weight Shift skill
+    const weightSection = document.getElementById('weight-section');
+    if (weightSection) {
+        weightSection.style.display = isSkillUnlocked('weightShift') ? 'block' : 'none';
     }
 
     // Update weight indicator
@@ -415,82 +314,52 @@ function updateUI() {
         }
     }
 
-    // Update level and XP display
-    document.getElementById('level-display').textContent = gameState.level;
-    document.getElementById('xp-display').textContent = gameState.xp;
-    document.getElementById('xp-needed-display').textContent = gameState.xpToNextLevel;
-    const xpPercent = (gameState.xp / gameState.xpToNextLevel) * 100;
-    document.getElementById('xp-bar').style.width = `${xpPercent}%`;
+    // Update pump/grip state indicators
+    const pumpLabel = PUMP_STATE_LABELS[gameState.pumpState] || 'Critical';
+    const gripLabel = GRIP_STATE_LABELS[gameState.gripState] || 'Critical';
+    const pumpColors = ['#a8db60', '#fad882', '#f5aaa2']; // green, yellow, red
+    const gripColors = ['#a8db60', '#fad882', '#f5aaa2'];
 
-    // Update stat display
-    document.getElementById('unspent-points-display').textContent = `(${gameState.unspentStatPoints} pts)`;
-    document.getElementById('endurance-display').textContent = gameState.endurance;
-    document.getElementById('power-display').textContent = gameState.power;
-    document.getElementById('speed-display').textContent = gameState.speed;
-    document.getElementById('technique-display').textContent = gameState.technique;
+    document.getElementById('pump-value').textContent = pumpLabel;
+    document.getElementById('pump-value').style.color = pumpColors[gameState.pumpState] || '#f5aaa2';
 
-    // Update resources with fatigue system
-    const availablePump = getAvailablePump();
-    const availableGrip = getAvailableGrip();
+    document.getElementById('grip-value').textContent = gripLabel;
+    document.getElementById('grip-value').style.color = gripColors[gameState.gripState] || '#f5aaa2';
 
-    const pumpPercent = availablePump > 0 ? Math.min(100, Math.max(0, (gameState.pump / availablePump) * 100)) : 0;
-    const gripPercent = availableGrip > 0 ? Math.min(100, Math.max(0, (gameState.grip / availableGrip) * 100)) : 100;
-
-    // Show available vs max (including fatigue)
-    const pumpText = gameState.pumpFatigue > 0
-        ? `${Math.round(gameState.pump)}/${availablePump} (${gameState.maxPump} max)`
-        : `${Math.round(gameState.pump)}/${gameState.maxPump}`;
-    const gripText = gameState.gripFatigue > 0
-        ? `${Math.round(gameState.grip)}/${availableGrip} (${gameState.maxGrip} max)`
-        : `${Math.round(gameState.grip)}/${gameState.maxGrip}`;
-
-    document.getElementById('pump-value').textContent = pumpText;
+    // Update pump bar to show state visually (0=0%, 1=50%, 2=100%)
+    const pumpPercent = (gameState.pumpState / 2) * 100;
     document.getElementById('pump-bar').style.width = `${pumpPercent}%`;
-    document.getElementById('pump-bar').textContent = `${Math.round(pumpPercent)}%`;
+    document.getElementById('pump-bar').textContent = pumpLabel;
+    document.getElementById('pump-bar').style.background = pumpColors[gameState.pumpState] || '#f5aaa2';
 
-    document.getElementById('grip-value').textContent = gripText;
-    document.getElementById('grip-bar').style.width = `${gripPercent}%`;
-    document.getElementById('grip-bar').textContent = `${Math.round(gripPercent)}%`;
+    // Update grip bar to show decay countdown
+    const gripDecayProgress = (gameState.gripDecayCounter / 3) * 100;
+    const movesUntilDecay = 3 - gameState.gripDecayCounter;
+    document.getElementById('grip-bar').style.width = `${gripDecayProgress}%`;
+    document.getElementById('grip-bar').textContent = `${gripLabel} (decay in ${movesUntilDecay})`;
+    document.getElementById('grip-bar').style.background = gripColors[gameState.gripState] || '#f5aaa2';
 
-    // Hide combo indicator (flow state system removed)
-    const comboIndicator = document.getElementById('combo-indicator');
-    if (comboIndicator) {
-        comboIndicator.style.display = 'none';
-    }
-
-    // Update skill points display
-    document.getElementById('unspent-skill-points-display').textContent = `(${gameState.unspentSkillPoints} pts)`;
-
-    // Update Commit button
+    // Update Commit button (only visible if skill unlocked)
     const commitBtn = document.getElementById('commit-btn');
-    const commitLearnBtn = document.getElementById('commit-learn-btn');
+    if (commitBtn) {
+        if (isSkillUnlocked('commit')) {
+            commitBtn.style.display = 'inline-block';
+            commitBtn.disabled = gameState.commitCooldown > 0 || gameState.commitActive;
 
-    // Show/hide learn button based on whether skill is learned
-    if (gameState.skills.commit) {
-        commitBtn.style.display = 'inline-block';
-        commitLearnBtn.style.display = 'none';
-
-        // Update Commit button state
-        commitBtn.disabled = gameState.commitCooldown > 0 || gameState.commitActive;
-
-        if (gameState.commitActive) {
-            commitBtn.textContent = 'ACTIVE!';
-            commitBtn.style.borderColor = '#a8db60';
-        } else if (gameState.commitCooldown > 0) {
-            commitBtn.textContent = `CD: ${gameState.commitCooldown}`;
-            commitBtn.style.borderColor = '#738078';
+            if (gameState.commitActive) {
+                commitBtn.textContent = 'ACTIVE!';
+                commitBtn.style.borderColor = '#a8db60';
+            } else if (gameState.commitCooldown > 0) {
+                commitBtn.textContent = `CD: ${gameState.commitCooldown}`;
+                commitBtn.style.borderColor = '#738078';
+            } else {
+                commitBtn.textContent = 'COMMIT (R)';
+                commitBtn.style.borderColor = '#f5aaa2';
+            }
         } else {
-            commitBtn.textContent = 'COMMIT (R)';
-            commitBtn.style.borderColor = '#f5aaa2';
+            commitBtn.style.display = 'none';
         }
-    } else {
-        commitBtn.style.display = 'none';
-        commitLearnBtn.style.display = 'inline-block';
-        commitLearnBtn.disabled = gameState.unspentSkillPoints <= 0;
     }
-
-    // Update utility skill action buttons
-    updateSkillActionButtons();
 }
 
 // Add feedback

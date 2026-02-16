@@ -14,17 +14,14 @@ function updateCampUI() {
     const timeName = gameState.timeOfDay.charAt(0).toUpperCase() + gameState.timeOfDay.slice(1);
     document.getElementById('camp-subtitle').textContent = `Day ${gameState.day} - ${timeIcon} ${timeName}`;
     
-    // Update fatigue status in camp
-    const availablePump = getAvailablePump();
-    const availableGrip = getAvailableGrip();
+    // Update status in camp (fatigue system removed with state-based pump/grip)
     const campPips = document.getElementById('camp-energy-pips');
     if (campPips) {
-        campPips.innerHTML = `<div style="color: #bdb9ae; font-size: 0.9em;">💪 Available: ${availablePump} Pump / ${availableGrip} Grip</div>`;
+        campPips.innerHTML = `<div style="color: #bdb9ae; font-size: 0.9em;">Ready to climb!</div>`;
     }
     const campEnergyText = document.getElementById('camp-energy-text');
     if (campEnergyText) {
-        campEnergyText.textContent = gameState.pumpFatigue > 0 || gameState.gripFatigue > 0 ?
-            `Fatigue: ${gameState.pumpFatigue} Pump / ${gameState.gripFatigue} Grip` : 'Fully Rested';
+        campEnergyText.textContent = 'Fully Rested';
     }
 
     // Update points notification
@@ -39,18 +36,10 @@ function updateCampUI() {
     const skillPoints = document.getElementById('camp-skill-points');
     if (skillPoints) skillPoints.textContent = availableStars;
 
-    // Update rest button (disabled if no fatigue and no banked gains)
+    // Rest button (fatigue/banking system removed)
     const restBtn = document.getElementById('camp-rest');
-    const hasFatigue = gameState.pumpFatigue > 0 || gameState.gripFatigue > 0;
-    const hasBankedGains = gameState.bankedPumpIncrease > 0 || gameState.bankedGripIncrease > 0;
-    if (!hasFatigue && !hasBankedGains) {
-        restBtn.classList.add('disabled');
-        restBtn.innerHTML = '<span class="icon">😴</span>Rest<br><span style="font-size: 0.7em; color: #738078;">Fully rested</span>';
-    } else {
-        restBtn.classList.remove('disabled');
-        const bankedText = hasBankedGains ? `<br><span style="font-size: 0.7em; color: #fad882;">+${gameState.bankedPumpIncrease}/${gameState.bankedGripIncrease} to realize</span>` : '';
-        restBtn.innerHTML = `<span class="icon">😴</span>Rest${bankedText}`;
-    }
+    restBtn.classList.add('disabled');
+    restBtn.innerHTML = '<span class="icon">😴</span>Rest<br><span style="font-size: 0.7em; color: #738078;">Fully rested</span>';
     
     // Update spend points overlay values (legacy code - stat system removed)
     const spendStatCount = document.getElementById('spend-stat-count');
@@ -68,11 +57,14 @@ function updateCampUI() {
     const campTechnique = document.getElementById('camp-technique');
     if (campTechnique) campTechnique.textContent = '0';
     
-    // Update commit skill button
-    if (gameState.skills.commit) {
-        document.getElementById('camp-commit-btn').textContent = 'LEARNED ✓';
-        document.getElementById('camp-commit-btn').disabled = true;
-        document.getElementById('camp-commit-btn').style.opacity = '0.5';
+    // Update commit skill button (now location-gated)
+    const campCommitBtn = document.getElementById('camp-commit-btn');
+    if (campCommitBtn) {
+        if (isSkillUnlocked('commit')) {
+            campCommitBtn.textContent = 'UNLOCKED ✓';
+            campCommitBtn.disabled = true;
+            campCommitBtn.style.opacity = '0.5';
+        }
     }
 }
 
@@ -83,51 +75,32 @@ function showCampSpendPoints() {
     updateCampSkillsPreview();
 }
 
-// Update camp skills preview with learnable skills
+// Update camp skills preview with progression list
 function updateCampSkillsPreview() {
     const container = document.getElementById('camp-skills-preview');
     if (!container) return;
-    
-    const categoryColors = {
-        athletics: '#a64e68',
-        utility: '#fad882',
-        magic: '#a8db60'
-    };
-    
+
     let html = '';
-    
-    // Show up to 6 skills that can be upgraded
-    let skillsShown = 0;
-    for (const [skillId, skill] of Object.entries(skillDatabase)) {
-        if (skillsShown >= 6) break;
 
-        const currentRank = getSkillRank(skillId);
-        const maxRank = skill.ranks.length;
+    for (const skillId of SKILL_UNLOCK_ORDER) {
+        const skill = skillDatabase[skillId];
+        if (!skill) continue;
 
-        if (currentRank < maxRank) {
-            const canUpgrade = canUpgradeSkill(skillId);
-            const nextRankCost = skill.starCosts[currentRank];
-            const color = categoryColors[skill.category] || '#bdb9ae';
+        const unlocked = isSkillUnlocked(skillId);
+        const locationName = locationNames[skill.unlockLocation] || `Location ${skill.unlockLocation}`;
+        const color = unlocked ? '#a8db60' : '#738078';
+        const icon = unlocked ? '✓' : '🔒';
 
-            html += `
-                <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px; margin-bottom: 6px; background: rgba(0,0,0,0.2); border-radius: 4px; border-left: 3px solid ${color};">
-                    <div>
-                        <div style="color: ${color}; font-size: 0.9em;">${skill.name}</div>
-                        <div style="font-size: 0.7em; color: #738078;">Rank ${currentRank}/${maxRank}</div>
-                    </div>
-                    <button class="hand-button" onclick="learnSkill('${skillId}')" style="border-color: ${color}; padding: 4px 10px; font-size: 0.8em;" ${canUpgrade ? '' : 'disabled'}>
-                        ${nextRankCost} ⭐
-                    </button>
+        html += `
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px; margin-bottom: 6px; background: rgba(0,0,0,0.2); border-radius: 4px; border-left: 3px solid ${color};">
+                <div>
+                    <div style="color: ${color}; font-size: 0.9em;">${icon} ${skill.name}</div>
+                    <div style="font-size: 0.7em; color: ${unlocked ? '#bdb9ae' : '#738078'};">${unlocked ? skill.effect : `Unlock: Visit ${locationName}`}</div>
                 </div>
-            `;
-            skillsShown++;
-        }
+            </div>
+        `;
     }
 
-    if (skillsShown === 0) {
-        html = '<div style="color: #738078; font-size: 0.85em; text-align: center;">All skills maxed or no stars available</div>';
-    }
-    
     container.innerHTML = html;
 }
 
@@ -137,27 +110,8 @@ function closeCampSpendPoints() {
     updateCampUI();
 }
 
-// Rest at camp - reset fatigue, realize banked gains, and advance to next day
+// Rest at camp - advance to next day
 function campRest() {
-    if (gameState.pumpFatigue === 0 && gameState.gripFatigue === 0 &&
-        gameState.bankedPumpIncrease === 0 && gameState.bankedGripIncrease === 0) {
-        addFeedback('You\'re already fully rested with no training to realize!', 'neutral');
-        return;
-    }
-
-    // Realize banked pump/grip increases
-    if (gameState.bankedPumpIncrease > 0 || gameState.bankedGripIncrease > 0) {
-        gameState.maxPump += gameState.bankedPumpIncrease;
-        gameState.maxGrip += gameState.bankedGripIncrease;
-        addFeedback(`💪 Training realized! +${gameState.bankedPumpIncrease} max pump, +${gameState.bankedGripIncrease} max grip`, 'bonus');
-        gameState.bankedPumpIncrease = 0;
-        gameState.bankedGripIncrease = 0;
-    }
-
-    // Reset fatigue
-    gameState.pumpFatigue = 0;
-    gameState.gripFatigue = 0;
-
     // Advance to next day
     gameState.day++;
     gameState.timeOfDay = 'morning';
@@ -415,22 +369,13 @@ function showBeta(locationId, routeId) {
     const holdSequence = generateBetaHoldSequence(location, route);
     document.getElementById('beta-holds').innerHTML = holdSequence;
     
-    // Update climb button state based on fatigue
+    // Climb button always available (fatigue system removed)
     const climbBtn = document.getElementById('beta-climb-btn');
-    const availablePumpCheck = getAvailablePump();
-    const availableGripCheck = getAvailableGrip();
-    if (availablePumpCheck <= 0 || availableGripCheck <= 0) {
-        climbBtn.style.opacity = '0.5';
-        climbBtn.style.cursor = 'not-allowed';
-        climbBtn.textContent = '💤 Too Fatigued';
-    } else {
-        climbBtn.style.opacity = '1';
-        climbBtn.style.cursor = 'pointer';
-        climbBtn.textContent = '🧗 Climb This Route';
-    }
-    
+    climbBtn.style.opacity = '1';
+    climbBtn.style.cursor = 'pointer';
+    climbBtn.textContent = '🧗 Climb This Route';
+
     document.getElementById('beta-overlay').classList.add('show');
-    console.log('Beta overlay should now be visible');
 }
 
 // Analyze route to determine ideal conditions
@@ -523,13 +468,7 @@ function closeBeta() {
 // Start climbing from beta view
 function climbFromBeta() {
     if (!currentBetaLocation || !currentBetaRoute) return;
-    const availablePumpCheck = getAvailablePump();
-    const availableGripCheck = getAvailableGrip();
-    if (availablePumpCheck <= 0 || availableGripCheck <= 0) {
-        addFeedback(`💤 You're too fatigued to climb! Return to camp to rest!`, 'penalty');
-        return;
-    }
-    
+
     // Close overlays
     document.getElementById('beta-overlay').classList.remove('show');
     document.getElementById('guidebook-overlay').classList.remove('show');
@@ -615,15 +554,9 @@ function getConditionsModifiers() {
     
     const { temperature, humidity, wind } = gameState.currentConditions;
     
-    // === WEATHER READING SKILL: Reduce penalties ===
-    const weatherRank = getSkillRank('weatherReading');
-    let penaltyReduction = weatherRank >= 3 ? 0.60 : weatherRank >= 2 ? 0.40 : weatherRank >= 1 ? 0.20 : 0;
-    let weatherBonus = weatherRank >= 3 ? 0.05 : 0; // +5% bonus from each weather type at rank 3
-    
-    // Climbing Salve weather immunity
-    if (gameState.skillState.salve && gameState.skillState.salve.weatherImmunityLeft > 0) {
-        penaltyReduction = 1.0; // Full immunity
-    }
+    // Weather penalty/bonus modifiers (legacy skill references removed)
+    let penaltyReduction = 0;
+    let weatherBonus = 0;
     
     // Temperature affects PUMP
     if (temperature === 'cool') {

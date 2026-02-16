@@ -38,9 +38,9 @@ document.addEventListener('keydown', (e) => {
     const key = e.key.toLowerCase();
     if (key === 'a') selectHand('left');
     else if (key === 'd') selectHand('right');
-    else if (key === '1') selectMovementStyle('dynamic');
+    else if (key === '1') selectMovementStyle('reach');
     else if (key === '2') selectMovementStyle('regular');
-    else if (key === '3') selectMovementStyle('static');
+    else if (key === '3') selectMovementStyle('cross');
     else if (key === 'q') useShake();
     else if (key === 'e') useChalk();
     else if (key === 'r') activateCommit();
@@ -165,6 +165,14 @@ function renderWorldMap() {
 // Select a location
 function selectLocation(location) {
     gameState.currentLocation = location;
+
+    // Check for skill unlocks at this location
+    const newSkills = tryUnlockSkillAtLocation(location.id);
+    for (const skill of newSkills) {
+        addFeedback(`NEW SKILL UNLOCKED: ${skill.name}!`, 'bonus');
+        addFeedback(`${skill.description}`, 'neutral');
+    }
+
     showRouteSelection(location);
 }
 
@@ -234,16 +242,7 @@ function showRouteSelection(location) {
         effectsText = `<div style="font-size: 0.9em; margin-top: 8px;">${effects.join(' | ')}</div>`;
     }
     
-    // Fatigue warning
-    const availablePump = getAvailablePump();
-    const availableGrip = getAvailableGrip();
-    const fatigueWarning = (availablePump <= 0 || availableGrip <= 0) ? `
-        <div style="text-align: center; margin-bottom: 20px; padding: 15px; background: rgba(245, 170, 162, 0.2); border: 2px solid #f5aaa2; border-radius: 8px;">
-            <div style="color: #f5aaa2; font-weight: bold; font-size: 1.1em;">💤 Too Fatigued!</div>
-            <div style="color: #bdb9ae; font-size: 0.9em; margin-top: 5px;">You're too tired to climb!</div>
-            <div style="color: #a8db60; font-size: 0.9em; margin-top: 5px;">Go back to camp to rest.</div>
-        </div>
-    ` : '';
+    const fatigueWarning = '';
     
     content.innerHTML = `
         <h2 style="font-family: 'Righteous', cursive; font-size: 2em; color: #fad882; text-align: center; margin-bottom: 10px;">
@@ -257,7 +256,7 @@ function showRouteSelection(location) {
             <div style="color: #738078; font-size: 0.85em; margin-bottom: 5px;">${getTimeIcon()} ${gameState.timeOfDay.charAt(0).toUpperCase() + gameState.timeOfDay.slice(1)} - Day ${gameState.day}</div>
             ${conditionsHtml}
             ${effectsText}
-            <div style="margin-top: 8px; color: ${(availablePump > 0 && availableGrip > 0) ? '#a8db60' : '#f5aaa2'};">💪 Available: ${availablePump} Pump / ${availableGrip} Grip</div>
+            <div style="margin-top: 8px; color: #a8db60;">Ready to climb!</div>
         </div>
         <div id="routes-list"></div>
         <div style="text-align: center;">
@@ -331,16 +330,6 @@ function startClimb(location, route) {
         return;
     }
 
-    // Check energy before starting climb
-    // Check if player has enough available resources to attempt this route
-    const availablePump = getAvailablePump();
-    const availableGrip = getAvailableGrip();
-
-    if (availablePump <= 0 || availableGrip <= 0) {
-        addFeedback(`You're too fatigued to climb! Return to camp to rest!`, 'penalty');
-        return;
-    }
-
     gameState.gameMode = 'climbing';
 
     // Track attempts
@@ -362,8 +351,9 @@ function startClimb(location, route) {
     updateSidebarLocationModifiers();
 
     // Reset climbing state
-    gameState.pump = 0;
-    gameState.grip = gameState.maxGrip;
+    gameState.pumpState = 0;
+    gameState.gripState = 0;
+    gameState.gripDecayCounter = 0;
     gameState.selectedHand = null;
     gameState.lastHandUsed = null;
     gameState.currentHand = null;
@@ -371,8 +361,8 @@ function startClimb(location, route) {
     gameState.weightAtMoveStart = 'center';
     gameState.consecutiveCrosses = 0;
     gameState.movementStyle = 'regular';
-    gameState.staticCooldown = 0;
-    gameState.dynamicCooldown = 0;
+    gameState.crossCooldown = 0;
+    gameState.reachCooldown = 0;
     gameState.shakeCooldown = 0;
     gameState.chalkCooldown = 0;
     gameState.climbStartTime = Date.now();
