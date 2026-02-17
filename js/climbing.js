@@ -212,16 +212,8 @@ function moveToHold(row, col) {
         gameState.consecutiveCrosses = 0;
     }
 
-    // Weight shift toward ideal
-    const idealWeight = getIdealWeight(hold.angle);
-    const weightOrder = ['left', 'center', 'right'];
-    const currentWeightIdx = weightOrder.indexOf(gameState.weight);
-    const idealWeightIdx = weightOrder.indexOf(idealWeight);
-    if (currentWeightIdx < idealWeightIdx) {
-        gameState.weight = weightOrder[currentWeightIdx + 1];
-    } else if (currentWeightIdx > idealWeightIdx) {
-        gameState.weight = weightOrder[currentWeightIdx - 1];
-    }
+    // Weight only changes via manual Weight Shift skill (unlocked in Area 3)
+    // No auto-shift — weight stays at center until player learns to control it
 
     // Update hand tracking
     gameState.currentHand = gameState.selectedHand;
@@ -236,7 +228,7 @@ function moveToHold(row, col) {
     recordSuccessfulGrab(hold.holdIndex);
 
     // Handle matching
-    if (hold.matchable && gameState.lastHandUsed !== null && gameState.lastHandUsed !== gameState.selectedHand) {
+    if (hold.matchable && isSkillUnlocked('match') && gameState.lastHandUsed !== null && gameState.lastHandUsed !== gameState.selectedHand) {
         feedback.push({ text: `Matched! Both hands & crosses reset`, type: 'bonus' });
         gameState.lastHandUsed = null;
         gameState.consecutiveCrosses = 0;

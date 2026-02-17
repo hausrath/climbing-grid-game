@@ -223,6 +223,36 @@ function completeRoute() {
     // Unlock adjacent locations
     unlockAdjacentLocations(location);
 
+    // Check for skill unlocks triggered by route completion
+    const newSkills = tryUnlockSkillOnCompletion(location.id);
+    let skillUnlockHtml = '';
+    if (newSkills.length > 0) {
+        skillUnlockHtml = newSkills.map(skill => `
+            <div style="margin: 20px 0; padding: 20px; background: linear-gradient(135deg, rgba(250, 216, 130, 0.15), rgba(168, 219, 96, 0.15)); border: 2px solid #fad882; border-radius: 12px; position: relative; overflow: hidden;">
+                <style>
+                    @keyframes skillShimmer {
+                        0% { background-position: -200% center; }
+                        100% { background-position: 200% center; }
+                    }
+                </style>
+                <div style="font-size: 1.4em; font-weight: bold; font-family: 'Righteous', cursive;
+                    background: linear-gradient(90deg, #fad882, #ffffff, #a8db60, #ffffff, #fad882);
+                    background-size: 200% auto;
+                    -webkit-background-clip: text;
+                    -webkit-text-fill-color: transparent;
+                    background-clip: text;
+                    animation: skillShimmer 2s linear infinite;">
+                    NEW SKILL UNLOCKED!
+                </div>
+                <div style="font-size: 1.6em; color: #fad882; margin: 10px 0; font-family: 'Righteous', cursive;">
+                    ${skill.name}
+                </div>
+                <div style="color: #bdb9ae; font-size: 0.95em;">${skill.description}</div>
+                <div style="color: #738078; font-size: 0.85em; margin-top: 8px;">${skill.effect}</div>
+            </div>
+        `).join('');
+    }
+
     // Build star display
     const pumpEffLabel = 'Finish with Fresh pump';
 
@@ -257,6 +287,7 @@ function completeRoute() {
     title.textContent = 'ROUTE COMPLETED!';
     msg.innerHTML = `
         <div style="font-size: 2em; margin-bottom: 20px;">${starsEarned}/5 ⭐</div>
+        ${skillUnlockHtml}
         ${lootHtml}
         ${starDisplay}
         <div style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #738078;">

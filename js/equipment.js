@@ -38,7 +38,7 @@ function renderSkillsScreen() {
                 <div style="color: ${color}; font-size: 1em; font-weight: bold;">${icon} ${skill.name} ${skill.key ? '(' + skill.key.toUpperCase() + ')' : ''}</div>
                 <div style="font-size: 0.85em; color: #bdb9ae; margin-top: 4px;">${skill.description}</div>
                 <div style="font-size: 0.8em; color: ${unlocked ? '#a8db60' : '#738078'}; margin-top: 4px;">
-                    ${unlocked ? skill.effect : `Unlock: Visit ${locationName}`}
+                    ${unlocked ? skill.effect : (skill.unlockTrigger === 'completion' ? `Unlock: Complete a route at ${locationName}` : `Unlock: Visit ${locationName}`)}
                 </div>
             </div>
         `;
@@ -67,7 +67,7 @@ function showSkillDetail(skillId) {
         <div style="color: #bdb9ae; font-style: italic; margin-bottom: 15px;">${skill.description}</div>
         <div style="color: #bdb9ae; margin-bottom: 10px;">${skill.effect}</div>
         <div style="color: ${unlocked ? '#a8db60' : '#738078'}; margin-bottom: 15px;">
-            ${unlocked ? 'UNLOCKED' : `Unlock: Visit ${locationName}`}
+            ${unlocked ? 'UNLOCKED' : (skill.unlockTrigger === 'completion' ? `Unlock: Complete a route at ${locationName}` : `Unlock: Visit ${locationName}`)}
         </div>
         <button class="camp-button" onclick="closeSkillDetail()" style="width: 100%; margin-top: 10px;">Close</button>
     `;

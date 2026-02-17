@@ -95,7 +95,7 @@ function updateCampSkillsPreview() {
             <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px; margin-bottom: 6px; background: rgba(0,0,0,0.2); border-radius: 4px; border-left: 3px solid ${color};">
                 <div>
                     <div style="color: ${color}; font-size: 0.9em;">${icon} ${skill.name}</div>
-                    <div style="font-size: 0.7em; color: ${unlocked ? '#bdb9ae' : '#738078'};">${unlocked ? skill.effect : `Unlock: Visit ${locationName}`}</div>
+                    <div style="font-size: 0.7em; color: ${unlocked ? '#bdb9ae' : '#738078'};">${unlocked ? skill.effect : (skill.unlockTrigger === 'completion' ? `Unlock: Complete a route at ${locationName}` : `Unlock: Visit ${locationName}`)}</div>
                 </div>
             </div>
         `;
@@ -412,7 +412,7 @@ function generateBetaHoldSequence(location, route) {
 
     let html = '<div style="max-height: 300px; overflow-y: auto;">';
 
-    let currentCol = 2; // Start center
+    let currentCol = route.startCol !== undefined ? route.startCol : 2;
 
     route.holds.forEach((hold, index) => {
         const holdNum = index + 1;

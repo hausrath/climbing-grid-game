@@ -56,9 +56,9 @@ function loadRoute(route) {
     // Initialize the 5x5 viewport grid from the bottom of the route
     initGrid();
 
-    // Player starts at bottom center (conceptual row 0)
+    // Player starts at bottom of route (conceptual row 0)
     gameState.currentRow = 0;
-    gameState.currentCol = 2;
+    gameState.currentCol = route.startCol !== undefined ? route.startCol : 2;
     gameState.viewportBottom = 0; // Which route row is at the bottom of the viewport
 
     // Copy the initial viewport from the route grid

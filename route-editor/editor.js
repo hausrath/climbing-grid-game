@@ -5,6 +5,7 @@ const editorState = {
     holds: [],
     gridHeight: 10,
     selectedHoldIndex: null,
+    startCol: 2,
     stars: { speed: 30, pumpEfficiency: 0 },
     unlockedSkills: []
 };
@@ -75,14 +76,19 @@ function renderGrid() {
             cell.dataset.x = x;
             cell.dataset.y = y;
 
-            if (y === 0 && x === 2) {
-                cell.classList.add('start-marker');
-                const lbl = document.createElement('div');
-                lbl.className = 'hold-label';
-                lbl.textContent = 'START';
-                cell.appendChild(lbl);
-            } else if (y === 0) {
-                // empty start row
+            if (y === 0) {
+                if (x === editorState.startCol) {
+                    cell.classList.add('start-marker');
+                    const lbl = document.createElement('div');
+                    lbl.className = 'hold-label';
+                    lbl.textContent = 'START';
+                    cell.appendChild(lbl);
+                }
+                cell.addEventListener('click', () => {
+                    editorState.startCol = x;
+                    simReset();
+                    renderGrid();
+                });
             } else {
                 const holdIdx = holdMap[`${x},${y}`];
                 if (holdIdx !== undefined) {
@@ -318,6 +324,7 @@ function newRoute() {
     editorState.holds = [];
     editorState.gridHeight = 10;
     editorState.selectedHoldIndex = null;
+    editorState.startCol = 2;
     editorState.stars = { speed: 30, pumpEfficiency: 0 };
     hideHoldProps();
     loadMetaToUI();

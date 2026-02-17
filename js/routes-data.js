@@ -155,19 +155,20 @@ const routeDatabase = {
     // ================================================================
     0: [
         {
-            id: 'bg-1',
-            name: 'First Steps',
+            id: 'bg1',
+            name: 'Hands',
             grade: 'V0',
-            holdCount: 6,
-            description: 'Straight up the center. Select a hand and grab each hold.',
-            // SOLUTION: Any hand works. All moves UP + 0° + center = penalty 0.
+            holdCount: 8,
+            description: 'A simple route',
             holds: [
-                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 2, y: 1 }, matchable: true, isRest: false },
-                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 2, y: 2 }, matchable: true, isRest: false },
-                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 2, y: 3 }, matchable: true, isRest: false },
-                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 2, y: 4 }, matchable: true, isRest: false },
-                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 2, y: 5 }, matchable: true, isRest: false },
-                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 2, y: 6 }, matchable: true, isRest: true },
+                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 2, y: 1 }, matchable: false, isRest: false },
+                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 2, y: 2 }, matchable: false, isRest: false },
+                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 2, gripDrain: 2, position: { x: 3, y: 3 }, matchable: false, isRest: false },
+                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 2, y: 4 }, matchable: false, isRest: false },
+                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 2, y: 5 }, matchable: false, isRest: false },
+                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 1, y: 6 }, matchable: false, isRest: false },
+                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 2, y: 7 }, matchable: false, isRest: false },
+                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 3, y: 8 }, matchable: false, isRest: false },
             ],
             stars: {
                 completion: true,
@@ -178,56 +179,47 @@ const routeDatabase = {
             }
         },
         {
-            id: 'bg-2',
-            name: 'Zig-Zag',
-            grade: 'V1',
-            holdCount: 8,
-            description: 'Left hand for left moves, right hand for right. Wrong hand = penalty!',
-            // SOLUTION: L-R-L-R-R-L-L-R = all penalty 0.
-            // Wrong hand = penalty 1 each (UL+R or UR+L at 0° center = 1).
+            id: 'bg2',
+            name: 'Zig Zag',
+            grade: 'V0',
+            holdCount: 6,
+            description: '',
             holds: [
-                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 1, y: 1 }, matchable: false, isRest: false },
-                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 2, y: 2 }, matchable: false, isRest: false },
-                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 1, y: 3 }, matchable: false, isRest: false },
-                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 2, y: 4 }, matchable: true, isRest: false },
-                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 3, y: 5 }, matchable: false, isRest: false },
-                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 2, y: 6 }, matchable: false, isRest: false },
-                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 1, y: 7 }, matchable: false, isRest: false },
-                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 2, y: 8 }, matchable: true, isRest: true },
+                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 3, y: 1 }, matchable: false, isRest: false },
+                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 2, gripDrain: 1, position: { x: 4, y: 2 }, matchable: false, isRest: false },
+                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 2, gripDrain: 1, position: { x: 3, y: 3 }, matchable: false, isRest: false },
+                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 4, y: 4 }, matchable: false, isRest: false },
+                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 4, y: 5 }, matchable: false, isRest: false },
+                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 3, y: 6 }, matchable: false, isRest: false },
             ],
             stars: {
                 completion: true,
-                speed: { timeLimit: 40 },
+                speed: { timeLimit: 30 },
                 pumpEfficiency: { maxPump: 0 },
                 noRecovery: true,
                 flashClimb: true,
             }
         },
         {
-            id: 'bg-3',
-            name: 'Reading the Wall',
-            grade: 'V2',
+            id: 'bg3',
+            name: 'Little Ladder',
+            grade: 'V0',
             holdCount: 8,
-            description: 'Angled holds change the penalty. Watch how weight shifts after each grab.',
-            // SOLUTION: R-any-any-L-any-any-any-any. Pump: 0,0,1,0,0,1,0,0 = max 2.
-            // Move 3 (45° center) = penalty 1, shifts weight→L.
-            // Move 4 (45° left via UL+L) = penalty 0. Weight stays L.
-            // Move 6 (0° left) = penalty 1, shifts weight→C.
-            // With shake after move 3: end pump=1. Without shake: pump=2.
+            description: '',
             holds: [
-                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 2, y: 1 }, matchable: true, isRest: false },
-                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 3, y: 2 }, matchable: false, isRest: false },
-                { type: 'crimp', label: 'CRIMP', angle: 45, pumpRating: 3, gripDrain: 2, position: { x: 3, y: 3 }, matchable: false, isRest: false },
-                { type: 'crimp', label: 'CRIMP', angle: 45, pumpRating: 3, gripDrain: 2, position: { x: 2, y: 4 }, matchable: false, isRest: false },
-                { type: 'jug', label: 'JUG', angle: 45, pumpRating: 2, gripDrain: 1, position: { x: 2, y: 5 }, matchable: true, isRest: false },
-                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 2, y: 6 }, matchable: false, isRest: false },
+                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 1, y: 1 }, matchable: false, isRest: false },
+                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 2, y: 2 }, matchable: false, isRest: false },
+                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 2, y: 3 }, matchable: false, isRest: false },
+                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 1, y: 4 }, matchable: false, isRest: false },
+                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 2, y: 5 }, matchable: false, isRest: false },
+                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 1, y: 6 }, matchable: false, isRest: false },
                 { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 2, y: 7 }, matchable: false, isRest: false },
-                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 2, y: 8 }, matchable: true, isRest: true },
+                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 3, y: 8 }, matchable: false, isRest: false },
             ],
             stars: {
                 completion: true,
-                speed: { timeLimit: 45 },
-                pumpEfficiency: { maxPump: 2 },
+                speed: { timeLimit: 30 },
+                pumpEfficiency: { maxPump: 0 },
                 noRecovery: true,
                 flashClimb: true,
             }
@@ -252,14 +244,14 @@ const routeDatabase = {
             //   L hand: UR,L,225°,R = 3 → FALL.
             // With Cross: end pump=1. Without Cross: end pump=2 (tight).
             holds: [
-                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 2, y: 1 }, matchable: true, isRest: false },
+                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 2, y: 1 }, matchable: false, isRest: false },
                 { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 1, y: 2 }, matchable: false, isRest: false },
                 { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 2, y: 3 }, matchable: false, isRest: false },
                 { type: 'jug', label: 'JUG', angle: 315, pumpRating: 2, gripDrain: 1, position: { x: 3, y: 4 }, matchable: false, isRest: false },
                 { type: 'crimp', label: 'CRIMP', angle: 225, pumpRating: 4, gripDrain: 2, position: { x: 4, y: 5 }, matchable: false, isRest: false },
                 { type: 'jug', label: 'JUG', angle: 315, pumpRating: 1, gripDrain: 1, position: { x: 4, y: 6 }, matchable: false, isRest: false },
                 { type: 'jug', label: 'JUG', angle: 315, pumpRating: 1, gripDrain: 1, position: { x: 3, y: 7 }, matchable: false, isRest: false },
-                { type: 'jug', label: 'JUG', angle: 315, pumpRating: 1, gripDrain: 1, position: { x: 3, y: 8 }, matchable: true, isRest: true },
+                { type: 'jug', label: 'JUG', angle: 315, pumpRating: 1, gripDrain: 1, position: { x: 3, y: 8 }, matchable: false, isRest: true },
             ],
             stars: {
                 completion: true,
@@ -284,7 +276,7 @@ const routeDatabase = {
             // Cross IS REQUIRED for this route.
             // Chalk needed (10 holds). Shake after move 8 for comfort.
             holds: [
-                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 2, y: 1 }, matchable: true, isRest: false },
+                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 2, y: 1 }, matchable: false, isRest: false },
                 { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 3, y: 2 }, matchable: false, isRest: false },
                 { type: 'crimp', label: 'CRIMP', angle: 315, pumpRating: 3, gripDrain: 2, position: { x: 3, y: 3 }, matchable: false, isRest: false },
                 { type: 'crimp', label: 'CRIMP', angle: 225, pumpRating: 4, gripDrain: 2, position: { x: 4, y: 4 }, matchable: false, isRest: false },
@@ -293,7 +285,7 @@ const routeDatabase = {
                 { type: 'crimp', label: 'CRIMP', angle: 225, pumpRating: 4, gripDrain: 2, position: { x: 3, y: 7 }, matchable: false, isRest: false },
                 { type: 'jug', label: 'JUG', angle: 315, pumpRating: 1, gripDrain: 1, position: { x: 3, y: 8 }, matchable: false, isRest: false },
                 { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 3, y: 9 }, matchable: false, isRest: false },
-                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 3, y: 10 }, matchable: true, isRest: true },
+                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 3, y: 10 }, matchable: false, isRest: true },
             ],
             stars: {
                 completion: true,
@@ -318,7 +310,7 @@ const routeDatabase = {
             // Without Cross: Move 4 eff 2, pump=2. Move 7 eff 2, pump=4 → FALL.
             // Cross REQUIRED.
             holds: [
-                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 2, y: 1 }, matchable: true, isRest: false },
+                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 2, y: 1 }, matchable: false, isRest: false },
                 { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 1, y: 2 }, matchable: false, isRest: false },
                 { type: 'crimp', label: 'CRIMP', angle: 315, pumpRating: 3, gripDrain: 2, position: { x: 2, y: 3 }, matchable: false, isRest: false },
                 { type: 'crimp', label: 'CRIMP', angle: 225, pumpRating: 4, gripDrain: 2, position: { x: 3, y: 4 }, matchable: false, isRest: false },
@@ -327,7 +319,7 @@ const routeDatabase = {
                 { type: 'crimp', label: 'CRIMP', angle: 225, pumpRating: 4, gripDrain: 2, position: { x: 4, y: 7 }, matchable: false, isRest: false },
                 { type: 'jug', label: 'JUG', angle: 315, pumpRating: 1, gripDrain: 1, position: { x: 4, y: 8 }, matchable: false, isRest: false },
                 { type: 'jug', label: 'JUG', angle: 315, pumpRating: 1, gripDrain: 1, position: { x: 3, y: 9 }, matchable: false, isRest: false },
-                { type: 'jug', label: 'JUG', angle: 315, pumpRating: 1, gripDrain: 1, position: { x: 3, y: 10 }, matchable: true, isRest: true },
+                { type: 'jug', label: 'JUG', angle: 315, pumpRating: 1, gripDrain: 1, position: { x: 3, y: 10 }, matchable: false, isRest: true },
             ],
             stars: {
                 completion: true,
@@ -355,14 +347,14 @@ const routeDatabase = {
             // Without Reach: 2 × P1 = pump 2. Tight but survivable.
             // With Reach: pump 0. Clean.
             holds: [
-                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 2, y: 2 }, matchable: true, isRest: false },
+                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 2, y: 2 }, matchable: false, isRest: false },
                 { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 3, y: 3 }, matchable: false, isRest: false },
                 { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 2, y: 4 }, matchable: false, isRest: false },
                 { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 1, y: 5 }, matchable: false, isRest: false },
-                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 1, y: 7 }, matchable: true, isRest: false },
+                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 1, y: 7 }, matchable: false, isRest: false },
                 { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 2, y: 8 }, matchable: false, isRest: false },
                 { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 2, y: 9 }, matchable: false, isRest: false },
-                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 2, y: 10 }, matchable: true, isRest: true },
+                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 2, y: 10 }, matchable: false, isRest: true },
             ],
             stars: {
                 completion: true,
@@ -383,7 +375,7 @@ const routeDatabase = {
             // Move 5: UR 225° R weight. Gaston! R+Cross: eff 1.
             // Requires both Reach and Cross to survive.
             holds: [
-                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 2, y: 1 }, matchable: true, isRest: false },
+                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 2, y: 1 }, matchable: false, isRest: false },
                 { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 3, y: 2 }, matchable: false, isRest: false },
                 { type: 'crimp', label: 'CRIMP', angle: 315, pumpRating: 3, gripDrain: 2, position: { x: 3, y: 4 }, matchable: false, isRest: false },
                 { type: 'jug', label: 'JUG', angle: 315, pumpRating: 1, gripDrain: 1, position: { x: 3, y: 5 }, matchable: false, isRest: false },
@@ -392,7 +384,7 @@ const routeDatabase = {
                 { type: 'jug', label: 'JUG', angle: 315, pumpRating: 1, gripDrain: 1, position: { x: 3, y: 8 }, matchable: false, isRest: false },
                 { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 3, y: 9 }, matchable: false, isRest: false },
                 { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 2, y: 10 }, matchable: false, isRest: false },
-                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 2, y: 11 }, matchable: true, isRest: true },
+                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 2, y: 11 }, matchable: false, isRest: true },
             ],
             stars: {
                 completion: true,
@@ -413,18 +405,18 @@ const routeDatabase = {
             // Without Cross: gaston penalties accumulate beyond pump budget.
             // Both REQUIRED. 1 chalk needed (12 holds).
             holds: [
-                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 2, y: 1 }, matchable: true, isRest: false },
+                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 2, y: 1 }, matchable: false, isRest: false },
                 { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 1, y: 2 }, matchable: false, isRest: false },
                 { type: 'crimp', label: 'CRIMP', angle: 0, pumpRating: 3, gripDrain: 2, position: { x: 1, y: 4 }, matchable: false, isRest: false },
                 { type: 'jug', label: 'JUG', angle: 315, pumpRating: 2, gripDrain: 1, position: { x: 2, y: 5 }, matchable: false, isRest: false },
                 { type: 'crimp', label: 'CRIMP', angle: 225, pumpRating: 4, gripDrain: 2, position: { x: 3, y: 6 }, matchable: false, isRest: false },
                 { type: 'jug', label: 'JUG', angle: 315, pumpRating: 1, gripDrain: 1, position: { x: 3, y: 7 }, matchable: false, isRest: false },
-                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 2, y: 8 }, matchable: true, isRest: false },
+                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 2, y: 8 }, matchable: false, isRest: false },
                 { type: 'crimp', label: 'CRIMP', angle: 0, pumpRating: 3, gripDrain: 2, position: { x: 2, y: 10 }, matchable: false, isRest: false },
                 { type: 'crimp', label: 'CRIMP', angle: 225, pumpRating: 4, gripDrain: 2, position: { x: 3, y: 11 }, matchable: false, isRest: false },
                 { type: 'jug', label: 'JUG', angle: 315, pumpRating: 1, gripDrain: 1, position: { x: 3, y: 12 }, matchable: false, isRest: false },
                 { type: 'jug', label: 'JUG', angle: 315, pumpRating: 1, gripDrain: 1, position: { x: 2, y: 13 }, matchable: false, isRest: false },
-                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 2, y: 14 }, matchable: true, isRest: true },
+                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 2, y: 14 }, matchable: false, isRest: true },
             ],
             stars: {
                 completion: true,
@@ -453,14 +445,14 @@ const routeDatabase = {
             // Without Weight Shift: P1+P2+P1 = pump 4 → FALL.
             // With Weight Shift: P1+P0+P0 = pump 1. Manageable.
             holds: [
-                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 2, y: 1 }, matchable: true, isRest: false },
+                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 2, y: 1 }, matchable: false, isRest: false },
                 { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 2, y: 2 }, matchable: false, isRest: false },
                 { type: 'crimp', label: 'CRIMP', angle: 45, pumpRating: 3, gripDrain: 2, position: { x: 2, y: 3 }, matchable: false, isRest: false },
                 { type: 'crimp', label: 'CRIMP', angle: 315, pumpRating: 3, gripDrain: 2, position: { x: 2, y: 4 }, matchable: false, isRest: false },
-                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 2, y: 5 }, matchable: true, isRest: false },
+                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 2, y: 5 }, matchable: false, isRest: false },
                 { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 2, y: 6 }, matchable: false, isRest: false },
                 { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 2, y: 7 }, matchable: false, isRest: false },
-                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 2, y: 8 }, matchable: true, isRest: true },
+                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 2, y: 8 }, matchable: false, isRest: true },
             ],
             stars: {
                 completion: true,
@@ -479,16 +471,16 @@ const routeDatabase = {
             // Weight Shift + Cross needed. Angles alternate 45°/315°.
             // Gaston hold mid-route requires Cross.
             holds: [
-                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 2, y: 1 }, matchable: true, isRest: false },
+                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 2, y: 1 }, matchable: false, isRest: false },
                 { type: 'crimp', label: 'CRIMP', angle: 45, pumpRating: 3, gripDrain: 2, position: { x: 1, y: 2 }, matchable: false, isRest: false },
                 { type: 'crimp', label: 'CRIMP', angle: 315, pumpRating: 3, gripDrain: 2, position: { x: 2, y: 3 }, matchable: false, isRest: false },
                 { type: 'crimp', label: 'CRIMP', angle: 225, pumpRating: 4, gripDrain: 2, position: { x: 3, y: 4 }, matchable: false, isRest: false },
                 { type: 'jug', label: 'JUG', angle: 315, pumpRating: 1, gripDrain: 1, position: { x: 3, y: 5 }, matchable: false, isRest: false },
                 { type: 'crimp', label: 'CRIMP', angle: 45, pumpRating: 3, gripDrain: 2, position: { x: 2, y: 6 }, matchable: false, isRest: false },
-                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 2, y: 7 }, matchable: true, isRest: false },
+                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 2, y: 7 }, matchable: false, isRest: false },
                 { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 2, y: 8 }, matchable: false, isRest: false },
                 { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 2, y: 9 }, matchable: false, isRest: false },
-                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 2, y: 10 }, matchable: true, isRest: true },
+                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 2, y: 10 }, matchable: false, isRest: true },
             ],
             stars: {
                 completion: true,
@@ -507,18 +499,18 @@ const routeDatabase = {
             // Weight Shift + Cross + Reach ALL REQUIRED.
             // Extended move to gaston hold at wrong weight = triple threat.
             holds: [
-                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 2, y: 1 }, matchable: true, isRest: false },
+                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 2, y: 1 }, matchable: false, isRest: false },
                 { type: 'jug', label: 'JUG', angle: 45, pumpRating: 2, gripDrain: 1, position: { x: 1, y: 2 }, matchable: false, isRest: false },
                 { type: 'crimp', label: 'CRIMP', angle: 0, pumpRating: 3, gripDrain: 2, position: { x: 1, y: 4 }, matchable: false, isRest: false },
                 { type: 'crimp', label: 'CRIMP', angle: 315, pumpRating: 3, gripDrain: 2, position: { x: 2, y: 5 }, matchable: false, isRest: false },
                 { type: 'crimp', label: 'CRIMP', angle: 225, pumpRating: 4, gripDrain: 2, position: { x: 3, y: 6 }, matchable: false, isRest: false },
                 { type: 'jug', label: 'JUG', angle: 315, pumpRating: 1, gripDrain: 1, position: { x: 3, y: 7 }, matchable: false, isRest: false },
-                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 2, y: 8 }, matchable: true, isRest: false },
+                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 2, y: 8 }, matchable: false, isRest: false },
                 { type: 'crimp', label: 'CRIMP', angle: 45, pumpRating: 3, gripDrain: 2, position: { x: 1, y: 9 }, matchable: false, isRest: false },
                 { type: 'crimp', label: 'CRIMP', angle: 0, pumpRating: 3, gripDrain: 2, position: { x: 1, y: 11 }, matchable: false, isRest: false },
                 { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 2, y: 12 }, matchable: false, isRest: false },
                 { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 2, y: 13 }, matchable: false, isRest: false },
-                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 2, y: 14 }, matchable: true, isRest: true },
+                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 2, y: 14 }, matchable: false, isRest: true },
             ],
             stars: {
                 completion: true,

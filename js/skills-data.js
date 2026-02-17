@@ -6,7 +6,8 @@ const skillDatabase = {
     cross: {
         id: 'cross',
         name: 'Cross',
-        unlockLocation: 1, // Crimp Canyon
+        unlockLocation: 0, // Boulder Garden (unlocks after completing first route)
+        unlockTrigger: 'completion', // Unlocks on route completion, not on visit
         key: '3',
         description: 'Activate before a cross-body move to reduce effective penalty by 1.',
         effect: 'Reduces cross-body or gaston penalty by 1 level. 3-move cooldown.',
@@ -15,7 +16,7 @@ const skillDatabase = {
     reach: {
         id: 'reach',
         name: 'Reach',
-        unlockLocation: 2, // Overhang Alley
+        unlockLocation: 1, // Crimp Canyon
         key: '1',
         description: 'Activate before a 2+ space move to negate the distance penalty.',
         effect: 'Negates the +1 penalty for extended (2+ space) moves. 3-move cooldown.',
@@ -24,7 +25,7 @@ const skillDatabase = {
     weightShift: {
         id: 'weightShift',
         name: 'Weight Shift',
-        unlockLocation: 3, // Slab Valley
+        unlockLocation: 2, // Overhang Alley
         description: 'Manually set your body weight before a move, overriding auto-shift.',
         effect: 'Shift weight one step (left/center/right) per action. Allows pre-positioning for upcoming sequences.',
         passive: true // No cooldown — always available once unlocked
@@ -32,7 +33,7 @@ const skillDatabase = {
     match: {
         id: 'match',
         name: 'Match',
-        unlockLocation: 4, // Jug Junction
+        unlockLocation: 3, // Slab Valley
         description: 'On matchable holds, place both hands to reset hand alternation.',
         effect: 'Resets hand choice and consecutive crosses. Costs 1 move (grip decays, cooldowns tick).',
         passive: true // Available on matchable holds
@@ -40,7 +41,7 @@ const skillDatabase = {
     deadpoint: {
         id: 'deadpoint',
         name: 'Deadpoint',
-        unlockLocation: 5, // Pinch Peak
+        unlockLocation: 4, // Jug Junction
         description: 'Recovery actions empower your next move.',
         effect: 'After Shake: next move has no pump state change. After Chalk: next move skips grip decay.',
         passive: true // Triggers automatically after shake/chalk
@@ -48,7 +49,7 @@ const skillDatabase = {
     commit: {
         id: 'commit',
         name: 'Commit',
-        unlockLocation: 6, // Pocket Paradise (or next unlockable)
+        unlockLocation: 5, // Pinch Peak
         key: 'r',
         description: 'Activate before a move to reduce effective penalty by 1.',
         effect: 'One-shot penalty reduction for a single crux move. 10-move cooldown.',
@@ -57,7 +58,7 @@ const skillDatabase = {
     bump: {
         id: 'bump',
         name: 'Bump',
-        unlockLocation: 7, // Steep Street (or next unlockable)
+        unlockLocation: 6, // Pocket Paradise
         key: 'b',
         description: 'Move to an adjacent hold without changing hands.',
         effect: 'Reposition (same row or 1 lateral space) without hand alternation. Costs 1 move (grip decays, cooldowns tick).',
@@ -75,14 +76,26 @@ function isSkillUnlocked(skillId) {
     return gameState.unlockedSkills.includes(skillId);
 }
 
-// Unlock a skill (called when entering a new location)
+// Unlock a skill (called when entering a new location — skips completion-triggered skills)
 function tryUnlockSkillAtLocation(locationId) {
     const newSkills = [];
     for (const [skillId, skill] of Object.entries(skillDatabase)) {
-        if (skill.unlockLocation === locationId && !gameState.unlockedSkills.includes(skillId)) {
+        if (skill.unlockLocation === locationId && skill.unlockTrigger !== 'completion' && !gameState.unlockedSkills.includes(skillId)) {
             gameState.unlockedSkills.push(skillId);
             newSkills.push(skill);
         }
     }
     return newSkills; // Returns array of newly unlocked skills (for notification)
+}
+
+// Unlock skills triggered by completing a route at a location
+function tryUnlockSkillOnCompletion(locationId) {
+    const newSkills = [];
+    for (const [skillId, skill] of Object.entries(skillDatabase)) {
+        if (skill.unlockLocation === locationId && skill.unlockTrigger === 'completion' && !gameState.unlockedSkills.includes(skillId)) {
+            gameState.unlockedSkills.push(skillId);
+            newSkills.push(skill);
+        }
+    }
+    return newSkills;
 }

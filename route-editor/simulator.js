@@ -8,7 +8,7 @@ let simControls = { hand: null, weight: null, useCross: false, useReach: false, 
 function createSimState() {
     return {
         currentRow: 0,
-        currentCol: 2,
+        currentCol: editorState.startCol,
         pumpState: 0,
         gripState: 0,
         gripDecayCounter: 0,
@@ -325,6 +325,9 @@ function findOptimalChoice(state, hold) {
     const weights = skills.includes('weightshift') ? ['left', 'center', 'right'] : [getIdealWeight(hold.angle)];
 
     for (const hand of ['left', 'right']) {
+        // Enforce hand alternation
+        if (state.lastHandUsed !== null && hand === state.lastHandUsed) continue;
+
         for (const wt of weights) {
             // Try combinations of skill activations
             const crossOptions = (skills.includes('cross') && state.crossCooldown <= 0) ? [false, true] : [false];

@@ -14,6 +14,7 @@ function exportToTxt() {
     txt += `area: ${meta.area}\n`;
     txt += `description: ${meta.description}\n`;
     txt += `holdCount: ${sorted.length}\n`;
+    txt += `startCol: ${editorState.startCol}\n`;
 
     txt += '\n=== HOLDS ===\n';
     txt += '# y  x  type        angle  pump  grip  match  rest\n';
@@ -45,6 +46,7 @@ function exportToJs() {
     js += `    name: '${meta.name}',\n`;
     js += `    grade: '${meta.grade}',\n`;
     js += `    holdCount: ${sorted.length},\n`;
+    js += `    startCol: ${editorState.startCol},\n`;
     js += `    // area: ${meta.area},\n`;
     js += `    description: '${meta.description.replace(/'/g, "\\'")}',\n`;
     js += '    holds: [\n';
@@ -74,6 +76,7 @@ function importFromTxt(text) {
     const newMeta = { id: '', name: '', grade: 'V0', description: '', area: 0 };
     const newHolds = [];
     const newStars = { speed: 30, pumpEfficiency: 0 };
+    let newStartCol = 2;
 
     let section = '';
 
@@ -95,6 +98,7 @@ function importFromTxt(text) {
             else if (key === 'grade') newMeta.grade = val;
             else if (key === 'area') newMeta.area = parseInt(val) || 0;
             else if (key === 'description') newMeta.description = val;
+            else if (key === 'startCol') newStartCol = parseInt(val);
         }
 
         if (section === 'holds') {
@@ -132,6 +136,7 @@ function importFromTxt(text) {
     editorState.routeMeta = newMeta;
     editorState.holds = newHolds;
     editorState.stars = newStars;
+    editorState.startCol = newStartCol;
 
     // Adjust grid height
     const maxY = newHolds.reduce((max, h) => Math.max(max, h.position.y), 0);
@@ -170,6 +175,8 @@ function importFromJs(text) {
         if (timeLimitMatch) newStars.speed = parseInt(timeLimitMatch[1]);
         const maxPumpMatch = text.match(/maxPump:\s*(\d+)/);
         if (maxPumpMatch) newStars.pumpEfficiency = parseInt(maxPumpMatch[1]);
+        const startColMatch = text.match(/startCol:\s*(\d+)/);
+        const newStartCol = startColMatch ? parseInt(startColMatch[1]) : 2;
 
         // Parse holds array
         const holdsMatch = text.match(/holds:\s*\[([\s\S]*?)\]/);
@@ -199,6 +206,7 @@ function importFromJs(text) {
         editorState.routeMeta = newMeta;
         editorState.holds = newHolds;
         editorState.stars = newStars;
+        editorState.startCol = newStartCol;
 
         const maxY = newHolds.reduce((max, h) => Math.max(max, h.position.y), 0);
         editorState.gridHeight = Math.max(10, maxY + 2);
