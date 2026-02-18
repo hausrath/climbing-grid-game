@@ -6,6 +6,7 @@ let simControls = { hand: null, weight: null, useCross: false, useReach: false, 
 
 // ---- State Creation ----
 function createSimState() {
+    const sorted = getSortedHolds();
     return {
         currentRow: 0,
         currentCol: editorState.startCol,
@@ -31,7 +32,8 @@ function createSimState() {
         cooldownLength: 3,
         actionCooldownLength: 5,
         fell: false,
-        completed: false
+        completed: false,
+        visitedHolds: new Array(sorted.length).fill(false)
     };
 }
 
@@ -179,9 +181,10 @@ function simulateMove(state, hold, hand, weight, options) {
     let newGripDecayCounter = state.gripDecayCounter;
     let newGripState = state.gripState;
     if (!gripDecayBlocked) {
-        newGripDecayCounter++;
-        if (newGripDecayCounter >= 3) {
-            newGripDecayCounter = 0;
+        const gripCost = HOLD_GRIP_COST[hold.type] || 1;
+        newGripDecayCounter += gripCost;
+        while (newGripDecayCounter >= 3) {
+            newGripDecayCounter -= 3;
             newGripState++;
             result.gripAdvanced = true;
         }
@@ -264,9 +267,10 @@ function applyMoveResult(state, hold, hand, result, weight) {
 
     if (result.fell) state.fell = true;
 
-    // Check completion
+    // Check completion: reached the highest hold position
     const sorted = getSortedHolds();
-    if (state.holdsClimbed >= sorted.length) {
+    const maxY = sorted.length > 0 ? Math.max(...sorted.map(h => h.position.y)) : 0;
+    if (state.currentRow >= maxY) {
         state.completed = true;
     }
 }
@@ -379,20 +383,54 @@ function setSimControl(group, value) {
     });
 }
 
+// Find all reachable unvisited holds from current sim state
+function getReachableHolds(state) {
+    const sorted = getSortedHolds();
+    const reachable = [];
+    for (let i = 0; i < sorted.length; i++) {
+        if (state.visitedHolds && state.visitedHolds[i]) continue;
+        const hold = sorted[i];
+        const dy = hold.position.y - state.currentRow;
+        const dx = Math.abs(hold.position.x - state.currentCol);
+        if (dy > 0 && dy <= 2 && dx <= 2) {
+            reachable.push({ index: i, hold });
+        }
+    }
+    return reachable;
+}
+
 function simExecuteMove() {
     if (!simState || simState.fell || simState.completed) return;
-    const sorted = getSortedHolds();
-    if (simState.holdsClimbed >= sorted.length) return;
 
-    const hold = sorted[simState.holdsClimbed];
-    let hand, weight, options;
+    // Find reachable unvisited holds
+    const reachable = getReachableHolds(simState);
+    if (reachable.length === 0) {
+        addMoveLog('No reachable holds!', 'penalty');
+        return;
+    }
+
+    let hold, holdIdx, hand, weight, options;
 
     if (simMode === 'auto') {
-        const opt = findOptimalChoice(simState, hold);
-        hand = opt.hand;
-        weight = opt.weight;
-        options = opt.options;
+        // Evaluate all reachable holds and pick the best one
+        let bestPenalty = 999;
+        let bestChoice = null;
+        for (const r of reachable) {
+            const opt = findOptimalChoice(simState, r.hold);
+            if (opt.penalty < bestPenalty) {
+                bestPenalty = opt.penalty;
+                bestChoice = { holdIdx: r.index, hold: r.hold, ...opt };
+            }
+        }
+        hold = bestChoice.hold;
+        holdIdx = bestChoice.holdIdx;
+        hand = bestChoice.hand;
+        weight = bestChoice.weight;
+        options = bestChoice.options;
     } else {
+        // Manual mode: pick the lowest-y reachable hold (closest above)
+        hold = reachable[0].hold;
+        holdIdx = reachable[0].index;
         hand = simControls.hand;
         weight = simControls.weight || getIdealWeight(hold.angle);
         options = {
@@ -414,6 +452,11 @@ function simExecuteMove() {
 
     const result = simulateMove(simState, hold, hand, weight, options);
     applyMoveResult(simState, hold, hand, result, weight);
+
+    // Mark hold as visited
+    if (simState.visitedHolds) {
+        simState.visitedHolds[holdIdx] = true;
+    }
 
     // Log the move
     const holdNum = simState.holdsClimbed;
@@ -522,10 +565,10 @@ function updateSimUI() {
     document.getElementById('sim-chalk').textContent = `${simState.chalkRemaining}/${simState.maxChalk}`;
     document.getElementById('sim-move').textContent = simState.holdsClimbed;
 
-    // Next hold info
-    const sorted = getSortedHolds();
-    if (simState.holdsClimbed < sorted.length && !simState.fell && !simState.completed) {
-        const next = sorted[simState.holdsClimbed];
+    // Next hold info — show best reachable hold
+    const reachable = getReachableHolds(simState);
+    if (reachable.length > 0 && !simState.fell && !simState.completed) {
+        const next = reachable[0].hold;
         const ht = holdTypes.find(h => h.type === next.type);
         document.getElementById('sim-next').textContent = `${ht?.label || next.type} ${next.angle}° (${next.position.x},${next.position.y})`;
     } else if (simState.completed) {
@@ -544,11 +587,21 @@ function updateSimUI() {
     document.getElementById('sim-cooldowns').textContent = cds.length > 0 ? cds.join(' | ') : 'All ready';
 
     // Auto-suggest for next move
-    if (simMode === 'auto' && simState.holdsClimbed < sorted.length && !simState.fell && !simState.completed) {
-        const next = sorted[simState.holdsClimbed];
-        const opt = findOptimalChoice(simState, next);
-        setSimControl('hand', opt.hand);
-        setSimControl('weight', opt.weight);
+    if (simMode === 'auto' && reachable.length > 0 && !simState.fell && !simState.completed) {
+        // Find best reachable hold for suggestion
+        let bestPenalty = 999;
+        let bestOpt = null;
+        for (const r of reachable) {
+            const opt = findOptimalChoice(simState, r.hold);
+            if (opt.penalty < bestPenalty) {
+                bestPenalty = opt.penalty;
+                bestOpt = opt;
+            }
+        }
+        if (bestOpt) {
+            setSimControl('hand', bestOpt.hand);
+            setSimControl('weight', bestOpt.weight);
+        }
     }
 
     // Build skill activation toggles for manual mode
@@ -578,7 +631,7 @@ function updateSimUI() {
     }
 
     // Update button states
-    document.getElementById('btn-move').disabled = simState.fell || simState.completed;
+    document.getElementById('btn-move').disabled = simState.fell || simState.completed || reachable.length === 0;
     document.getElementById('btn-shake').disabled = simState.fell || simState.completed || simState.shakeCooldown > 0 || simState.pumpState <= 0;
     document.getElementById('btn-chalk').disabled = simState.fell || simState.completed || simState.chalkCooldown > 0 || simState.chalkRemaining <= 0;
     document.getElementById('btn-undo').disabled = simState.moveHistory.length === 0;

@@ -17,7 +17,8 @@ function renderGrid() {
             const routeRow = viewportRowToRouteRow(row);
             const dy = routeRow - gameState.currentRow;
             const dx = Math.abs(col - gameState.currentCol);
-            const isReachable = dy > 0 && dy <= 2 && dx <= 2;
+            const maxReach = gameState.dynoActive ? 3 : 2;
+            const isReachable = dy > 0 && dy <= maxReach && dx <= maxReach;
 
             if (isReachable && gameState.grid[row][col]) {
                 cell.classList.add('next-row');
@@ -329,15 +330,14 @@ function updateUI() {
     // Update pump bar to show state visually (0=0%, 1=50%, 2=100%)
     const pumpPercent = (gameState.pumpState / 2) * 100;
     document.getElementById('pump-bar').style.width = `${pumpPercent}%`;
-    document.getElementById('pump-bar').textContent = pumpLabel;
     document.getElementById('pump-bar').style.background = pumpColors[gameState.pumpState] || '#f5aaa2';
+    document.getElementById('pump-bar-text').textContent = pumpLabel;
 
-    // Update grip bar to show decay countdown
+    // Update grip bar to show decay countdown (threshold = 3 ticks)
     const gripDecayProgress = (gameState.gripDecayCounter / 3) * 100;
-    const movesUntilDecay = 3 - gameState.gripDecayCounter;
     document.getElementById('grip-bar').style.width = `${gripDecayProgress}%`;
-    document.getElementById('grip-bar').textContent = `${gripLabel} (decay in ${movesUntilDecay})`;
     document.getElementById('grip-bar').style.background = gripColors[gameState.gripState] || '#f5aaa2';
+    document.getElementById('grip-bar-text').textContent = `${gripLabel} (${gameState.gripDecayCounter}/3)`;
 
     // Update Commit button (only visible if skill unlocked)
     const commitBtn = document.getElementById('commit-btn');
@@ -358,6 +358,28 @@ function updateUI() {
             }
         } else {
             commitBtn.style.display = 'none';
+        }
+    }
+
+    // Update Dyno button (only visible if skill unlocked)
+    const dynoBtn = document.getElementById('dyno-btn');
+    if (dynoBtn) {
+        if (isSkillUnlocked('dyno')) {
+            dynoBtn.style.display = 'inline-block';
+            dynoBtn.disabled = gameState.dynoCooldown > 0 || gameState.dynoActive;
+
+            if (gameState.dynoActive) {
+                dynoBtn.textContent = 'ACTIVE!';
+                dynoBtn.style.borderColor = '#a8db60';
+            } else if (gameState.dynoCooldown > 0) {
+                dynoBtn.textContent = `CD: ${gameState.dynoCooldown}`;
+                dynoBtn.style.borderColor = '#738078';
+            } else {
+                dynoBtn.textContent = 'DYNO (T)';
+                dynoBtn.style.borderColor = '#c178de';
+            }
+        } else {
+            dynoBtn.style.display = 'none';
         }
     }
 }

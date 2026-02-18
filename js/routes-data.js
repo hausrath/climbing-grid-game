@@ -224,6 +224,31 @@ const routeDatabase = {
                 flashClimb: true,
             }
         },
+        {
+            id: 'bg4',
+            name: 'Snek',
+            grade: 'V1',
+            holdCount: 9,
+            description: 'Can you climb the danger noodle?',
+            holds: [
+                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 1, y: 1 }, matchable: false, isRest: false },
+                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 0, y: 2 }, matchable: false, isRest: false },
+                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 1, y: 3 }, matchable: false, isRest: false },
+                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 2, y: 4 }, matchable: false, isRest: false },
+                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 1, y: 5 }, matchable: false, isRest: false },
+                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 0, y: 6 }, matchable: false, isRest: false },
+                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 1, y: 7 }, matchable: false, isRest: false },
+                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 2, y: 8 }, matchable: false, isRest: false },
+                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 2, y: 9 }, matchable: false, isRest: false },
+            ],
+            stars: {
+                completion: true,
+                speed: { timeLimit: 40 },
+                pumpEfficiency: { maxPump: 0 },
+                noRecovery: true,
+                flashClimb: true,
+            }
+        },
     ],
 
     // ================================================================
@@ -231,100 +256,74 @@ const routeDatabase = {
     // ================================================================
     1: [
         {
-            id: 'cc-1',
-            name: 'Gaston Lesson',
+            id: 'cc1',
+            name: 'Monkey Arms',
             grade: 'V1',
-            holdCount: 8,
-            description: 'A 225° hold punishes R hand with gaston. Use L hand — or activate Cross!',
-            // SOLUTION: any-L-R-R-R(+Cross)-any-L-any. Pump=0,0,0,1,1,1,1,1.
-            // Move 4: 315° center = penalty 1, shifts weight→R. Shake: pump→0.
-            // Move 5: UR to 225°. R hand forced (going right). Gaston!
-            //   R without Cross: eff 2 (base 1 + gaston 1). Pump 0→2.
-            //   R with Cross: eff 1. Pump 0→1.
-            //   L hand: UR,L,225°,R = 3 → FALL.
-            // With Cross: end pump=1. Without Cross: end pump=2 (tight).
+            holdCount: 6,
+            description: '',
             holds: [
-                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 2, y: 1 }, matchable: false, isRest: false },
-                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 1, y: 2 }, matchable: false, isRest: false },
-                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 2, y: 3 }, matchable: false, isRest: false },
-                { type: 'jug', label: 'JUG', angle: 315, pumpRating: 2, gripDrain: 1, position: { x: 3, y: 4 }, matchable: false, isRest: false },
-                { type: 'crimp', label: 'CRIMP', angle: 225, pumpRating: 4, gripDrain: 2, position: { x: 4, y: 5 }, matchable: false, isRest: false },
-                { type: 'jug', label: 'JUG', angle: 315, pumpRating: 1, gripDrain: 1, position: { x: 4, y: 6 }, matchable: false, isRest: false },
-                { type: 'jug', label: 'JUG', angle: 315, pumpRating: 1, gripDrain: 1, position: { x: 3, y: 7 }, matchable: false, isRest: false },
-                { type: 'jug', label: 'JUG', angle: 315, pumpRating: 1, gripDrain: 1, position: { x: 3, y: 8 }, matchable: false, isRest: true },
-            ],
-            stars: {
-                completion: true,
-                speed: { timeLimit: 45 },
-                pumpEfficiency: { maxPump: 2 },
-                noRecovery: true,
-                flashClimb: true,
-            }
-        },
-        {
-            id: 'cc-2',
-            name: 'Cross Country',
-            grade: 'V2',
-            holdCount: 10,
-            description: 'Two gaston cruxes. Time your Cross skill carefully — cooldown is 3 moves.',
-            // SOLUTION: Shake after move 3. Cross at moves 4 and 7.
-            // Move 3: 315° center = P1. Shake→0.
-            // Move 4: UR 225° R weight. R+Cross eff 1 (vs eff 2 without). CrossCD=3.
-            // Move 7: UL 225° R weight. L hand, base=1 no gaston. P=1. Pump→2.
-            //   (Cross available but L hand has no gaston, so base penalty only)
-            // Without Cross at move 4: eff 2 → pump=2. Move 7 P=1 → pump=3 FALL!
-            // Cross IS REQUIRED for this route.
-            // Chalk needed (10 holds). Shake after move 8 for comfort.
-            holds: [
-                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 2, y: 1 }, matchable: false, isRest: false },
+                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 4, y: 1 }, matchable: false, isRest: false },
                 { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 3, y: 2 }, matchable: false, isRest: false },
-                { type: 'crimp', label: 'CRIMP', angle: 315, pumpRating: 3, gripDrain: 2, position: { x: 3, y: 3 }, matchable: false, isRest: false },
-                { type: 'crimp', label: 'CRIMP', angle: 225, pumpRating: 4, gripDrain: 2, position: { x: 4, y: 4 }, matchable: false, isRest: false },
-                { type: 'jug', label: 'JUG', angle: 315, pumpRating: 1, gripDrain: 1, position: { x: 4, y: 5 }, matchable: false, isRest: false },
-                { type: 'jug', label: 'JUG', angle: 315, pumpRating: 1, gripDrain: 1, position: { x: 4, y: 6 }, matchable: false, isRest: false },
-                { type: 'crimp', label: 'CRIMP', angle: 225, pumpRating: 4, gripDrain: 2, position: { x: 3, y: 7 }, matchable: false, isRest: false },
-                { type: 'jug', label: 'JUG', angle: 315, pumpRating: 1, gripDrain: 1, position: { x: 3, y: 8 }, matchable: false, isRest: false },
-                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 3, y: 9 }, matchable: false, isRest: false },
-                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 3, y: 10 }, matchable: false, isRest: true },
+                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 3, y: 3 }, matchable: false, isRest: false },
+                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 2, y: 4 }, matchable: false, isRest: false },
+                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 2, y: 5 }, matchable: false, isRest: false },
+                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 1, y: 6 }, matchable: false, isRest: false },
             ],
             stars: {
                 completion: true,
-                speed: { timeLimit: 60 },
-                pumpEfficiency: { maxPump: 2 },
+                speed: { timeLimit: 30 },
+                pumpEfficiency: { maxPump: 0 },
                 noRecovery: true,
                 flashClimb: true,
             }
         },
         {
-            id: 'cc-3',
-            name: 'The Crimp Crux',
-            grade: 'V3',
-            holdCount: 10,
-            description: 'Back-to-back gastons. Cross is essential — time it for both cruxes.',
-            // SOLUTION: Cross at move 4 (CrossCD=3), Cross again at move 7 (CD ready).
-            // Move 3: P1 (315° center). Shake→0.
-            // Move 4: UR 225° R. R+Cross eff 1. Pump=1.
-            // Move 5-6: clean (315° R weight).
-            // Move 7: UR 225° R. R+Cross eff 1. Pump=2.
-            // Move 8: clean. Shake→1.
-            // Without Cross: Move 4 eff 2, pump=2. Move 7 eff 2, pump=4 → FALL.
-            // Cross REQUIRED.
+            id: 'cc2',
+            name: 'Reach a Cross',
+            grade: 'V2',
+            holdCount: 8,
+            description: '',
+            startCol: 0,
             holds: [
-                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 2, y: 1 }, matchable: false, isRest: false },
-                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 1, y: 2 }, matchable: false, isRest: false },
-                { type: 'crimp', label: 'CRIMP', angle: 315, pumpRating: 3, gripDrain: 2, position: { x: 2, y: 3 }, matchable: false, isRest: false },
-                { type: 'crimp', label: 'CRIMP', angle: 225, pumpRating: 4, gripDrain: 2, position: { x: 3, y: 4 }, matchable: false, isRest: false },
-                { type: 'jug', label: 'JUG', angle: 315, pumpRating: 1, gripDrain: 1, position: { x: 3, y: 5 }, matchable: false, isRest: false },
-                { type: 'jug', label: 'JUG', angle: 315, pumpRating: 1, gripDrain: 1, position: { x: 3, y: 6 }, matchable: false, isRest: false },
-                { type: 'crimp', label: 'CRIMP', angle: 225, pumpRating: 4, gripDrain: 2, position: { x: 4, y: 7 }, matchable: false, isRest: false },
-                { type: 'jug', label: 'JUG', angle: 315, pumpRating: 1, gripDrain: 1, position: { x: 4, y: 8 }, matchable: false, isRest: false },
-                { type: 'jug', label: 'JUG', angle: 315, pumpRating: 1, gripDrain: 1, position: { x: 3, y: 9 }, matchable: false, isRest: false },
-                { type: 'jug', label: 'JUG', angle: 315, pumpRating: 1, gripDrain: 1, position: { x: 3, y: 10 }, matchable: false, isRest: true },
+                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 2, gripDrain: 1, position: { x: 2, y: 1 }, matchable: false, isRest: false },
+                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 3, y: 2 }, matchable: false, isRest: false },
+                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 4, y: 3 }, matchable: false, isRest: false },
+                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 3, y: 4 }, matchable: false, isRest: false },
+                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 3, y: 5 }, matchable: false, isRest: false },
+                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 2, y: 6 }, matchable: false, isRest: false },
+                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 3, y: 7 }, matchable: false, isRest: false },
+                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 3, y: 8 }, matchable: false, isRest: false },
             ],
             stars: {
                 completion: true,
-                speed: { timeLimit: 60 },
-                pumpEfficiency: { maxPump: 2 },
+                speed: { timeLimit: 30 },
+                pumpEfficiency: { maxPump: 0 },
+                noRecovery: true,
+                flashClimb: true,
+            }
+        },
+        {
+            id: 'cc3',
+            name: 'Careful Planning',
+            grade: 'V2',
+            holdCount: 9,
+            description: 'A tricky reach down low sets up crosses and an additional reach higher up.',
+            startCol: 3,
+            holds: [
+                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 2, y: 1 }, matchable: false, isRest: false },
+                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 4, y: 2 }, matchable: false, isRest: false },
+                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 4, y: 3 }, matchable: false, isRest: false },
+                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 3, y: 4 }, matchable: false, isRest: false },
+                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 2, y: 5 }, matchable: false, isRest: false },
+                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 3, y: 6 }, matchable: false, isRest: false },
+                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 1, y: 7 }, matchable: false, isRest: false },
+                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 0, y: 8 }, matchable: false, isRest: false },
+                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 0, y: 9 }, matchable: false, isRest: false },
+            ],
+            stars: {
+                completion: true,
+                speed: { timeLimit: 40 },
+                pumpEfficiency: { maxPump: 0 },
                 noRecovery: true,
                 flashClimb: true,
             }
@@ -336,30 +335,25 @@ const routeDatabase = {
     // ================================================================
     2: [
         {
-            id: 'oa-1',
-            name: 'The Long Reach',
-            grade: 'V2',
-            holdCount: 8,
-            description: 'Big moves between holds. Reach negates the distance penalty.',
-            // SOLUTION: Reach on move 1, Reach on move 5. 2 extended moves covered.
-            // Move 1: dy=2, extended. With Reach: P0. Without: P1.
-            // Move 3: normal. Move 5: dy=2 extended. Reach available (CD=0 by then).
-            // Without Reach: 2 × P1 = pump 2. Tight but survivable.
-            // With Reach: pump 0. Clean.
+            id: 'oa1',
+            name: 'Show You the Weigh',
+            grade: 'V0',
+            holdCount: 7,
+            description: 'Your weight should be opposite of the hold direction if you want to make it up this one!',
+            startCol: 2,
             holds: [
+                { type: 'jug', label: 'JUG', angle: 45, pumpRating: 1, gripDrain: 1, position: { x: 3, y: 1 }, matchable: false, isRest: false },
                 { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 2, y: 2 }, matchable: false, isRest: false },
-                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 3, y: 3 }, matchable: false, isRest: false },
-                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 2, y: 4 }, matchable: false, isRest: false },
-                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 1, y: 5 }, matchable: false, isRest: false },
-                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 1, y: 7 }, matchable: false, isRest: false },
-                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 2, y: 8 }, matchable: false, isRest: false },
-                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 2, y: 9 }, matchable: false, isRest: false },
-                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 2, y: 10 }, matchable: false, isRest: true },
+                { type: 'jug', label: 'JUG', angle: 315, pumpRating: 1, gripDrain: 1, position: { x: 1, y: 3 }, matchable: false, isRest: false },
+                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 1, y: 4 }, matchable: false, isRest: false },
+                { type: 'jug', label: 'JUG', angle: 270, pumpRating: 1, gripDrain: 1, position: { x: 1, y: 5 }, matchable: false, isRest: false },
+                { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 2, y: 6 }, matchable: false, isRest: false },
+                { type: 'jug', label: 'JUG', angle: 90, pumpRating: 1, gripDrain: 1, position: { x: 3, y: 7 }, matchable: false, isRest: false },
             ],
             stars: {
                 completion: true,
-                speed: { timeLimit: 45 },
-                pumpEfficiency: { maxPump: 2 },
+                speed: { timeLimit: 30 },
+                pumpEfficiency: { maxPump: 0 },
                 noRecovery: true,
                 flashClimb: true,
             }

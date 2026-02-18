@@ -68,35 +68,38 @@
                     <div style="font-family: 'Righteous', cursive; font-size: 1em; color: #fad882; text-align: center; margin-bottom: 10px;">ACTIONS</div>
                     <!-- Row 1: Recovery actions (always available) -->
                     <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
-                        <button class="hand-button" id="shake-btn" onclick="useShake()" style="border-color: #6dbce3; padding: 10px 20px;">
+                        <button class="hand-button" id="shake-btn" onclick="useShake()" onmouseover="showSkillTooltip('shake')" onmouseout="hideSkillTooltip()" style="border-color: #6dbce3; padding: 10px 20px;">
                             SHAKE (Q)
                         </button>
-                        <button class="hand-button" id="chalk-btn" onclick="useChalk()" style="border-color: #fad882; padding: 10px 20px;">
+                        <button class="hand-button" id="chalk-btn" onclick="useChalk()" onmouseover="showSkillTooltip('chalk')" onmouseout="hideSkillTooltip()" style="border-color: #fad882; padding: 10px 20px;">
                             CHALK (E)
                         </button>
                     </div>
                     <!-- Row 2: Skill actions (shown when unlocked) -->
                     <div id="skill-actions-row" style="display: flex; margin-top: 10px; gap: 8px; justify-content: center; flex-wrap: wrap;">
-                        <button class="hand-button" id="cross-btn" onclick="selectMovementStyle('cross')" style="border-color: #a8db60; padding: 8px 16px; display: none;">
+                        <button class="hand-button" id="cross-btn" onclick="selectMovementStyle('cross')" onmouseover="showSkillTooltip('cross')" onmouseout="hideSkillTooltip()" style="border-color: #a8db60; padding: 8px 16px; display: none;">
                             CROSS (3)
                         </button>
-                        <button class="hand-button" id="regular-btn" onclick="selectMovementStyle('regular')" style="border-color: #fad882; padding: 8px 16px; display: none;">
+                        <button class="hand-button" id="regular-btn" onclick="selectMovementStyle('regular')" onmouseover="showSkillTooltip('regular')" onmouseout="hideSkillTooltip()" style="border-color: #fad882; padding: 8px 16px; display: none;">
                             REGULAR (2)
                         </button>
-                        <button class="hand-button" id="reach-btn" onclick="selectMovementStyle('reach')" style="border-color: #f5aaa2; padding: 8px 16px; display: none;">
+                        <button class="hand-button" id="reach-btn" onclick="selectMovementStyle('reach')" onmouseover="showSkillTooltip('reach')" onmouseout="hideSkillTooltip()" style="border-color: #f5aaa2; padding: 8px 16px; display: none;">
                             REACH (1)
                         </button>
-                        <button class="hand-button" id="commit-btn" onclick="activateCommit()" style="border-color: #f5aaa2; padding: 8px 16px; display: none;">
+                        <button class="hand-button" id="commit-btn" onclick="activateCommit()" onmouseover="showSkillTooltip('commit')" onmouseout="hideSkillTooltip()" style="border-color: #f5aaa2; padding: 8px 16px; display: none;">
                             COMMIT (R)
+                        </button>
+                        <button class="hand-button" id="dyno-btn" onclick="activateDyno()" onmouseover="showSkillTooltip('dyno')" onmouseout="hideSkillTooltip()" style="border-color: #c178de; padding: 8px 16px; display: none;">
+                            DYNO (T)
                         </button>
                     </div>
                 </div>
             </div>
 
-            <!-- Hold Info box (centered, full width, fixed height) -->
-            <div style="margin-top: 20px;">
-                <div style="background: rgba(55, 51, 59, 0.6); border: 2px solid #738078; border-radius: 8px; padding: 15px; height: 260px; display: flex; flex-direction: column; min-width: 280px;">
-                    <div style="font-family: 'Righteous', cursive; font-size: 1em; color: #fad882; text-align: center; margin-bottom: 10px;">HOLD INFO</div>
+            <!-- Info box (full width, fixed height) -->
+            <div style="margin-top: 20px; width: 100%; box-sizing: border-box;">
+                <div style="background: rgba(55, 51, 59, 0.6); border: 2px solid #738078; border-radius: 8px; padding: 15px; height: 260px; display: flex; flex-direction: column; width: 100%; box-sizing: border-box;">
+                    <div style="font-family: 'Righteous', cursive; font-size: 1em; color: #fad882; text-align: center; margin-bottom: 10px;">INFO</div>
                     <div id="hold-tooltip-static" style="flex: 1; color: #bdb9ae; font-size: 0.85em; display: flex; align-items: center; justify-content: center; text-align: center;">
                         Hover over hold<br>to see details
                     </div>
@@ -122,9 +125,8 @@
                     <span id="pump-value" style="color: #a8db60;">Fresh</span>
                 </div>
                 <div class="bar-container">
-                    <div class="bar-fill pump-bar" id="pump-bar" style="width: 0%">
-                        Fresh
-                    </div>
+                    <div class="bar-fill pump-bar" id="pump-bar" style="width: 0%"></div>
+                    <span class="bar-text" id="pump-bar-text">Fresh</span>
                 </div>
             </div>
 
@@ -134,9 +136,8 @@
                     <span id="grip-value" style="color: #a8db60;">Chalked</span>
                 </div>
                 <div class="bar-container">
-                    <div class="bar-fill grip-bar" id="grip-bar" style="width: 0%">
-                        Chalked (decay in 3)
-                    </div>
+                    <div class="bar-fill grip-bar" id="grip-bar" style="width: 0%"></div>
+                    <span class="bar-text" id="grip-bar-text">Chalked (decay in 2)</span>
                 </div>
             </div>
 
@@ -199,7 +200,7 @@
                     <span style="color: #c178de;">A/D</span> = Left/Right Hand<br>
                     <span style="color: #6dbce3;">1/2/3</span> = Dynamic/Regular/Static<br>
                     <span style="color: #a8db60;">Q/E</span> = Shake/Chalk<br>
-                    <span style="color: #f5aaa2;">R</span> = Commit (if learned)
+                    <span style="color: #f5aaa2;">R</span> = Commit | <span style="color: #c178de;">T</span> = Dyno
                 </div>
             </div>
         </div>

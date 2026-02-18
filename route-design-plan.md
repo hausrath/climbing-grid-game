@@ -1,183 +1,193 @@
 # Route Redesign Plan: Areas 0-7 (24 Routes)
 
 ## Context
-The climbing system was reworked from random rolls to a deterministic puzzle system with penalty tables. Routes need to be redesigned as genuine puzzles that teach skills progressively. Each area unlocks a new skill, and routes must require skills from previous areas to complete.
+The climbing system uses a deterministic puzzle system with penalty tables. Routes are genuine puzzles that teach skills progressively. Each area unlocks a new skill, and routes require skills from previous areas to complete. Cross and Reach both unlock at Area 0 (Cross on first completion, Reach when all routes are done), then each subsequent area introduces one new skill.
 
 ## File to Modify
-- `js/routes-data.js` — Replace all routes in `routeDatabase` for locations 0-7 (3 routes each, 24 total). Remove the existing 7 routes at location 0.
+- `js/routes-data.js` — Replace all routes in `routeDatabase` for locations 0-7 (3 routes each, 24 total).
+- Route files in `Handcrafted Routes/` folder — text format for route editor import/export.
 
 ## Design Principles
 1. **Each area teaches one new skill** via its first route (gentle tutorial)
 2. **Route 2** combines the new skill with 1-2 prior skills
 3. **Route 3** is a mastery test requiring ALL skills learned so far
-4. **Every route is mathematically verified** — optimal solution avoids fall, poor play = fall
-5. **pumpRating/gripDrain kept** for visual display (used as progress bars)
-6. **Star challenges** use the existing format: completion, speed, pumpEfficiency (finish pump=0), noRecovery (no shakes/chalks), flashClimb (first try)
+4. **Every route is mathematically verified** via the route editor's auto-solver
+5. **Star challenges** use the existing format: completion, speed, pumpEfficiency (finish pump=0), noRecovery (no shakes/chalks), flashClimb (first try)
+6. **Branching routes** supported — solver finds paths through forks, holdCount auto-computed as shortest path
 
 ## Pump/Grip Economy Reference
-- **Pump budget**: 2 points before fall. Shake = -1, cooldown 5 moves.
-- **Grip budget**: Falls at move 9 without chalk. Chalk resets grip, 5 uses per climb.
-- **Routes ≤8 holds**: No chalk needed (grip reaches 2 at move 6, survives)
-- **Routes 9-14 holds**: 1 chalk needed
-- **Routes 15+ holds**: 2+ chalks needed
+- **Pump states**: Fresh (0), Pumped (1), Struggling (2), Fall (3+). Shake = -1 state, cooldown 5 moves.
+- **Grip states**: Chalked (0), Weakening (1), Slipping (2), Fall (3+). Grip decays 1 state every 2 moves. Chalk resets to 0, 5 uses per climb.
+- **Routes ≤4 holds**: No chalk needed (grip reaches 1 at move 4)
+- **Routes 5-8 holds**: 1 chalk may be needed (grip reaches 2 at move 8)
+- **Routes 9+ holds**: Chalk management becomes critical
 
 ## Skill Unlock Progression
-| Area | Location | Skill | Key Mechanic |
-|------|----------|-------|-------------|
-| 0 | Boulder Garden | (none) | Hand selection, direction |
-| 1 | Crimp Canyon | Cross | Reduces cross-body/gaston penalty by 1 |
-| 2 | Overhang Alley | Reach | Negates +1 distance penalty for 2+ space moves |
-| 3 | Slab Valley | Weight Shift | Manually set weight before a move |
-| 4 | Jug Junction | Match | Both hands on matchable hold, reset hand tracking |
-| 5 | Pinch Peak | Deadpoint | After shake: no pump change. After chalk: no grip decay. |
-| 6 | Pocket Paradise | Commit | Reduce penalty by 1, 10-move cooldown |
-| 7 | Steep Street | Bump | Reposition without changing hands |
+| Area | Location | Skill | Trigger | Key Mechanic |
+|------|----------|-------|---------|-------------|
+| 0 | Boulder Garden | Cross | First route completion | Reduces cross-body/gaston penalty by 1 |
+| 0 | Boulder Garden | Reach | All routes completed | Negates +1 distance penalty for 2+ space moves |
+| 1 | Crimp Canyon | Weight Shift | Visit | Manually set weight before a move (L/C/R) |
+| 2 | Overhang Alley | Match | Visit | Both hands on matchable hold, reset hand tracking |
+| 3 | Slab Valley | Deadpoint | Visit | After shake: no pump change. After chalk: no grip decay. |
+| 4 | Jug Junction | Commit | Visit | Reduce penalty by 1, 10-move cooldown |
+| 5 | Pinch Peak | Bump | Visit | Reposition without changing hands |
+| 6 | Pocket Paradise | (none) | — | Mastery test area — no new skill |
+| 7 | Steep Street | Dyno | Visit | Extend reach to 3 spaces, 5-move cooldown |
 
 ---
 
-## Area 0 — Boulder Garden (No Skill)
+## Area 0 — Boulder Garden (Unlocks Cross + Reach)
 **Teaches**: Hand selection, direction-to-hand matching, angle awareness
+**Cross** unlocks after completing the first route. **Reach** unlocks after completing all routes.
 
 ### Route 0-1: "First Steps" (V0, 6 holds)
 - All straight UP, angle 0, center column
 - Every move is penalty 0 with any hand
-- Pure controls tutorial
+- Pure controls tutorial — learn hand alternation
+- Completing this route unlocks **Cross**
 
 ### Route 0-2: "Zig-Zag" (V1, 8 holds)
 - Alternating UP-LEFT / UP-RIGHT moves, all angle 0
-- Natural hand (L for left, R for right) = penalty 0; wrong hand = penalty 1
-- Teaches: direction determines optimal hand
+- Natural hand (L for left, R for right) = penalty 0; wrong hand = cross-body penalty
+- Teaches: direction determines optimal hand, Cross skill negates cross-body
 
 ### Route 0-3: "Reading the Wall" (V2, 8 holds)
-- Introduces non-zero angles (45 and 315)
-- Some unavoidable penalty-1 from weight mismatch (no Weight Shift yet)
-- Teaches: angles affect penalty through weight
-- 2 penalty-1 moves, survivable with 1 shake
+- Introduces non-zero angles (45, 315) and extended (2-space) moves
+- Teaches: angles affect penalty through weight, distance penalty exists
+- Completing this (last) route unlocks **Reach**
 
 ---
 
-## Area 1 — Crimp Canyon (Unlocks Cross)
-**Teaches**: Gaston penalty (L@135, R@225) and how Cross negates it
+## Area 1 — Crimp Canyon (Unlocks Weight Shift)
+**Teaches**: Manual weight positioning overrides default center weight
 
-### Route 1-1: "Gaston Lesson" (V1, 8 holds)
-- Introduces 225 holds where R hand gets gaston (+1 penalty)
-- Player learns: L hand avoids gaston, OR activate Cross on R hand
+### Route 1-1: "Weight Lesson" (V1, 6 holds)
+- Holds with angled positions where center weight causes penalty
+- Weight Shift to left/right before moves = clean
+- Teaches: weight affects penalty, Weight Shift allows pre-positioning
 
-### Route 1-2: "Cross Country" (V2, 10 holds)
-- Multiple gaston opportunities (225 and 135 holds)
-- Without Cross: accumulated gaston penalties = fall
-- With Cross: manageable with 1 shake
+### Route 1-2: "Reach a Cross" (V2, 8 holds, startCol: 0)
+- Mix of cross-body moves and extended reaches
+- Requires coordinating Weight Shift, Cross, and Reach
+- Skills tested: Weight Shift, Cross, Reach
 
-### Route 1-3: "The Crimp Crux" (V3, 10 holds)
-- Back-to-back gaston holds in crux section
-- Route is impossible without Cross
-- Skills required: **Cross**
-
----
-
-## Area 2 — Overhang Alley (Unlocks Reach)
-**Teaches**: Extended moves (2+ spaces) incur +1 penalty, Reach negates it
-
-### Route 2-1: "The Long Reach" (V2, 8 holds)
-- Several 2-space gaps between holds
-- Teaches: Reach skill timing around cooldown
-
-### Route 2-2: "Stretch and Cross" (V3, 10 holds)
-- Mix of extended moves AND gaston holds
-- Requires coordinating Reach and Cross cooldowns
-
-### Route 2-3: "The Overhang" (V4, 12 holds)
-- Long route with both distance challenges and gaston cruxes
-- Skills required: **Reach, Cross**
-
----
-
-## Area 3 — Slab Valley (Unlocks Weight Shift)
-**Teaches**: Manual weight positioning overrides auto-shift
-
-### Route 3-1: "Weight Control" (V2, 8 holds)
-- Auto-weight-shift leaves player at wrong weight for next hold
-- Weight Shift allows pre-positioning for clean moves
-
-### Route 3-2: "Balanced Traverse" (V3, 10 holds)
-- Weight-demanding route with 45/315/180 angle holds
-- Requires Weight Shift + Cross for gastons
-
-### Route 3-3: "The Slab Master" (V4, 12 holds)
-- Complex angle sequences requiring weight, hand, and direction mastery
+### Route 1-3: "Careful Planning" (V2, 9 holds, startCol: 3)
+- Complex sequences requiring weight, hand, and direction mastery
 - Skills required: **Weight Shift, Cross, Reach**
 
 ---
 
-## Area 4 — Jug Junction (Unlocks Match)
+## Area 2 — Overhang Alley (Unlocks Match)
 **Teaches**: Matching on matchable holds resets hand tracking
 
-### Route 4-1: "Match Point" (V2, 10 holds)
+### Route 2-1: "Show You the Weigh" (V2, 7 holds, startCol: 2)
+- Angled holds (45, 315, 270, 90) requiring weight management
+- Teaches: weight must be opposite of hold direction
+
+### Route 2-2: "Match Point" (V2, 10 holds)
 - Hand sequence gets stuck without matching
-- Key matchable holds at turning points
+- Key matchable holds at turning points reset hand alternation
+- Skills tested: Match, Weight Shift
 
-### Route 4-2: "Match and Shift" (V3, 12 holds)
-- Combines matching with weight management and Cross
-- Skills tested: Match, Weight Shift, Cross
-
-### Route 4-3: "The Junction Test" (V4, 12 holds)
+### Route 2-3: "The Overhang" (V3, 10 holds)
+- Combines matching with weight and cross management
 - Skills required: **Match, Weight Shift, Cross, Reach**
 
 ---
 
-## Area 5 — Pinch Peak (Unlocks Deadpoint)
-**Teaches**: Recovery actions empower next move
+## Area 3 — Slab Valley (Unlocks Deadpoint)
+**Teaches**: Recovery actions empower your next move
 
-### Route 5-1: "Dead On" (V3, 12 holds)
+### Route 3-1: "Dead On" (V2, 8 holds)
 - Shake+Deadpoint combo needed for high-penalty section
-- Chalk+Deadpoint blocks grip decay
+- Chalk+Deadpoint blocks grip decay on critical moves
+- Teaches: strategic recovery timing
 
-### Route 5-2: "Peak Performance" (V4, 12 holds)
+### Route 3-2: "Recovery Master" (V3, 10 holds)
 - Sustained crux requiring Deadpoint for pump management
-- Skills tested: Deadpoint, Weight Shift, Cross, Match
+- Skills tested: Deadpoint, Weight Shift, Match, Cross
 
-### Route 5-3: "The Pinch Gauntlet" (V5, 14 holds)
-- Skills required: **All 5 skills** (Deadpoint, Match, Weight Shift, Cross, Reach)
+### Route 3-3: "The Slab Master" (V4, 12 holds)
+- Complex route requiring all skills learned so far
+- Skills required: **Deadpoint, Match, Weight Shift, Cross, Reach**
 
 ---
 
-## Area 6 — Pocket Paradise (Unlocks Commit)
+## Area 4 — Jug Junction (Unlocks Commit)
 **Teaches**: One-shot penalty reduction for crux moves (10-move cooldown)
 
-### Route 6-1: "Committed" (V3, 12 holds)
+### Route 4-1: "Committed" (V3, 10 holds)
 - One very hard crux move; Commit makes it survivable
+- Without Commit: crux is effective penalty 3 = fall
 
-### Route 6-2: "Pick Your Battle" (V4, 14 holds)
-- Multiple hard moves, Commit's cooldown means strategic targeting
+### Route 4-2: "Pick Your Battle" (V3, 12 holds)
+- Multiple hard moves, Commit's 10-move cooldown means strategic targeting
 - Skills tested: Commit, Cross, Weight Shift, Reach
 
-### Route 6-3: "Paradise Lost" (V5, 14 holds)
-- Skills required: **All 6 skills**
+### Route 4-3: "The Junction Test" (V4, 12 holds)
+- Skills required: **Commit, Deadpoint, Match, Weight Shift, Cross, Reach**
 
 ---
 
-## Area 7 — Steep Street (Unlocks Bump)
+## Area 5 — Pinch Peak (Unlocks Bump)
 **Teaches**: Reposition laterally without changing hands
 
-### Route 7-1: "Bump and Go" (V3, 12 holds)
+### Route 5-1: "Bump and Go" (V3, 12 holds)
 - Lateral repositioning needed for clean approach angles
 - Without Bump: forced into cross-body or wrong weight
 
-### Route 7-2: "Street Smarts" (V4, 14 holds)
+### Route 5-2: "Street Smarts" (V4, 12 holds)
 - Bump repositioning + weight management + gaston avoidance
-- Skills tested: Bump, Weight Shift, Cross, Match, Reach
+- Skills tested: Bump, Commit, Weight Shift, Cross, Match
 
-### Route 7-3: "The Grand Wall" (V5, 16 holds)
-- **Capstone route requiring ALL 7 skills**
-- Longest route, requires strategic chalk/shake management
+### Route 5-3: "Peak Performance" (V5, 14 holds)
 - Skills required: **Bump, Commit, Deadpoint, Match, Weight Shift, Cross, Reach**
 
 ---
 
+## Area 6 — Pocket Paradise (No New Skill — Mastery Test)
+**Purpose**: Test mastery of all 7 skills without introducing anything new
+
+### Route 6-1: "Skill Check" (V4, 12 holds)
+- Requires strategic use of all skills in moderate difficulty
+
+### Route 6-2: "The Gauntlet" (V5, 14 holds)
+- Sustained difficulty with tight cooldown management
+- Every skill must be used optimally
+
+### Route 6-3: "Paradise Lost" (V5, 16 holds)
+- **Capstone mastery route** — longest route so far
+- Tests resource management (chalk/shake economy) across 16 holds
+- Skills required: **All 7 skills** (Bump, Commit, Deadpoint, Match, Weight Shift, Cross, Reach)
+
+---
+
+## Area 7 — Steep Street (Unlocks Dyno)
+**Teaches**: Jumping to holds beyond normal reach (3 spaces, 5-move cooldown)
+
+### Route 7-1: "Launch Pad" (V4, 12 holds)
+- Gaps that are unreachable without Dyno (dy=3 or dx=3)
+- Teaches: Dyno timing and when to activate
+
+### Route 7-2: "Sky High" (V5, 14 holds)
+- Multiple Dyno-required gaps with careful cooldown management
+- Can be combined with Cross/Reach for the same move
+- Skills tested: Dyno, Commit, Weight Shift, Cross, Reach
+
+### Route 7-3: "The Grand Wall" (V6, 16 holds)
+- **Ultimate capstone route requiring ALL 8 skills**
+- Branching path options — multiple valid solutions
+- Longest route, requires strategic chalk/shake management
+- Skills required: **Dyno, Bump, Commit, Deadpoint, Match, Weight Shift, Cross, Reach**
+
+---
+
 ## Verification Checklist
-- [ ] Each route is completable with optimal play
-- [ ] Area 0 routes completable without any skills
+- [ ] Each route is completable with optimal play (verified via auto-solver)
+- [ ] Area 0 routes completable without any skills (except route 3 benefits from Cross)
 - [ ] Each area's route 3 requires all prior skills
 - [ ] Grip/chalk economy works for longer routes
 - [ ] Star challenges achievable with perfect play
+- [ ] Branching routes have correct holdCount (shortest path)
 - [ ] All routes tested in browser

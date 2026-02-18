@@ -64,6 +64,8 @@ const gameState = {
     
     commitCooldown: 0,
     commitActive: false,
+    dynoCooldown: 0,
+    dynoActive: false,
     selectedHand: null,
     lastHandUsed: null, // Track which hand was used last
     movementStyle: 'regular', // 'cross', 'regular', 'reach'

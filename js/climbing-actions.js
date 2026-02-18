@@ -31,6 +31,7 @@ function useShake() {
     if (gameState.crossCooldown > 0) gameState.crossCooldown--;
     if (gameState.reachCooldown > 0) gameState.reachCooldown--;
     if (gameState.commitCooldown > 0) gameState.commitCooldown--;
+    if (gameState.dynoCooldown > 0) gameState.dynoCooldown--;
 
     updateUI();
 }
@@ -69,6 +70,7 @@ function useChalk() {
     if (gameState.crossCooldown > 0) gameState.crossCooldown--;
     if (gameState.reachCooldown > 0) gameState.reachCooldown--;
     if (gameState.commitCooldown > 0) gameState.commitCooldown--;
+    if (gameState.dynoCooldown > 0) gameState.dynoCooldown--;
 
     updateUI();
 }
@@ -121,6 +123,26 @@ function activateCommit() {
     }
     gameState.commitActive = true;
     addFeedback('COMMIT ACTIVATED! Next move: penalty reduced by 1 level!', 'bonus');
+    updateUI();
+}
+
+// ============ DYNO SKILL ============
+function activateDyno() {
+    if (!isSkillUnlocked('dyno')) {
+        addFeedback('Dyno skill not learned!', 'penalty');
+        return;
+    }
+    if (gameState.dynoCooldown > 0) {
+        addFeedback(`Dyno on cooldown! ${gameState.dynoCooldown} moves remaining`, 'penalty');
+        return;
+    }
+    if (gameState.dynoActive) {
+        addFeedback('Dyno already active!', 'penalty');
+        return;
+    }
+    gameState.dynoActive = true;
+    addFeedback('DYNO ACTIVATED! Next move: reach extended to 3 spaces!', 'bonus');
+    renderGrid();
     updateUI();
 }
 

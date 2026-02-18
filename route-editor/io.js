@@ -3,9 +3,18 @@
 let currentExportFormat = 'txt';
 
 // ---- Text Format Export ----
+function getExportHoldCount() {
+    // Use solver's shortest path if available, otherwise total holds
+    if (solverResults && solverResults.successPaths > 0 && solverResults.shortestPathLength < 999) {
+        return solverResults.shortestPathLength;
+    }
+    return getSortedHolds().length;
+}
+
 function exportToTxt() {
     const meta = editorState.routeMeta;
     const sorted = getSortedHolds();
+    const holdCount = getExportHoldCount();
 
     let txt = '=== ROUTE ===\n';
     txt += `id: ${meta.id}\n`;
@@ -13,7 +22,7 @@ function exportToTxt() {
     txt += `grade: ${meta.grade}\n`;
     txt += `area: ${meta.area}\n`;
     txt += `description: ${meta.description}\n`;
-    txt += `holdCount: ${sorted.length}\n`;
+    txt += `holdCount: ${holdCount}\n`;
     txt += `startCol: ${editorState.startCol}\n`;
 
     txt += '\n=== HOLDS ===\n';
@@ -45,7 +54,7 @@ function exportToJs() {
     js += `    id: '${meta.id}',\n`;
     js += `    name: '${meta.name}',\n`;
     js += `    grade: '${meta.grade}',\n`;
-    js += `    holdCount: ${sorted.length},\n`;
+    js += `    holdCount: ${getExportHoldCount()},\n`;
     js += `    startCol: ${editorState.startCol},\n`;
     js += `    // area: ${meta.area},\n`;
     js += `    description: '${meta.description.replace(/'/g, "\\'")}',\n`;

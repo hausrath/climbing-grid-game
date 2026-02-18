@@ -1,10 +1,12 @@
-// ============ ROUTE EDITOR: AUTO-SOLVER (DFS Path Enumeration) ============
+// ============ ROUTE EDITOR: AUTO-SOLVER (Graph-Based Path Enumeration) ============
+// Supports branching routes — the solver explores all reachable holds from each
+// position rather than forcing sequential traversal. Completion = reaching the top.
 
 let solverResults = null;
 let solverBestPath = null;
 
-function hashSolverState(holdIndex, state) {
-    return `${holdIndex}-${state.pumpState}-${state.gripState}-${state.gripDecayCounter}-${state.lastHandUsed}-${state.weight}-${state.crossCooldown}-${state.reachCooldown}-${state.commitCooldown}-${state.shakeCooldown}-${state.chalkCooldown}-${state.chalkRemaining}-${state.skillState.justChalked}-${state.skillState.justShook}-${state.consecutiveCrosses}`;
+function hashSolverState(visitedMask, state) {
+    return `${visitedMask}-${state.currentRow}-${state.currentCol}-${state.pumpState}-${state.gripState}-${state.gripDecayCounter}-${state.lastHandUsed}-${state.weight}-${state.crossCooldown}-${state.reachCooldown}-${state.commitCooldown}-${state.shakeCooldown}-${state.chalkCooldown}-${state.chalkRemaining}-${state.skillState.justChalked}-${state.skillState.justShook}-${state.consecutiveCrosses}`;
 }
 
 function runSolver() {
@@ -16,46 +18,51 @@ function runSolver() {
 
     const skills = editorState.unlockedSkills;
     const startTime = performance.now();
+    const maxY = Math.max(...sorted.map(h => h.position.y));
 
     let totalPaths = 0;
     let successPaths = 0;
     let bestPath = null;
     let bestFinalPump = 999;
-    let furthestHold = -1;
+    let shortestPathLength = 999;
+    let highestRowReached = 0;
     let bestAttemptPath = null;
+    let bestAttemptRow = -1;
     let bestAttemptPump = 999;
 
-    // Per-hold stats
+    // Per-hold stats (indexed by position in sorted array)
     const holdStats = sorted.map(() => ({
         successCombos: new Set(),
         totalAttempts: 0,
         failures: 0,
         failReasons: { pump: 0, grip: 0, penalty: 0 },
-        bestPumpArriving: 999
+        bestPumpArriving: 999,
+        inBestPath: false
     }));
 
     const memo = new Map();
 
-    function solve(holdIndex, state, path) {
-        if (holdIndex >= sorted.length) {
+    function solve(visitedMask, state, path) {
+        // Completion: reached a hold at the maximum y-position
+        if (state.currentRow >= maxY) {
             totalPaths++;
             successPaths++;
-            if (state.pumpState < bestFinalPump) {
+            // Prefer lower pump, then shorter path
+            if (state.pumpState < bestFinalPump ||
+                (state.pumpState === bestFinalPump && path.length < shortestPathLength)) {
                 bestFinalPump = state.pumpState;
                 bestPath = [...path];
+                shortestPathLength = path.length;
             }
             return true;
         }
 
-        // Track furthest hold and best arriving pump
-        if (holdIndex > furthestHold) {
-            furthestHold = holdIndex;
-        }
-        if (state.pumpState < holdStats[holdIndex].bestPumpArriving) {
-            holdStats[holdIndex].bestPumpArriving = state.pumpState;
+        // Track highest row reached for failure reporting
+        if (state.currentRow > highestRowReached) {
+            highestRowReached = state.currentRow;
         }
 
-        const stateHash = hashSolverState(holdIndex, state);
+        const stateHash = hashSolverState(visitedMask, state);
         if (memo.has(stateHash)) {
             const cached = memo.get(stateHash);
             if (cached === 'fail') return false;
@@ -71,93 +78,120 @@ function runSolver() {
             return false;
         }
 
-        const hold = sorted[holdIndex];
-        const hands = ['left', 'right'];
-        const weights = skills.includes('weightshift')
-            ? ['left', 'center', 'right']
-            : [getIdealWeight(hold.angle)];
+        // Find all reachable unvisited holds from current position
+        const reachable = [];
+        for (let i = 0; i < sorted.length; i++) {
+            if (visitedMask & (1 << i)) continue; // already visited
+            const hold = sorted[i];
+            const dy = hold.position.y - state.currentRow;
+            const dx = Math.abs(hold.position.x - state.currentCol);
+            if (dy > 0 && dy <= 2 && dx <= 2) {
+                reachable.push(i);
+            }
+        }
 
-        const recoveryOptions = [null];
-        if (state.shakeCooldown <= 0 && state.pumpState > 0) recoveryOptions.push('shake');
-        if (state.chalkCooldown <= 0 && state.chalkRemaining > 0 && state.gripState > 0) recoveryOptions.push('chalk');
+        if (reachable.length === 0) {
+            // Dead end — no reachable holds and not at top
+            totalPaths++;
+            trackBestAttempt(state.currentRow, path, state.pumpState);
+            memo.set(stateHash, 'fail');
+            return false;
+        }
 
         let anySuccess = false;
 
-        for (const recovery of recoveryOptions) {
-            let recState = cloneState(state);
-            recState.moveHistory = [];
+        for (const holdIdx of reachable) {
+            const hold = sorted[holdIdx];
 
-            if (recovery === 'shake') {
-                simulateShakeAction(recState);
-            } else if (recovery === 'chalk') {
-                simulateChalkAction(recState);
+            // Track best arriving pump for this hold
+            if (state.pumpState < holdStats[holdIdx].bestPumpArriving) {
+                holdStats[holdIdx].bestPumpArriving = state.pumpState;
             }
 
-            if (recState.pumpState >= 3 || recState.gripState >= 3) continue;
+            const hands = ['left', 'right'];
+            const weights = skills.includes('weightshift')
+                ? ['left', 'center', 'right']
+                : [getIdealWeight(hold.angle)];
 
-            for (const hand of hands) {
-                // Enforce hand alternation (skip same hand unless lastHandUsed is null or hold is matchable)
-                if (recState.lastHandUsed !== null && hand === recState.lastHandUsed) continue;
+            const recoveryOptions = [null];
+            if (state.shakeCooldown <= 0 && state.pumpState > 0) recoveryOptions.push('shake');
+            if (state.chalkCooldown <= 0 && state.chalkRemaining > 0 && state.gripState > 0) recoveryOptions.push('chalk');
 
-                for (const wt of weights) {
-                    const dir = getMoveDirection(recState.currentCol, recState.currentRow, hold.position.x, hold.position.y);
-                    const crossMove = isCrossMove(hand, dir);
-                    const dy = hold.position.y - recState.currentRow;
-                    const dx = Math.abs(hold.position.x - recState.currentCol);
-                    const extended = (dy >= 2 || dx >= 2);
-                    const gaston = getHandHoldPumpModifier(hold.type, hand, hold.angle) > 0;
+            for (const recovery of recoveryOptions) {
+                let recState = cloneState(state);
+                recState.moveHistory = [];
 
-                    const crossOpts = (skills.includes('cross') && recState.crossCooldown <= 0 && (crossMove || gaston)) ? [false, true] : [false];
-                    const reachOpts = (skills.includes('reach') && recState.reachCooldown <= 0 && extended) ? [false, true] : [false];
-                    const commitOpts = (skills.includes('commit') && recState.commitCooldown <= 0) ? [false, true] : [false];
+                if (recovery === 'shake') {
+                    simulateShakeAction(recState);
+                } else if (recovery === 'chalk') {
+                    simulateChalkAction(recState);
+                }
 
-                    for (const uc of crossOpts) {
-                        for (const ur of reachOpts) {
-                            for (const ucm of commitOpts) {
-                                holdStats[holdIndex].totalAttempts++;
+                if (recState.pumpState >= 3 || recState.gripState >= 3) continue;
 
-                                const moveState = cloneState(recState);
-                                moveState.moveHistory = [];
-                                moveState.weight = wt;
+                for (const hand of hands) {
+                    if (recState.lastHandUsed !== null && hand === recState.lastHandUsed) continue;
 
-                                const result = simulateMove(moveState, hold, hand, wt, { useCross: uc, useReach: ur, useCommit: ucm });
+                    for (const wt of weights) {
+                        const dir = getMoveDirection(recState.currentCol, recState.currentRow, hold.position.x, hold.position.y);
+                        const crossMove = isCrossMove(hand, dir);
+                        const dy = hold.position.y - recState.currentRow;
+                        const dx = Math.abs(hold.position.x - recState.currentCol);
+                        const extended = (dy >= 2 || dx >= 2);
+                        const gaston = getHandHoldPumpModifier(hold.type, hand, hold.angle) > 0;
 
-                                if (!result.success || result.fell) {
-                                    holdStats[holdIndex].failures++;
-                                    holdStats[holdIndex].failReasons.penalty++;
-                                    totalPaths++;
-                                    // Track best attempt for impossible routes
-                                    trackBestAttempt(holdIndex, path, state.pumpState);
-                                    continue;
-                                }
+                        const crossOpts = (skills.includes('cross') && recState.crossCooldown <= 0 && (crossMove || gaston)) ? [false, true] : [false];
+                        const reachOpts = (skills.includes('reach') && recState.reachCooldown <= 0 && extended) ? [false, true] : [false];
+                        const commitOpts = (skills.includes('commit') && recState.commitCooldown <= 0) ? [false, true] : [false];
 
-                                applyMoveResult(moveState, hold, hand, result, wt);
+                        for (const uc of crossOpts) {
+                            for (const ur of reachOpts) {
+                                for (const ucm of commitOpts) {
+                                    holdStats[holdIdx].totalAttempts++;
 
-                                if (moveState.pumpState >= 3) {
-                                    holdStats[holdIndex].failures++;
-                                    holdStats[holdIndex].failReasons.pump++;
-                                    totalPaths++;
-                                    trackBestAttempt(holdIndex, path, state.pumpState);
-                                    continue;
-                                }
-                                if (moveState.gripState >= 3) {
-                                    holdStats[holdIndex].failures++;
-                                    holdStats[holdIndex].failReasons.grip++;
-                                    totalPaths++;
-                                    trackBestAttempt(holdIndex, path, state.pumpState);
-                                    continue;
-                                }
+                                    const moveState = cloneState(recState);
+                                    moveState.moveHistory = [];
+                                    moveState.weight = wt;
 
-                                const step = {
-                                    holdIndex, hand, weight: wt, recovery,
-                                    useCross: uc, useReach: ur, useCommit: ucm,
-                                    effectivePenalty: result.effectivePenalty,
-                                    pumpAfter: moveState.pumpState, gripAfter: moveState.gripState
-                                };
+                                    const result = simulateMove(moveState, hold, hand, wt, { useCross: uc, useReach: ur, useCommit: ucm });
 
-                                if (solve(holdIndex + 1, moveState, [...path, step])) {
-                                    holdStats[holdIndex].successCombos.add(`${hand[0].toUpperCase()}@${wt[0].toUpperCase()}${recovery ? '+' + recovery[0].toUpperCase() : ''}`);
-                                    anySuccess = true;
+                                    if (!result.success || result.fell) {
+                                        holdStats[holdIdx].failures++;
+                                        holdStats[holdIdx].failReasons.penalty++;
+                                        totalPaths++;
+                                        trackBestAttempt(state.currentRow, path, state.pumpState);
+                                        continue;
+                                    }
+
+                                    applyMoveResult(moveState, hold, hand, result, wt);
+
+                                    if (moveState.pumpState >= 3) {
+                                        holdStats[holdIdx].failures++;
+                                        holdStats[holdIdx].failReasons.pump++;
+                                        totalPaths++;
+                                        trackBestAttempt(state.currentRow, path, state.pumpState);
+                                        continue;
+                                    }
+                                    if (moveState.gripState >= 3) {
+                                        holdStats[holdIdx].failures++;
+                                        holdStats[holdIdx].failReasons.grip++;
+                                        totalPaths++;
+                                        trackBestAttempt(state.currentRow, path, state.pumpState);
+                                        continue;
+                                    }
+
+                                    const step = {
+                                        holdIndex: holdIdx, hand, weight: wt, recovery,
+                                        useCross: uc, useReach: ur, useCommit: ucm,
+                                        effectivePenalty: result.effectivePenalty,
+                                        pumpAfter: moveState.pumpState, gripAfter: moveState.gripState
+                                    };
+
+                                    const newMask = visitedMask | (1 << holdIdx);
+                                    if (solve(newMask, moveState, [...path, step])) {
+                                        holdStats[holdIdx].successCombos.add(`${hand[0].toUpperCase()}@${wt[0].toUpperCase()}${recovery ? '+' + recovery[0].toUpperCase() : ''}`);
+                                        anySuccess = true;
+                                    }
                                 }
                             }
                         }
@@ -170,10 +204,11 @@ function runSolver() {
         return anySuccess;
     }
 
-    function trackBestAttempt(holdIndex, path, pumpArriving) {
-        if (holdIndex > (bestAttemptPath ? bestAttemptPath.length : -1) ||
-            (holdIndex === (bestAttemptPath ? bestAttemptPath.length : -1) && pumpArriving < bestAttemptPump)) {
+    function trackBestAttempt(row, path, pumpArriving) {
+        if (row > bestAttemptRow ||
+            (row === bestAttemptRow && pumpArriving < bestAttemptPump)) {
             bestAttemptPath = [...path];
+            bestAttemptRow = row;
             bestAttemptPump = pumpArriving;
         }
     }
@@ -183,7 +218,17 @@ function runSolver() {
 
     const elapsed = (performance.now() - startTime).toFixed(0);
 
-    solverResults = { totalPaths, successPaths, bestFinalPump, holdStats, elapsed, furthestHold };
+    // Mark holds in best path
+    if (bestPath) {
+        for (const step of bestPath) {
+            holdStats[step.holdIndex].inBestPath = true;
+        }
+    }
+
+    solverResults = {
+        totalPaths, successPaths, bestFinalPump, holdStats, elapsed,
+        highestRowReached, maxY, shortestPathLength
+    };
     solverBestPath = successPaths > 0 ? bestPath : bestAttemptPath;
 
     displaySolverResults();
@@ -200,14 +245,20 @@ function displaySolverResults() {
     if (r.successPaths > 0) {
         html += `<div class="result-row"><span>Successful paths:</span><span class="success">${r.successPaths}</span></div>`;
         html += `<div class="result-row"><span>Best final pump:</span><span class="success">${PUMP_STATE_LABELS[r.bestFinalPump] || r.bestFinalPump} (${r.bestFinalPump})</span></div>`;
+        html += `<div class="result-row"><span>Shortest path:</span><span>${r.shortestPathLength} holds</span></div>`;
     } else {
-        // Find "the wall" — first hold where no combo succeeds
-        let wallIndex = -1;
+        // Find holds that block progress (attempted but never succeeded)
+        const blockers = [];
         for (let i = 0; i < sorted.length; i++) {
             if (r.holdStats[i].successCombos.size === 0 && r.holdStats[i].totalAttempts > 0) {
-                wallIndex = i;
-                break;
+                blockers.push(i);
             }
+        }
+        // Pick the lowest-y blocker as "the wall"
+        let wallIndex = -1;
+        if (blockers.length > 0) {
+            wallIndex = blockers.reduce((best, idx) =>
+                sorted[idx].position.y < sorted[best].position.y ? idx : best, blockers[0]);
         }
 
         const wallHold = wallIndex >= 0 ? sorted[wallIndex] : null;
@@ -215,13 +266,8 @@ function displaySolverResults() {
         const wallReasons = wallIndex >= 0 ? r.holdStats[wallIndex].failReasons : null;
 
         html += `<div class="result-row"><span class="fail" style="font-size:1.1em;">ROUTE IMPOSSIBLE</span></div>`;
-        html += `<div class="result-row" style="color:#bdb9ae;">No path completes with current skills</div>`;
-
-        if (r.furthestHold >= 0) {
-            const fh = sorted[r.furthestHold];
-            const fht = holdTypes.find(h => h.type === fh.type)?.label || fh.type;
-            html += `<div class="result-row"><span>Furthest reached:</span><span>#${r.furthestHold + 1} of ${sorted.length} (${fht} ${fh.angle}°)</span></div>`;
-        }
+        html += `<div class="result-row" style="color:#bdb9ae;">No path reaches the top with current skills</div>`;
+        html += `<div class="result-row"><span>Highest row reached:</span><span>${r.highestRowReached} of ${r.maxY}</span></div>`;
 
         if (wallIndex >= 0 && wallReasons) {
             const totalFails = wallReasons.pump + wallReasons.grip + wallReasons.penalty;
@@ -233,7 +279,7 @@ function displaySolverResults() {
             html += `<div class="result-row" style="margin-top:8px;"><span style="color:#f5aaa2;">The Wall:</span><span style="color:#f5aaa2;">Hold #${wallIndex + 1} (${wallHt} ${wallHold.angle}°)</span></div>`;
             html += `<div class="result-row" style="padding-left:12px;"><span style="color:#738078;">${reasons.join(', ')}</span></div>`;
 
-            if (wallIndex >= 0 && r.holdStats[wallIndex].bestPumpArriving < 999) {
+            if (r.holdStats[wallIndex].bestPumpArriving < 999) {
                 html += `<div class="result-row" style="padding-left:12px;"><span style="color:#738078;">Best pump arriving: ${PUMP_STATE_LABELS[r.holdStats[wallIndex].bestPumpArriving] || r.holdStats[wallIndex].bestPumpArriving}</span></div>`;
             }
         }
@@ -255,33 +301,42 @@ function displaySolverResults() {
     const summaryDiv = document.getElementById('solver-hold-summary');
 
     if (r.successPaths > 0) {
-        // Success case: existing combo table
         let tableHtml = '<table><tr><th>#</th><th>Hold</th><th>Combos</th><th>Fail%</th></tr>';
         for (let i = 0; i < sorted.length; i++) {
             const hold = sorted[i];
             const stats = r.holdStats[i];
             const ht = holdTypes.find(h => h.type === hold.type);
             const failPct = stats.totalAttempts > 0 ? Math.round((stats.failures / stats.totalAttempts) * 100) : 0;
-            const combos = [...stats.successCombos].join(', ') || '<span class="fail">none</span>';
+            const combos = [...stats.successCombos].join(', ') || '<span style="color:#738078;">alt branch</span>';
             const isCrux = stats.successCombos.size <= 2 && stats.successCombos.size > 0;
+            const isOnBestPath = stats.inBestPath;
+            const isAltBranch = stats.totalAttempts === 0 && !isOnBestPath;
 
-            tableHtml += `<tr${isCrux ? ' class="crux"' : ''}>`;
-            tableHtml += `<td>${i + 1}</td>`;
+            let rowStyle = '';
+            if (isCrux) rowStyle = ' class="crux"';
+            if (isAltBranch) rowStyle = ' style="opacity:0.5"';
+
+            tableHtml += `<tr${rowStyle}>`;
+            tableHtml += `<td>${i + 1}${isOnBestPath ? ' *' : ''}</td>`;
             tableHtml += `<td>${ht?.label || hold.type} ${hold.angle}°</td>`;
             tableHtml += `<td>${combos}</td>`;
-            tableHtml += `<td${failPct > 70 ? ' style="color:#f5aaa2"' : ''}>${failPct}%</td>`;
+            tableHtml += `<td${failPct > 70 ? ' style="color:#f5aaa2"' : ''}>${stats.totalAttempts > 0 ? failPct + '%' : ''}</td>`;
             tableHtml += `</tr>`;
         }
         tableHtml += '</table>';
         summaryDiv.innerHTML = tableHtml;
     } else {
-        // Impossible case: failure breakdown table
+        // Impossible case: failure breakdown
         let wallIndex = -1;
+        const blockers = [];
         for (let i = 0; i < sorted.length; i++) {
             if (r.holdStats[i].successCombos.size === 0 && r.holdStats[i].totalAttempts > 0) {
-                wallIndex = i;
-                break;
+                blockers.push(i);
             }
+        }
+        if (blockers.length > 0) {
+            wallIndex = blockers.reduce((best, idx) =>
+                sorted[idx].position.y < sorted[best].position.y ? idx : best, blockers[0]);
         }
 
         let tableHtml = '<table><tr><th>#</th><th>Hold</th><th>Status</th><th>Why</th></tr>';
@@ -291,7 +346,6 @@ function displaySolverResults() {
             const ht = holdTypes.find(h => h.type === hold.type);
 
             if (stats.totalAttempts === 0) {
-                // Never reached
                 tableHtml += `<tr style="opacity:0.4;"><td>${i + 1}</td><td>${ht?.label || hold.type} ${hold.angle}°</td>`;
                 tableHtml += `<td colspan="2" style="color:#738078;">never reached</td></tr>`;
                 continue;
@@ -300,7 +354,6 @@ function displaySolverResults() {
             const isWall = (i === wallIndex);
             const allPass = stats.successCombos.size > 0;
             const fr = stats.failReasons;
-            const totalFails = fr.pump + fr.grip + fr.penalty;
 
             let statusText, statusClass, whyText;
             if (allPass) {
@@ -372,7 +425,7 @@ function loadBestPath() {
     if (simState.completed) {
         addMoveLog(`COMPLETED! Final pump: ${PUMP_STATE_LABELS[simState.pumpState] || 'Critical'}`, 'bonus');
     } else if (isImpossible) {
-        addMoveLog(`Best attempt reached hold #${solverBestPath.length} of ${sorted.length} before all paths fail`, 'penalty');
+        addMoveLog(`Best attempt reached row ${solverResults.highestRowReached} of ${solverResults.maxY} before all paths fail`, 'penalty');
     }
 
     updateSimUI();

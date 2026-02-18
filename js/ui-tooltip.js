@@ -110,8 +110,8 @@ function refreshTooltip() {
         pumpHtml = buildHandBreakdown('left') + buildHandBreakdown('right');
     }
 
-    // Grip section (time-based decay)
-    const movesUntilDecay = 3 - gameState.gripDecayCounter;
+    // Grip section (hold-type-based decay, threshold = 3 ticks)
+    const gripCost = HOLD_GRIP_COST[hold.type] || 1;
     const gripLabel = GRIP_STATE_LABELS[gameState.gripState] || 'Critical';
     const gripColor = ['#a8db60', '#fad882', '#f5aaa2'][gameState.gripState] || '#f5aaa2';
 
@@ -126,8 +126,8 @@ function refreshTooltip() {
             </div>
             <div style="padding-top: 4px; border-top: 1px solid #738078; font-size: 0.85em; line-height: 1.8; margin-top: 4px;">
                 <div style="color: #6dbce3; font-weight: bold; margin-bottom: 2px;">GRIP</div>
-                <div style="color: ${gripColor};">State: ${gripLabel} | Decay in ${movesUntilDecay} move${movesUntilDecay !== 1 ? 's' : ''}</div>
-                <div style="color: #bdb9ae; font-size: 0.9em;">Chalk: ${gameState.chalkRemaining}/${gameState.maxChalk} uses</div>
+                <div style="color: ${gripColor};">State: ${gripLabel} | Decay: ${gameState.gripDecayCounter}/3 ticks</div>
+                <div style="color: #bdb9ae; font-size: 0.9em;">Grip cost: ${gripCost} tick${gripCost !== 1 ? 's' : ''} | Chalk: ${gameState.chalkRemaining}/${gameState.maxChalk}</div>
             </div>
             <div style="margin-top: 4px; font-size: 0.8em; color: #bdb9ae; border-top: 1px solid #738078; padding-top: 4px;">
                 Ideal Weight: ${idealWeight} | ${hold.matchable ? 'Matchable' : 'No match'}
@@ -217,4 +217,82 @@ function showLocationTooltip(location, event) {
 function hideLocationTooltip() {
     const tooltipBox = document.getElementById('hold-tooltip-static');
     tooltipBox.innerHTML = 'Hover over location<br>to see modifiers';
+}
+
+// ============ SKILL TOOLTIPS ============
+
+const SKILL_TOOLTIPS = {
+    cross: {
+        name: 'Cross',
+        key: '3',
+        what: 'Reduces cross-body or gaston penalty by 1 level.',
+        when: 'Activate before reaching across your body or grabbing a gaston-angled hold (L@135\u00B0 / R@225\u00B0). 3-move cooldown.'
+    },
+    regular: {
+        name: 'Regular',
+        key: '2',
+        what: 'Standard movement with no skill modifiers.',
+        when: 'Switch back after activating Cross or Reach when you want a normal move.'
+    },
+    reach: {
+        name: 'Reach',
+        key: '1',
+        what: 'Negates the +1 distance penalty for extended moves (2+ spaces).',
+        when: 'Activate before a big reach to a far-away hold. 3-move cooldown.'
+    },
+    commit: {
+        name: 'Commit',
+        key: 'R',
+        what: 'Reduces effective penalty by 1 for your next move.',
+        when: 'Save for the hardest crux move where no other skill can help. 10-move cooldown.'
+    },
+    shake: {
+        name: 'Shake',
+        key: 'Q',
+        what: 'Reduces pump by 1 stage. With Deadpoint: next move has no pump change.',
+        when: 'Use when pump is rising, or before a hard move to set up a Deadpoint. 5-move cooldown.'
+    },
+    chalk: {
+        name: 'Chalk',
+        key: 'E',
+        what: 'Resets grip to Fresh. With Deadpoint: next move skips grip decay.',
+        when: 'Use when grip reaches Worn or Slipping. Limited uses per climb.'
+    },
+    dyno: {
+        name: 'Dyno',
+        key: 'T',
+        what: 'Extends your reach to 3 spaces (up/across) for one move. Jump to distant holds!',
+        when: 'Use when the next hold is beyond normal reach (dy or dx > 2). 5-move cooldown.'
+    }
+};
+
+function showSkillTooltip(skillId) {
+    if (gameState.gameMode !== 'climbing') return;
+    const info = SKILL_TOOLTIPS[skillId];
+    if (!info) return;
+
+    // Clear hold hover state so tooltip doesn't get overwritten
+    hoveredHold = null;
+
+    const tooltipBox = document.getElementById('hold-tooltip-static');
+    tooltipBox.innerHTML = `
+        <div style="width: 100%; text-align: left;">
+            <div style="font-size: 1em; color: #fad882; font-weight: bold; margin-bottom: 6px; text-align: center;">
+                ${info.name} (${info.key})
+            </div>
+            <div style="padding-top: 4px; border-top: 1px solid #738078; font-size: 0.85em; line-height: 1.6;">
+                <div style="color: #a8db60; font-weight: bold; margin-bottom: 2px;">WHAT IT DOES</div>
+                <div style="color: #bdb9ae;">${info.what}</div>
+            </div>
+            <div style="padding-top: 4px; border-top: 1px solid #738078; font-size: 0.85em; line-height: 1.6; margin-top: 6px;">
+                <div style="color: #6dbce3; font-weight: bold; margin-bottom: 2px;">WHEN TO USE</div>
+                <div style="color: #bdb9ae;">${info.when}</div>
+            </div>
+        </div>
+    `;
+}
+
+function hideSkillTooltip() {
+    const tooltipBox = document.getElementById('hold-tooltip-static');
+    tooltipBox.innerHTML = 'Hover over hold<br>to see details';
 }

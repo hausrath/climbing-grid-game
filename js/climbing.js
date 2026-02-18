@@ -35,7 +35,8 @@ function moveToHold(row, col) {
     // Check distance constraints
     const dy = routeRow - gameState.currentRow;
     const dx = Math.abs(routeCol - gameState.currentCol);
-    if (dy > 2 || dx > 2) {
+    const maxReach = gameState.dynoActive ? 3 : 2;
+    if (dy > maxReach || dx > maxReach) {
         addFeedback('Too far to reach!', 'penalty');
         return;
     }
@@ -156,9 +157,10 @@ function moveToHold(row, col) {
     }
 
     if (!gripDecayBlocked) {
-        gameState.gripDecayCounter++;
-        if (gameState.gripDecayCounter >= 3) {
-            gameState.gripDecayCounter = 0;
+        const gripCost = HOLD_GRIP_COST[hold.type] || 1;
+        gameState.gripDecayCounter += gripCost;
+        while (gameState.gripDecayCounter >= 3) {
+            gameState.gripDecayCounter -= 3;
             gameState.gripState++;
             gripAdvanced = true;
         }
@@ -169,8 +171,7 @@ function moveToHold(row, col) {
         const gripLabel = GRIP_STATE_LABELS[gameState.gripState] || 'Critical';
         feedback.push({ text: `Grip decayed to: ${gripLabel}`, type: gameState.gripState >= 2 ? 'penalty' : 'neutral' });
     } else {
-        const movesUntilDecay = 3 - gameState.gripDecayCounter;
-        feedback.push({ text: `Grip decay in ${movesUntilDecay} move${movesUntilDecay !== 1 ? 's' : ''}`, type: 'neutral' });
+        feedback.push({ text: `Grip decay: ${gameState.gripDecayCounter}/3 ticks`, type: 'neutral' });
     }
 
     // ---- Step 5: Apply pump state ----
@@ -187,6 +188,14 @@ function moveToHold(row, col) {
     if (gameState.shakeCooldown > 0) gameState.shakeCooldown--;
     if (gameState.chalkCooldown > 0) gameState.chalkCooldown--;
     if (gameState.commitCooldown > 0) gameState.commitCooldown--;
+    if (gameState.dynoCooldown > 0) gameState.dynoCooldown--;
+
+    // Handle Dyno cooldown
+    if (gameState.dynoActive) {
+        gameState.dynoActive = false;
+        gameState.dynoCooldown = 5;
+        feedback.push({ text: `Dyno used! Cooldown: 5 moves`, type: 'neutral' });
+    }
 
     // Handle Commit cooldown
     if (gameState.commitActive) {
