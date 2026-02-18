@@ -224,7 +224,7 @@ function renderGuidebookRoutes(location) {
                     </div>
                     <div class="guidebook-route-details">
                         <span style="color: ${difficultyColor};">● ${route.difficulty.toUpperCase()}</span>
-                        | ${route.holdCount} holds
+                        | ${route.holds.length} holds
                         | <span style="color: #6dbce3;">${route.terrain || 'vertical'}</span>
                         ${completion ? `| ${attempts} attempt${attempts !== 1 ? 's' : ''}` : '| Not attempted'}
                         ${hasLoot ? ' | <span style="color: #fad882;">Has Loot!</span>' : ''}
@@ -291,7 +291,7 @@ function showBeta(locationId, routeId) {
     }
 
     document.getElementById('beta-route-subtitle').innerHTML = `
-        ${location.name} | <span style="color: ${gradeColor};">${route.grade || 'V?'}</span> | ${route.holdCount} holds
+        ${location.name} | <span style="color: ${gradeColor};">${route.grade || 'V?'}</span> | ${route.holds.length} holds
     `;
     
     // Get route progress for status and high point
@@ -328,7 +328,7 @@ function showBeta(locationId, routeId) {
             </div>
             <div>
                 <div style="color: #738078; font-size: 0.85em;">High Point</div>
-                <div style="color: ${highPoint > 0 ? '#fad882' : '#738078'}; font-size: 1.2em;">${highPoint > 0 ? `${highPoint}/${route.holdCount}` : '---'}</div>
+                <div style="color: ${highPoint > 0 ? '#fad882' : '#738078'}; font-size: 1.2em;">${highPoint > 0 ? `Row ${highPoint}` : '---'}</div>
             </div>
         </div>
     `;
@@ -388,9 +388,9 @@ function analyzeIdealConditions(route) {
     // All routes benefit from dry (better grip)
     
     let temperature = 'Cool';
-    if (route.holdCount <= 8) {
+    if (route.holds.length <= 8) {
         temperature = 'Any (short route)';
-    } else if (route.holdCount >= 15) {
+    } else if (route.holds.length >= 15) {
         temperature = 'Cool (sustained)';
     }
     

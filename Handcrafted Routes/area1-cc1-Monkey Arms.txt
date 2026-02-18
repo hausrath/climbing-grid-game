@@ -1,0 +1,23 @@
+=== ROUTE ===
+id: cc1
+name: Monkey Arms
+grade: V1
+area: 0
+description: Reach wide to start and move up good holds to the finish
+holdCount: 8
+startCol: 2
+
+=== HOLDS ===
+# y  x  type        angle  pump  grip  match  rest
+  1  4  pocket        0     1     1     no    no
+  2  3  edge          0     1     1     no    no
+  3  3  edge          0     1     1     no    no
+  4  2  jug           0     1     1     no    no
+  5  2  pocket        0     1     1     no    no
+  6  1  jug           0     1     1     no    no
+  7  3  jug           0     1     1     no    no
+  8  2  jug           0     1     1     no    no
+
+=== STARS ===
+speed: 30
+pumpEfficiency: 0

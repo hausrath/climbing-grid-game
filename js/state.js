@@ -86,8 +86,8 @@ const gameState = {
     holdsCompletedInFlowState: 0, // Count holds grabbed while in flow state
     shakesUsed: 0, // Count shake uses
     chalksUsed: 0, // Count chalk uses
-    chalkRemaining: 5, // Chalk uses remaining this climb
-    maxChalk: 5, // Maximum chalk uses per climb
+    chalkRemaining: 3, // Chalk uses remaining this climb
+    maxChalk: 3, // Maximum chalk uses per climb
     routeAttempts: 0, // Track attempts on current route
     restHoldIndices: [], // Which hold indices should be rest holds
     grid: [] // 5x5 grid

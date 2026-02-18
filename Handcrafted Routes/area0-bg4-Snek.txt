@@ -1,0 +1,24 @@
+=== ROUTE ===
+id: bg4
+name: Snek
+grade: V1
+area: 0
+description: Can you climb the danger noodle?
+holdCount: 8
+startCol: 2
+
+=== HOLDS ===
+# y  x  type        angle  pump  grip  match  rest
+  1  1  pocket        0     1     1     no    no
+  2  0  pocket        0     1     1     no    no
+  3  1  pinch         0     1     1     no    no
+  4  2  edge          0     1     1     no    no
+  5  1  jug           0     1     1     no    no
+  6  0  pocket        0     1     1     no    no
+  7  1  jug           0     1     1     no    no
+  8  2  edge          0     1     1     no    no
+  9  2  jug           0     1     1     no    no
+
+=== STARS ===
+speed: 40
+pumpEfficiency: 0

@@ -1,0 +1,22 @@
+=== ROUTE ===
+id: oa2
+name: Don't Fall A Weigh
+grade: V0
+area: 0
+description: Big start, big finish, with a bit of everything in between
+holdCount: 8
+startCol: 3
+
+=== HOLDS ===
+# y  x  type        angle  pump  grip  match  rest
+  1  1  crimp       315     1     1     no    no
+  2  3  jug          45     1     1     no    no
+  3  3  sloper        0     1     1     no    no
+  4  2  jug          45     1     1     no    no
+  5  1  pocket      315     1     1     no    no
+  6  0  jug           0     1     1     no    no
+  7  2  jug          45     1     1     no    no
+
+=== STARS ===
+speed: 30
+pumpEfficiency: 0

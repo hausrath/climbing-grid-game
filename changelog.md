@@ -147,3 +147,30 @@ Replaced 7 placeholder routes in Area 0 with 24 skill-teaching puzzle routes acr
 ### Notes
 - Bump skill (Area 7) is not yet implemented in code — routes designed for future implementation
 - Match triggers automatically on matchable holds (not gated behind skill unlock in current code)
+
+---
+
+## Route Updates & Completion Rework
+
+### Handcrafted route sync
+- Updated all 9 routes (bg1-bg4, cc1-cc3, oa1-oa2) from `Handcrafted Routes/` text files into `js/routes-data.js`
+- Hold types now varied (pocket, edge, pinch, sloper, crimp) instead of all jugs
+- Added `startCol` to all routes, updated descriptions, grades, and hold positions
+- Added new route: "Don't Fall A Weigh" (oa2) to Overhang Alley
+
+### Spatial route completion (replaces holdCount counter)
+- Route completes when player reaches the highest hold row (`topRow`) instead of counting holds climbed
+- `route.topRow` computed at load time in `loadRoute()` from max hold y position
+- Completion check: `currentRow >= topRow` (was `holdsClimbed >= holdCount`)
+- High point now tracks highest row reached (was hold count)
+- Fail screen shows "Reached row X / Y" instead of "Holds Climbed: X / Y"
+- All UI display references changed from `holdCount` to `holds.length`
+- Future-proofs branching routes where different paths have different hold counts
+
+### Chalk economy
+- Reduced max chalk uses from 5 to 3 per climb (`js/state.js`)
+
+### Design doc consolidation
+- Merged `route-design-plan.md` into `game design.md` as unified design reference
+- Added Hold Types & Grip Cost table documenting `HOLD_GRIP_COST` from `constants.js`
+- Corrected outdated note about hold types being "placeholder fields" (they are wired up)

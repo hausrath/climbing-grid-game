@@ -264,7 +264,7 @@ function moveToHold(row, col) {
         endGame(false, `Pump maxed out! Your forearms gave out.`);
     } else if (gameState.gripState >= 3) {
         endGame(false, `Grip depleted! Your skin couldn't hold on.`);
-    } else if (gameState.currentRoute && gameState.holdsClimbed >= gameState.currentRoute.holdCount) {
+    } else if (gameState.currentRoute && gameState.currentRow >= gameState.currentRoute.topRow) {
         completeRoute();
     }
 }

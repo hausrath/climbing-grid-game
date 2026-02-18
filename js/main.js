@@ -310,7 +310,7 @@ function showRouteSelection(location) {
             <div class="route-name">${route.name} ${route.bossRoute ? '👑' : ''} ${lootIndicator}</div>
             <div class="route-details">
                 <span style="color: ${gradeColor};">${route.grade || 'V?'}</span>
-                | ${route.holdCount} holds
+                | ${route.holds.length} holds
                 ${completion ? `| <span class="stars">${'⭐'.repeat(stars)}${'☆'.repeat(6-stars)}</span> ${stars}/6` : ''}
                 ${hasLoot ? ' | <span style="color: #fad882;">Has Loot!</span>' : ''}
             </div>
@@ -391,7 +391,7 @@ function startClimb(location, route) {
     updateUI();
 
     const attemptInfo = gameState.routeAttempts > 1 ? ` (Attempt #${gameState.routeAttempts})` : '';
-    addFeedback(`Climbing ${route.name} (${route.grade})! ${route.holdCount} holds to top${attemptInfo}.`, 'neutral');
+    addFeedback(`Climbing ${route.name} (${route.grade})! ${route.holds.length} holds to top${attemptInfo}.`, 'neutral');
     if (route.description) {
         addFeedback(route.description, 'neutral');
     }

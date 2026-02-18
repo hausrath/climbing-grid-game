@@ -1,0 +1,23 @@
+=== ROUTE ===
+id: cc2
+name: Reach a Cross
+grade: V2
+area: 0
+description: Pockets down low lead to a reachy pinch move up top
+holdCount: 6
+startCol: 0
+
+=== HOLDS ===
+# y  x  type        angle  pump  grip  match  rest
+  1  1  jug           0     1     1     no    no
+  2  4  pocket        0     1     1     no    no
+  3  3  pocket        0     1     1     no    no
+  4  2  edge          0     1     1     no    no
+  5  2  pinch         0     1     1     no    no
+  6  0  pinch         0     1     1     no    no
+  7  2  edge          0     1     1     no    no
+  8  3  jug           0     1     1     no    no
+
+=== STARS ===
+speed: 30
+pumpEfficiency: 0

@@ -1,0 +1,21 @@
+=== ROUTE ===
+id: bg2
+name: Zig Zag
+grade: V0
+area: 0
+description: 
+holdCount: 7
+startCol: 2
+
+=== HOLDS ===
+# y  x  type        angle  pump  grip  match  rest
+  1  3  jug           0     1     1     no    no
+  2  4  pocket        0     2     1     no    no
+  3  3  jug           0     2     1     no    no
+  4  4  pocket        0     1     1     no    no
+  5  4  edge          0     1     1     no    no
+  6  3  jug           0     1     1     no    no
+
+=== STARS ===
+speed: 30
+pumpEfficiency: 0

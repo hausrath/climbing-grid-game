@@ -17,8 +17,9 @@ function loadRoute(route) {
         return;
     }
 
-    // Find the max y value to determine grid height
+    // Find the max y value to determine grid height and completion row
     const maxY = Math.max(...route.holds.map(h => h.position.y));
+    route.topRow = maxY;
 
     // Create a grid tall enough for the route (maxY + 1 rows, plus row 0 for player start)
     // We store the full route grid, and the viewport will show a window into it

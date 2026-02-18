@@ -172,17 +172,17 @@ function completeRoute() {
     if (!gameState.routeProgress[routeKey]) {
         gameState.routeProgress[routeKey] = {
             attempts: 0,
-            highPoint: route.holdCount,
+            highPoint: gameState.currentRow,
             status: 'completed'
         };
     }
     gameState.routeProgress[routeKey].attempts++;
     gameState.routeProgress[routeKey].status = 'completed';
-    gameState.routeProgress[routeKey].highPoint = route.holdCount;
+    gameState.routeProgress[routeKey].highPoint = gameState.currentRow;
 
     // Calculate time elapsed
     const timeElapsed = (Date.now() - gameState.climbStartTime) / 1000;
-    const timeLimit = route.stars?.speed?.timeLimit || (route.holdCount * 5);
+    const timeLimit = route.stars?.speed?.timeLimit || (route.holds.length * 5);
     const roundedTime = Math.round(timeElapsed);
 
     // Check star challenges (new puzzle-based stars)
@@ -342,12 +342,13 @@ function endGame(victory, message) {
     gameState.routeProgress[routeKey].attempts++;
     gameState.routeProgress[routeKey].status = 'attempted';
 
-    if (gameState.holdsClimbed > gameState.routeProgress[routeKey].highPoint) {
-        gameState.routeProgress[routeKey].highPoint = gameState.holdsClimbed;
+    if (gameState.currentRow > gameState.routeProgress[routeKey].highPoint) {
+        gameState.routeProgress[routeKey].highPoint = gameState.currentRow;
     }
 
     const highPoint = gameState.routeProgress[routeKey].highPoint;
-    const isNewHighPoint = gameState.holdsClimbed === highPoint && gameState.holdsClimbed > 0;
+    const topRow = gameState.currentRoute.topRow || 1;
+    const isNewHighPoint = gameState.currentRow === highPoint && gameState.currentRow > 0;
 
     const gameOver = document.getElementById('game-over');
     const title = document.getElementById('game-over-title');
@@ -358,9 +359,9 @@ function endGame(victory, message) {
     const gripLabel = GRIP_STATE_LABELS[gameState.gripState] || 'Critical';
     msg.innerHTML = `
         <div style="margin-bottom: 20px;">${message}</div>
-        <div>Holds Climbed: ${gameState.holdsClimbed} / ${gameState.currentRoute.holdCount}</div>
+        <div>Reached row ${gameState.currentRow} / ${topRow}</div>
         ${isNewHighPoint ? `<div style="color: #fad882; margin: 10px 0;">NEW HIGH POINT!</div>` :
-            (highPoint > 0 ? `<div style="color: #738078; margin: 10px 0;">High Point: ${highPoint}</div>` : '')}
+            (highPoint > 0 ? `<div style="color: #738078; margin: 10px 0;">High Point: row ${highPoint}</div>` : '')}
         <div style="margin-bottom: 10px; color: #bdb9ae;">Pump: ${pumpLabel} | Grip: ${gripLabel}</div>
         <button class="back-button" onclick="retryRoute()">Retry</button>
         <button class="back-button" onclick="returnToRouteSelection()">Routes</button>
