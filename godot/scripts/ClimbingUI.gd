@@ -19,13 +19,13 @@ const MAX_FEEDBACK := 15
 @onready var grip_bar: ProgressBar = $RightPanel/GripBar
 @onready var grip_label: Label = $RightPanel/GripLabel
 
-@onready var shake_btn: Button = $CenterPanel/Actions/Row1/ShakeBtn
-@onready var chalk_btn: Button = $CenterPanel/Actions/Row1/ChalkBtn
-@onready var cross_btn: Button = $CenterPanel/Actions/SkillRow/CrossBtn
-@onready var regular_btn: Button = $CenterPanel/Actions/SkillRow/RegularBtn
-@onready var reach_btn: Button = $CenterPanel/Actions/SkillRow/ReachBtn
-@onready var commit_btn: Button = $CenterPanel/Actions/SkillRow/CommitBtn
-@onready var dyno_btn: Button = $CenterPanel/Actions/SkillRow/DynoBtn
+@onready var shake_btn: Button = $CenterPanel/Actions/ActionsMargin/ActionsVBox/Row1/ShakeBtn
+@onready var chalk_btn: Button = $CenterPanel/Actions/ActionsMargin/ActionsVBox/Row1/ChalkBtn
+@onready var cross_btn: Button = $CenterPanel/Actions/ActionsMargin/ActionsVBox/SkillRow/CrossBtn
+@onready var regular_btn: Button = $CenterPanel/Actions/ActionsMargin/ActionsVBox/SkillRow/RegularBtn
+@onready var reach_btn: Button = $CenterPanel/Actions/ActionsMargin/ActionsVBox/SkillRow/ReachBtn
+@onready var commit_btn: Button = $CenterPanel/Actions/ActionsMargin/ActionsVBox/SkillRow/CommitBtn
+@onready var dyno_btn: Button = $CenterPanel/Actions/ActionsMargin/ActionsVBox/SkillRow/DynoBtn
 
 @onready var move_count_label: Label = $CenterPanel/MoveCount
 @onready var feedback_container: VBoxContainer = $RightPanel/FeedbackScroll/FeedbackContainer

@@ -84,7 +84,7 @@ func _cycle_time_of_day() -> void:
 	else:
 		GameState.time_of_day = "morning"
 	# Regenerate conditions for new time
-	var conditions_node := get_node_or_null("/root/Main/ConditionsSystem")
+	var conditions_node := get_node_or_null("/root/Main/ClimbingLogicNodes/ConditionsSystem")
 	if conditions_node and conditions_node.has_method("generate_conditions_for_time"):
 		conditions_node.generate_conditions_for_time()
 

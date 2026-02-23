@@ -5,7 +5,7 @@ extends Control
 
 signal closed
 
-@onready var skills_container: VBoxContainer = $Panel/MarginContainer/VBox/SkillsContainer
+@onready var skills_container: VBoxContainer = $Panel/MarginContainer/VBox/ScrollContainer/SkillsContainer
 @onready var close_btn: Button = $Panel/MarginContainer/VBox/CloseButton
 @onready var title_label: Label = $Panel/MarginContainer/VBox/TitleLabel
 
