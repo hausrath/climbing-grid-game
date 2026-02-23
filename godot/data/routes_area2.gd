@@ -1,0 +1,66 @@
+class_name RoutesArea2
+
+static func get_routes() -> Array:
+	return [
+		{
+			"id": "oa1", "name": "The Weight", "grade": "V1", "holdCount": 8,
+			"description": "Shift your weight to avoid the pump to the top", "startCol": 3,
+			"holds": [
+				{"type": "edge", "label": "EDGE", "angle": 45, "pumpRating": 1, "gripDrain": 1, "position": {"x": 2, "y": 1}, "matchable": false, "isRest": false},
+				{"type": "pocket", "label": "POCKET", "angle": 0, "pumpRating": 1, "gripDrain": 1, "position": {"x": 2, "y": 2}, "matchable": false, "isRest": false},
+				{"type": "jug", "label": "JUG", "angle": 315, "pumpRating": 1, "gripDrain": 1, "position": {"x": 2, "y": 3}, "matchable": false, "isRest": false},
+				{"type": "pinch", "label": "PINCH", "angle": 0, "pumpRating": 1, "gripDrain": 1, "position": {"x": 2, "y": 4}, "matchable": false, "isRest": false},
+				{"type": "jug", "label": "JUG", "angle": 90, "pumpRating": 1, "gripDrain": 1, "position": {"x": 2, "y": 5}, "matchable": false, "isRest": false},
+				{"type": "pocket", "label": "POCKET", "angle": 0, "pumpRating": 1, "gripDrain": 1, "position": {"x": 2, "y": 6}, "matchable": false, "isRest": false},
+				{"type": "jug", "label": "JUG", "angle": 270, "pumpRating": 1, "gripDrain": 1, "position": {"x": 2, "y": 7}, "matchable": false, "isRest": false},
+				{"type": "edge", "label": "EDGE", "angle": 135, "pumpRating": 1, "gripDrain": 1, "position": {"x": 2, "y": 8}, "matchable": false, "isRest": false},
+			],
+			"stars": {
+				"completion": true,
+				"speed": {"timeLimit": 30},
+				"pumpEfficiency": {"maxPump": 0},
+				"gripEfficiency": true,
+				"flashClimb": true,
+			},
+		},
+		{
+			"id": "oa2", "name": "Show You the Weigh", "grade": "V2", "holdCount": 7,
+			"description": "Good holds requiring careful balance", "startCol": 3,
+			"holds": [
+				{"type": "edge", "label": "EDGE", "angle": 45, "pumpRating": 1, "gripDrain": 1, "position": {"x": 3, "y": 1}, "matchable": false, "isRest": false},
+				{"type": "edge", "label": "EDGE", "angle": 0, "pumpRating": 1, "gripDrain": 1, "position": {"x": 2, "y": 2}, "matchable": false, "isRest": false},
+				{"type": "jug", "label": "JUG", "angle": 315, "pumpRating": 1, "gripDrain": 1, "position": {"x": 1, "y": 3}, "matchable": false, "isRest": false},
+				{"type": "pocket", "label": "POCKET", "angle": 0, "pumpRating": 1, "gripDrain": 1, "position": {"x": 1, "y": 4}, "matchable": false, "isRest": false},
+				{"type": "pocket", "label": "POCKET", "angle": 270, "pumpRating": 1, "gripDrain": 1, "position": {"x": 1, "y": 5}, "matchable": false, "isRest": false},
+				{"type": "edge", "label": "EDGE", "angle": 0, "pumpRating": 1, "gripDrain": 1, "position": {"x": 2, "y": 6}, "matchable": false, "isRest": false},
+				{"type": "jug", "label": "JUG", "angle": 90, "pumpRating": 1, "gripDrain": 1, "position": {"x": 3, "y": 7}, "matchable": false, "isRest": false},
+			],
+			"stars": {
+				"completion": true,
+				"speed": {"timeLimit": 30},
+				"pumpEfficiency": {"maxPump": 0},
+				"gripEfficiency": true,
+				"flashClimb": true,
+			},
+		},
+		{
+			"id": "oa3", "name": "Don't Fall A Weigh", "grade": "V0", "holdCount": 7,
+			"description": "Big start, big finish, with a bit of everything in between", "startCol": 4,
+			"holds": [
+				{"type": "crimp", "label": "CRIMP", "angle": 315, "pumpRating": 1, "gripDrain": 1, "position": {"x": 1, "y": 1}, "matchable": false, "isRest": false},
+				{"type": "jug", "label": "JUG", "angle": 45, "pumpRating": 1, "gripDrain": 1, "position": {"x": 3, "y": 2}, "matchable": false, "isRest": false},
+				{"type": "sloper", "label": "SLOPER", "angle": 0, "pumpRating": 1, "gripDrain": 1, "position": {"x": 3, "y": 3}, "matchable": false, "isRest": false},
+				{"type": "jug", "label": "JUG", "angle": 45, "pumpRating": 1, "gripDrain": 1, "position": {"x": 2, "y": 4}, "matchable": false, "isRest": false},
+				{"type": "pocket", "label": "POCKET", "angle": 315, "pumpRating": 1, "gripDrain": 1, "position": {"x": 1, "y": 5}, "matchable": false, "isRest": false},
+				{"type": "jug", "label": "JUG", "angle": 0, "pumpRating": 1, "gripDrain": 1, "position": {"x": 0, "y": 6}, "matchable": false, "isRest": false},
+				{"type": "jug", "label": "JUG", "angle": 45, "pumpRating": 1, "gripDrain": 1, "position": {"x": 2, "y": 7}, "matchable": false, "isRest": false},
+			],
+			"stars": {
+				"completion": true,
+				"speed": {"timeLimit": 30},
+				"pumpEfficiency": {"maxPump": 0},
+				"gripEfficiency": true,
+				"flashClimb": true,
+			},
+		},
+	]

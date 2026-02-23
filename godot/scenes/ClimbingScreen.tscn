@@ -1,0 +1,340 @@
+[gd_scene load_steps=5 format=3 uid="uid://climbscreen"]
+
+[ext_resource type="Script" path="res://scripts/ClimbingScreen.gd" id="1_climbscr"]
+[ext_resource type="Script" path="res://scripts/ClimbingGrid.gd" id="2_climbgrid"]
+[ext_resource type="Script" path="res://scripts/ClimbingUI.gd" id="3_climbui"]
+[ext_resource type="Script" path="res://scripts/TooltipController.gd" id="4_tooltip"]
+[ext_resource type="Script" path="res://scripts/GameOverPopup.gd" id="5_gameover"]
+
+[node name="ClimbingScreen" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource("1_climbscr")
+
+[node name="ClimbingUI" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource("3_climbui")
+
+[node name="LeftPanel" type="VBoxContainer" parent="ClimbingUI"]
+layout_mode = 1
+anchor_right = 0.0
+anchor_bottom = 1.0
+offset_right = 185.0
+theme_override_constants/separation = 6
+
+[node name="HandLabel" type="Label" parent="ClimbingUI/LeftPanel"]
+layout_mode = 2
+text = "Hand Selection"
+theme_override_font_sizes/font_size = 14
+
+[node name="HandButtons" type="HBoxContainer" parent="ClimbingUI/LeftPanel"]
+layout_mode = 2
+
+[node name="LeftHandBtn" type="Button" parent="ClimbingUI/LeftPanel/HandButtons"]
+layout_mode = 2
+text = "SELECT (A)"
+size_flags_horizontal = 3
+
+[node name="RightHandBtn" type="Button" parent="ClimbingUI/LeftPanel/HandButtons"]
+layout_mode = 2
+text = "SELECT (D)"
+size_flags_horizontal = 3
+
+[node name="WeightSection" type="VBoxContainer" parent="ClimbingUI/LeftPanel"]
+layout_mode = 2
+visible = false
+
+[node name="WeightLabel" type="Label" parent="ClimbingUI/LeftPanel/WeightSection"]
+layout_mode = 2
+text = "Body Weight"
+theme_override_font_sizes/font_size = 13
+
+[node name="WeightRow" type="HBoxContainer" parent="ClimbingUI/LeftPanel/WeightSection"]
+layout_mode = 2
+
+[node name="WeightLeftBtn" type="Button" parent="ClimbingUI/LeftPanel/WeightSection/WeightRow"]
+layout_mode = 2
+text = "L"
+size_flags_horizontal = 3
+
+[node name="WeightCenterBtn" type="Button" parent="ClimbingUI/LeftPanel/WeightSection/WeightRow"]
+layout_mode = 2
+text = "C"
+size_flags_horizontal = 3
+
+[node name="WeightRightBtn" type="Button" parent="ClimbingUI/LeftPanel/WeightSection/WeightRow"]
+layout_mode = 2
+text = "R"
+size_flags_horizontal = 3
+
+[node name="WeightIndicator" type="Label" parent="ClimbingUI/LeftPanel/WeightSection"]
+layout_mode = 2
+text = "Weight: Center"
+
+[node name="CenterPanel" type="VBoxContainer" parent="ClimbingUI"]
+layout_mode = 1
+anchor_left = 0.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 190.0
+offset_right = -210.0
+theme_override_constants/separation = 4
+
+[node name="RouteNameLabel" type="Label" parent="ClimbingUI/CenterPanel"]
+layout_mode = 2
+text = "Route Name"
+theme_override_font_sizes/font_size = 16
+horizontal_alignment = 1
+
+[node name="GridWrapper" type="Control" parent="ClimbingUI/CenterPanel"]
+layout_mode = 2
+size_flags_vertical = 3
+custom_minimum_size = Vector2(582, 582)
+
+[node name="ClimbingGrid" type="Control" parent="ClimbingUI/CenterPanel/GridWrapper"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource("2_climbgrid")
+
+[node name="Actions" type="PanelContainer" parent="ClimbingUI/CenterPanel"]
+layout_mode = 2
+
+[node name="ActionsMargin" type="MarginContainer" parent="ClimbingUI/CenterPanel/Actions"]
+layout_mode = 2
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 6
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 6
+
+[node name="ActionsVBox" type="VBoxContainer" parent="ClimbingUI/CenterPanel/Actions/ActionsMargin"]
+layout_mode = 2
+
+[node name="ActionsTitle" type="Label" parent="ClimbingUI/CenterPanel/Actions/ActionsMargin/ActionsVBox"]
+layout_mode = 2
+text = "ACTIONS"
+theme_override_font_sizes/font_size = 13
+
+[node name="Row1" type="HBoxContainer" parent="ClimbingUI/CenterPanel/Actions/ActionsMargin/ActionsVBox"]
+layout_mode = 2
+
+[node name="ShakeBtn" type="Button" parent="ClimbingUI/CenterPanel/Actions/ActionsMargin/ActionsVBox/Row1"]
+layout_mode = 2
+text = "SHAKE (Q)"
+size_flags_horizontal = 3
+
+[node name="ChalkBtn" type="Button" parent="ClimbingUI/CenterPanel/Actions/ActionsMargin/ActionsVBox/Row1"]
+layout_mode = 2
+text = "CHALK (3) (E)"
+size_flags_horizontal = 3
+
+[node name="SkillRow" type="HBoxContainer" parent="ClimbingUI/CenterPanel/Actions/ActionsMargin/ActionsVBox"]
+layout_mode = 2
+
+[node name="CrossBtn" type="Button" parent="ClimbingUI/CenterPanel/Actions/ActionsMargin/ActionsVBox/SkillRow"]
+layout_mode = 2
+text = "CROSS (3)"
+size_flags_horizontal = 3
+
+[node name="RegularBtn" type="Button" parent="ClimbingUI/CenterPanel/Actions/ActionsMargin/ActionsVBox/SkillRow"]
+layout_mode = 2
+text = "REGULAR (2)"
+size_flags_horizontal = 3
+
+[node name="ReachBtn" type="Button" parent="ClimbingUI/CenterPanel/Actions/ActionsMargin/ActionsVBox/SkillRow"]
+layout_mode = 2
+text = "REACH (1)"
+size_flags_horizontal = 3
+visible = false
+
+[node name="CommitBtn" type="Button" parent="ClimbingUI/CenterPanel/Actions/ActionsMargin/ActionsVBox/SkillRow"]
+layout_mode = 2
+text = "COMMIT (R)"
+size_flags_horizontal = 3
+visible = false
+
+[node name="DynoBtn" type="Button" parent="ClimbingUI/CenterPanel/Actions/ActionsMargin/ActionsVBox/SkillRow"]
+layout_mode = 2
+text = "DYNO (T)"
+size_flags_horizontal = 3
+visible = false
+
+[node name="MoveCount" type="Label" parent="ClimbingUI/CenterPanel"]
+layout_mode = 2
+text = "Moves: 0"
+horizontal_alignment = 1
+
+[node name="RightPanel" type="VBoxContainer" parent="ClimbingUI"]
+layout_mode = 1
+anchor_left = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -205.0
+theme_override_constants/separation = 6
+
+[node name="ResourcesLabel" type="Label" parent="ClimbingUI/RightPanel"]
+layout_mode = 2
+text = "Resources"
+theme_override_font_sizes/font_size = 14
+
+[node name="PumpLabel" type="Label" parent="ClimbingUI/RightPanel"]
+layout_mode = 2
+text = "Pump: Fresh (0/3)"
+
+[node name="PumpBar" type="ProgressBar" parent="ClimbingUI/RightPanel"]
+layout_mode = 2
+max_value = 3.0
+step = 1.0
+modulate = Color(0.2, 0.9, 0.2, 1)
+
+[node name="GripLabel" type="Label" parent="ClimbingUI/RightPanel"]
+layout_mode = 2
+text = "Grip: Chalked | decay 0/3"
+
+[node name="GripBar" type="ProgressBar" parent="ClimbingUI/RightPanel"]
+layout_mode = 2
+max_value = 3.0
+step = 1.0
+modulate = Color(0.2, 0.6, 1.0, 1)
+
+[node name="HSep" type="HSeparator" parent="ClimbingUI/RightPanel"]
+layout_mode = 2
+
+[node name="FeedbackLabel" type="Label" parent="ClimbingUI/RightPanel"]
+layout_mode = 2
+text = "Feedback"
+theme_override_font_sizes/font_size = 13
+
+[node name="FeedbackScroll" type="ScrollContainer" parent="ClimbingUI/RightPanel"]
+layout_mode = 2
+size_flags_vertical = 3
+custom_minimum_size = Vector2(0, 200)
+
+[node name="FeedbackContainer" type="VBoxContainer" parent="ClimbingUI/RightPanel/FeedbackScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="HSep2" type="HSeparator" parent="ClimbingUI/RightPanel"]
+layout_mode = 2
+
+[node name="SidebarConditions" type="PanelContainer" parent="ClimbingUI/RightPanel"]
+layout_mode = 2
+visible = false
+
+[node name="ConditionsLabel" type="Label" parent="ClimbingUI/RightPanel/SidebarConditions"]
+layout_mode = 2
+text = "—"
+
+[node name="TooltipController" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+script = ExtResource("4_tooltip")
+
+[node name="TooltipPanel" type="PanelContainer" parent="TooltipController"]
+layout_mode = 1
+visible = false
+z_index = 20
+custom_minimum_size = Vector2(220, 0)
+
+[node name="MarginContainer" type="MarginContainer" parent="TooltipController/TooltipPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 6
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 6
+
+[node name="TooltipLabel" type="RichTextLabel" parent="TooltipController/TooltipPanel/MarginContainer"]
+layout_mode = 2
+fit_content = true
+custom_minimum_size = Vector2(200, 80)
+
+[node name="GameOverPopup" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+visible = false
+z_index = 30
+script = ExtResource("5_gameover")
+
+[node name="ColorRect" type="ColorRect" parent="GameOverPopup"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0, 0, 0, 0.8)
+
+[node name="Panel" type="PanelContainer" parent="GameOverPopup"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -280.0
+offset_top = -220.0
+offset_right = 280.0
+offset_bottom = 220.0
+
+[node name="MarginContainer" type="MarginContainer" parent="GameOverPopup/Panel"]
+layout_mode = 2
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 16
+
+[node name="VBox" type="VBoxContainer" parent="GameOverPopup/Panel/MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="ResultLabel" type="Label" parent="GameOverPopup/Panel/MarginContainer/VBox"]
+layout_mode = 2
+text = "Result"
+theme_override_font_sizes/font_size = 28
+horizontal_alignment = 1
+
+[node name="StarsLabel" type="Label" parent="GameOverPopup/Panel/MarginContainer/VBox"]
+layout_mode = 2
+text = ""
+theme_override_colors/font_color = Color(1, 0.85, 0.1, 1)
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 20
+
+[node name="DetailsLabel" type="Label" parent="GameOverPopup/Panel/MarginContainer/VBox"]
+layout_mode = 2
+text = ""
+autowrap_mode = 3
+
+[node name="NewSkillsLabel" type="Label" parent="GameOverPopup/Panel/MarginContainer/VBox"]
+layout_mode = 2
+text = ""
+theme_override_colors/font_color = Color(0.4, 1, 0.4, 1)
+autowrap_mode = 3
+
+[node name="LootLabel" type="Label" parent="GameOverPopup/Panel/MarginContainer/VBox"]
+layout_mode = 2
+text = ""
+theme_override_colors/font_color = Color(0.8, 0.5, 1, 1)
+
+[node name="ButtonRow" type="HBoxContainer" parent="GameOverPopup/Panel/MarginContainer/VBox"]
+layout_mode = 2
+alignment = 1
+
+[node name="RetryBtn" type="Button" parent="GameOverPopup/Panel/MarginContainer/VBox/ButtonRow"]
+layout_mode = 2
+text = "Retry"
+custom_minimum_size = Vector2(90, 0)
+
+[node name="MapBtn" type="Button" parent="GameOverPopup/Panel/MarginContainer/VBox/ButtonRow"]
+layout_mode = 2
+text = "World Map"
+custom_minimum_size = Vector2(90, 0)

@@ -1,0 +1,77 @@
+class_name RoutesArea3
+
+static func get_routes() -> Array:
+	return [
+		{
+			"id": "sv-1", "name": "Weight Control", "grade": "V2", "holdCount": 8,
+			"description": "Wrong weight means higher pump. Use Z/X/C to position your weight before each move.",
+			"startCol": 2,
+			"holds": [
+				{"type": "jug", "label": "JUG", "angle": 0, "pumpRating": 1, "gripDrain": 1, "position": {"x": 2, "y": 1}, "matchable": false, "isRest": false},
+				{"type": "jug", "label": "JUG", "angle": 0, "pumpRating": 1, "gripDrain": 1, "position": {"x": 2, "y": 2}, "matchable": false, "isRest": false},
+				{"type": "crimp", "label": "CRIMP", "angle": 45, "pumpRating": 3, "gripDrain": 2, "position": {"x": 2, "y": 3}, "matchable": false, "isRest": false},
+				{"type": "crimp", "label": "CRIMP", "angle": 315, "pumpRating": 3, "gripDrain": 2, "position": {"x": 2, "y": 4}, "matchable": false, "isRest": false},
+				{"type": "jug", "label": "JUG", "angle": 0, "pumpRating": 1, "gripDrain": 1, "position": {"x": 2, "y": 5}, "matchable": false, "isRest": false},
+				{"type": "jug", "label": "JUG", "angle": 0, "pumpRating": 1, "gripDrain": 1, "position": {"x": 2, "y": 6}, "matchable": false, "isRest": false},
+				{"type": "jug", "label": "JUG", "angle": 0, "pumpRating": 1, "gripDrain": 1, "position": {"x": 2, "y": 7}, "matchable": false, "isRest": false},
+				{"type": "jug", "label": "JUG", "angle": 0, "pumpRating": 1, "gripDrain": 1, "position": {"x": 2, "y": 8}, "matchable": false, "isRest": true},
+			],
+			"stars": {
+				"completion": true,
+				"speed": {"timeLimit": 45},
+				"pumpEfficiency": {"maxPump": 2},
+				"gripEfficiency": true,
+				"flashClimb": true,
+			},
+		},
+		{
+			"id": "sv-2", "name": "Balanced Traverse", "grade": "V3", "holdCount": 10,
+			"description": "Alternating angles demand constant weight adjustment. Cross for the gaston.",
+			"startCol": 2,
+			"holds": [
+				{"type": "jug", "label": "JUG", "angle": 0, "pumpRating": 1, "gripDrain": 1, "position": {"x": 2, "y": 1}, "matchable": false, "isRest": false},
+				{"type": "crimp", "label": "CRIMP", "angle": 45, "pumpRating": 3, "gripDrain": 2, "position": {"x": 1, "y": 2}, "matchable": false, "isRest": false},
+				{"type": "crimp", "label": "CRIMP", "angle": 315, "pumpRating": 3, "gripDrain": 2, "position": {"x": 2, "y": 3}, "matchable": false, "isRest": false},
+				{"type": "crimp", "label": "CRIMP", "angle": 225, "pumpRating": 4, "gripDrain": 2, "position": {"x": 3, "y": 4}, "matchable": false, "isRest": false},
+				{"type": "jug", "label": "JUG", "angle": 315, "pumpRating": 1, "gripDrain": 1, "position": {"x": 3, "y": 5}, "matchable": false, "isRest": false},
+				{"type": "crimp", "label": "CRIMP", "angle": 45, "pumpRating": 3, "gripDrain": 2, "position": {"x": 2, "y": 6}, "matchable": false, "isRest": false},
+				{"type": "jug", "label": "JUG", "angle": 0, "pumpRating": 1, "gripDrain": 1, "position": {"x": 2, "y": 7}, "matchable": false, "isRest": false},
+				{"type": "jug", "label": "JUG", "angle": 0, "pumpRating": 1, "gripDrain": 1, "position": {"x": 2, "y": 8}, "matchable": false, "isRest": false},
+				{"type": "jug", "label": "JUG", "angle": 0, "pumpRating": 1, "gripDrain": 1, "position": {"x": 2, "y": 9}, "matchable": false, "isRest": false},
+				{"type": "jug", "label": "JUG", "angle": 0, "pumpRating": 1, "gripDrain": 1, "position": {"x": 2, "y": 10}, "matchable": false, "isRest": true},
+			],
+			"stars": {
+				"completion": true,
+				"speed": {"timeLimit": 60},
+				"pumpEfficiency": {"maxPump": 2},
+				"gripEfficiency": true,
+				"flashClimb": true,
+			},
+		},
+		{
+			"id": "sv-3", "name": "The Slab Master", "grade": "V4", "holdCount": 12,
+			"description": "Weight traps, gastons, and distance. All three skills needed.",
+			"startCol": 2,
+			"holds": [
+				{"type": "jug", "label": "JUG", "angle": 0, "pumpRating": 1, "gripDrain": 1, "position": {"x": 2, "y": 1}, "matchable": false, "isRest": false},
+				{"type": "jug", "label": "JUG", "angle": 45, "pumpRating": 2, "gripDrain": 1, "position": {"x": 1, "y": 2}, "matchable": false, "isRest": false},
+				{"type": "crimp", "label": "CRIMP", "angle": 0, "pumpRating": 3, "gripDrain": 2, "position": {"x": 1, "y": 4}, "matchable": false, "isRest": false},
+				{"type": "crimp", "label": "CRIMP", "angle": 315, "pumpRating": 3, "gripDrain": 2, "position": {"x": 2, "y": 5}, "matchable": false, "isRest": false},
+				{"type": "crimp", "label": "CRIMP", "angle": 225, "pumpRating": 4, "gripDrain": 2, "position": {"x": 3, "y": 6}, "matchable": false, "isRest": false},
+				{"type": "jug", "label": "JUG", "angle": 315, "pumpRating": 1, "gripDrain": 1, "position": {"x": 3, "y": 7}, "matchable": false, "isRest": false},
+				{"type": "jug", "label": "JUG", "angle": 0, "pumpRating": 1, "gripDrain": 1, "position": {"x": 2, "y": 8}, "matchable": false, "isRest": false},
+				{"type": "crimp", "label": "CRIMP", "angle": 45, "pumpRating": 3, "gripDrain": 2, "position": {"x": 1, "y": 9}, "matchable": false, "isRest": false},
+				{"type": "crimp", "label": "CRIMP", "angle": 0, "pumpRating": 3, "gripDrain": 2, "position": {"x": 1, "y": 11}, "matchable": false, "isRest": false},
+				{"type": "jug", "label": "JUG", "angle": 0, "pumpRating": 1, "gripDrain": 1, "position": {"x": 2, "y": 12}, "matchable": false, "isRest": false},
+				{"type": "jug", "label": "JUG", "angle": 0, "pumpRating": 1, "gripDrain": 1, "position": {"x": 2, "y": 13}, "matchable": false, "isRest": false},
+				{"type": "jug", "label": "JUG", "angle": 0, "pumpRating": 1, "gripDrain": 1, "position": {"x": 2, "y": 14}, "matchable": false, "isRest": true},
+			],
+			"stars": {
+				"completion": true,
+				"speed": {"timeLimit": 75},
+				"pumpEfficiency": {"maxPump": 2},
+				"gripEfficiency": true,
+				"flashClimb": true,
+			},
+		},
+	]

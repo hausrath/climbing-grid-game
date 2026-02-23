@@ -1,0 +1,71 @@
+[gd_scene load_steps=2 format=3 uid="uid://betaoverlay"]
+
+[ext_resource type="Script" path="res://scripts/BetaUI.gd" id="1_beta"]
+
+[node name="BetaOverlay" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource("1_beta")
+
+[node name="ColorRect" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0, 0, 0, 0.75)
+
+[node name="Panel" type="PanelContainer" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -340.0
+offset_top = -300.0
+offset_right = 340.0
+offset_bottom = 300.0
+
+[node name="MarginContainer" type="MarginContainer" parent="Panel"]
+layout_mode = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 12
+
+[node name="VBox" type="VBoxContainer" parent="Panel/MarginContainer"]
+layout_mode = 2
+
+[node name="TitleLabel" type="Label" parent="Panel/MarginContainer/VBox"]
+layout_mode = 2
+text = "Beta"
+theme_override_font_sizes/font_size = 24
+
+[node name="OverviewLabel" type="Label" parent="Panel/MarginContainer/VBox"]
+layout_mode = 2
+text = "—"
+autowrap_mode = 3
+
+[node name="ConditionsLabel" type="Label" parent="Panel/MarginContainer/VBox"]
+layout_mode = 2
+text = "—"
+theme_override_colors/font_color = Color(0.7, 0.9, 1, 1)
+
+[node name="Scroll" type="ScrollContainer" parent="Panel/MarginContainer/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+custom_minimum_size = Vector2(0, 350)
+
+[node name="HoldsContainer" type="VBoxContainer" parent="Panel/MarginContainer/VBox/Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="ClimbBtn" type="Button" parent="Panel/MarginContainer/VBox"]
+layout_mode = 2
+text = "CLIMB THIS ROUTE"
+
+[node name="CloseButton" type="Button" parent="Panel/MarginContainer/VBox"]
+layout_mode = 2
+text = "Close"

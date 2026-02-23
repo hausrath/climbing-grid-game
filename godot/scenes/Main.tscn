@@ -1,0 +1,161 @@
+[gd_scene load_steps=23 format=3 uid="uid://mainscene"]
+
+[ext_resource type="Script" path="res://scripts/Main.gd" id="1_main"]
+[ext_resource type="PackedScene" path="res://scenes/TitleScreen.tscn" id="2_title"]
+[ext_resource type="PackedScene" path="res://scenes/WorldMap.tscn" id="3_worldmap"]
+[ext_resource type="PackedScene" path="res://scenes/ClimbingScreen.tscn" id="4_climbing"]
+[ext_resource type="PackedScene" path="res://scenes/overlays/RouteSelectOverlay.tscn" id="5_routesel"]
+[ext_resource type="PackedScene" path="res://scenes/overlays/CampOverlay.tscn" id="6_camp"]
+[ext_resource type="PackedScene" path="res://scenes/overlays/GuidebookOverlay.tscn" id="7_guidebook"]
+[ext_resource type="PackedScene" path="res://scenes/overlays/BetaOverlay.tscn" id="8_beta"]
+[ext_resource type="PackedScene" path="res://scenes/overlays/EquipmentOverlay.tscn" id="9_equip"]
+[ext_resource type="PackedScene" path="res://scenes/overlays/SkillsOverlay.tscn" id="10_skills"]
+[ext_resource type="Script" path="res://scripts/RouteLoader.gd" id="11_routeloader"]
+[ext_resource type="Script" path="res://scripts/ClimbingLogic.gd" id="12_climblogic"]
+[ext_resource type="Script" path="res://scripts/ClimbingActions.gd" id="13_actions"]
+[ext_resource type="Script" path="res://scripts/ClimbingCompletion.gd" id="14_completion"]
+[ext_resource type="Script" path="res://scripts/EquipmentLogic.gd" id="15_equiplogic"]
+[ext_resource type="Script" path="res://scripts/ConditionsSystem.gd" id="16_conditions"]
+[ext_resource type="Script" path="res://scripts/FamiliaritySystem.gd" id="17_familiarity"]
+
+[node name="Main" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource("1_main")
+
+[node name="TitleScreen" type="Control" parent="." instance=ExtResource("2_title")]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="GameContainer" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="WorldMap" type="Control" parent="GameContainer" instance=ExtResource("3_worldmap")]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+visible = false
+
+[node name="ClimbingScreen" type="Control" parent="GameContainer" instance=ExtResource("4_climbing")]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+visible = false
+
+[node name="RouteSelectOverlay" type="Control" parent="." instance=ExtResource("5_routesel")]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+z_index = 10
+visible = false
+
+[node name="CampOverlay" type="Control" parent="." instance=ExtResource("6_camp")]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+z_index = 20
+visible = false
+
+[node name="GuidebookOverlay" type="Control" parent="." instance=ExtResource("7_guidebook")]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+z_index = 30
+visible = false
+
+[node name="BetaOverlay" type="Control" parent="." instance=ExtResource("8_beta")]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+z_index = 31
+visible = false
+
+[node name="EquipmentOverlay" type="Control" parent="." instance=ExtResource("9_equip")]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+z_index = 30
+visible = false
+
+[node name="SkillsOverlay" type="Control" parent="." instance=ExtResource("10_skills")]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+z_index = 30
+visible = false
+
+[node name="HelpModal" type="PanelContainer" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -260.0
+offset_top = -280.0
+offset_right = 260.0
+offset_bottom = 280.0
+z_index = 60
+visible = false
+
+[node name="MarginContainer" type="MarginContainer" parent="HelpModal"]
+layout_mode = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 12
+
+[node name="HelpLabel" type="Label" parent="HelpModal/MarginContainer"]
+layout_mode = 2
+text = "Controls
+A / D — Select left / right hand
+Q — Shake (pump -1)
+E — Chalk (grip reset)
+1 — Reach style
+2 — Regular style
+3 — Cross style
+Z / X / C — Weight left / center / right
+R — Commit (skill)
+T — Dyno (skill)
+F1 — Camp
+ESC — Return to world map
+TAB — Toggle this help"
+autowrap_mode = 3
+
+[node name="ClimbingLogicNodes" type="Node" parent="."]
+
+[node name="RouteLoader" type="Node" parent="ClimbingLogicNodes"]
+script = ExtResource("11_routeloader")
+
+[node name="ClimbingLogic" type="Node" parent="ClimbingLogicNodes"]
+script = ExtResource("12_climblogic")
+
+[node name="ClimbingActions" type="Node" parent="ClimbingLogicNodes"]
+script = ExtResource("13_actions")
+
+[node name="ClimbingCompletion" type="Node" parent="ClimbingLogicNodes"]
+script = ExtResource("14_completion")
+
+[node name="EquipmentLogic" type="Node" parent="ClimbingLogicNodes"]
+script = ExtResource("15_equiplogic")
+
+[node name="ConditionsSystem" type="Node" parent="ClimbingLogicNodes"]
+script = ExtResource("16_conditions")
+
+[node name="FamiliaritySystem" type="Node" parent="ClimbingLogicNodes"]
+script = ExtResource("17_familiarity")

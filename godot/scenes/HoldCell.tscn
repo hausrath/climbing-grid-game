@@ -1,0 +1,7 @@
+[gd_scene load_steps=2 format=3 uid="uid://holdcell"]
+
+[ext_resource type="Script" path="res://scripts/HoldCell.gd" id="1_holdcell"]
+
+[node name="HoldCell" type="Control"]
+custom_minimum_size = Vector2(80, 80)
+script = ExtResource("1_holdcell")

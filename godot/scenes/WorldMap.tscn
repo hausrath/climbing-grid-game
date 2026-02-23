@@ -1,0 +1,73 @@
+[gd_scene load_steps=2 format=3 uid="uid://worldmap"]
+
+[ext_resource type="Script" path="res://scripts/WorldMap.gd" id="1_worldmap"]
+
+[node name="WorldMap" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource("1_worldmap")
+
+[node name="ColorRect" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0.05, 0.07, 0.05, 1)
+
+[node name="MapPanel" type="PanelContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 20.0
+offset_top = 20.0
+offset_right = -20.0
+offset_bottom = -20.0
+
+[node name="MarginContainer" type="MarginContainer" parent="MapPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 16
+
+[node name="VBox" type="VBoxContainer" parent="MapPanel/MarginContainer"]
+layout_mode = 2
+
+[node name="TitleLabel" type="Label" parent="MapPanel/MarginContainer/VBox"]
+layout_mode = 2
+text = "World Map"
+theme_override_font_sizes/font_size = 28
+
+[node name="StarsLabel" type="Label" parent="MapPanel/MarginContainer/VBox"]
+layout_mode = 2
+text = "Total Stars: 0 / 125"
+theme_override_colors/font_color = Color(1, 0.85, 0.1, 1)
+
+[node name="Spacer" type="Control" parent="MapPanel/MarginContainer/VBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 8)
+
+[node name="MapGrid" type="GridContainer" parent="MapPanel/MarginContainer/VBox"]
+layout_mode = 2
+columns = 5
+
+[node name="TooltipPanel" type="PanelContainer" parent="."]
+layout_mode = 1
+visible = false
+z_index = 10
+
+[node name="MarginContainer" type="MarginContainer" parent="TooltipPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 6
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 6
+
+[node name="TooltipLabel" type="Label" parent="TooltipPanel/MarginContainer"]
+layout_mode = 2
+text = ""
+autowrap_mode = 3
+custom_minimum_size = Vector2(200, 0)

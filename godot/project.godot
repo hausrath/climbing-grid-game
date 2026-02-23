@@ -1,0 +1,33 @@
+; Engine configuration file.
+; It's best edited using the editor UI and not directly,
+; but below is the format for reference.
+;
+; [section] ; section goes between []
+; param=value ; assign values to parameters
+
+config_version=5
+
+[application]
+
+config/name="Climb Shake Chalk"
+config/description="A deterministic puzzle-climbing game."
+run/main_scene="res://scenes/Main.tscn"
+config/features=PackedStringArray("4.3", "Forward Plus")
+config/icon="res://icon.svg"
+
+[autoload]
+
+Constants="*res://autoloads/Constants.gd"
+RouteDB="*res://autoloads/RouteDB.gd"
+SkillsDB="*res://autoloads/SkillsDB.gd"
+GameState="*res://autoloads/GameState.gd"
+
+[display]
+
+window/size/viewport_width=1280
+window/size/viewport_height=720
+window/size/resizable=true
+
+[rendering]
+
+renderer/rendering_method="forward_plus"
