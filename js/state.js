@@ -68,7 +68,9 @@ const gameState = {
     dynoActive: false,
     selectedHand: null,
     lastHandUsed: null, // Track which hand was used last
-    movementStyle: 'regular', // 'cross', 'regular', 'reach'
+    movementStyle: 'regular', // legacy — kept for compatibility
+    crossActive: false, // Whether Cross skill is queued for next move
+    reachActive: false, // Whether Reach skill is queued for next move
     consecutiveCrosses: 0, // Track consecutive cross-overs
     crossCooldown: 0, // Turns until Cross is available again
     reachCooldown: 0, // Turns until Reach is available again

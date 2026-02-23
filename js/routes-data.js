@@ -175,7 +175,7 @@ const routeDatabase = {
                 completion: true,
                 speed: { timeLimit: 30 },
                 pumpEfficiency: { maxPump: 0 },
-                noRecovery: true,
+                gripEfficiency: true,
                 flashClimb: true,
             }
         },
@@ -198,7 +198,7 @@ const routeDatabase = {
                 completion: true,
                 speed: { timeLimit: 30 },
                 pumpEfficiency: { maxPump: 0 },
-                noRecovery: true,
+                gripEfficiency: true,
                 flashClimb: true,
             }
         },
@@ -223,7 +223,7 @@ const routeDatabase = {
                 completion: true,
                 speed: { timeLimit: 30 },
                 pumpEfficiency: { maxPump: 0 },
-                noRecovery: true,
+                gripEfficiency: true,
                 flashClimb: true,
             }
         },
@@ -249,7 +249,7 @@ const routeDatabase = {
                 completion: true,
                 speed: { timeLimit: 40 },
                 pumpEfficiency: { maxPump: 0 },
-                noRecovery: true,
+                gripEfficiency: true,
                 flashClimb: true,
             }
         },
@@ -280,7 +280,7 @@ const routeDatabase = {
                 completion: true,
                 speed: { timeLimit: 30 },
                 pumpEfficiency: { maxPump: 0 },
-                noRecovery: true,
+                gripEfficiency: true,
                 flashClimb: true,
             }
         },
@@ -293,7 +293,7 @@ const routeDatabase = {
             startCol: 0,
             holds: [
                 { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 1, y: 1 }, matchable: false, isRest: false },
-                { type: 'pocket', label: 'POCKET', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 4, y: 2 }, matchable: false, isRest: false },
+                { type: 'pocket', label: 'POCKET', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 3, y: 2 }, matchable: false, isRest: false },
                 { type: 'pocket', label: 'POCKET', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 3, y: 3 }, matchable: false, isRest: false },
                 { type: 'edge', label: 'EDGE', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 2, y: 4 }, matchable: false, isRest: false },
                 { type: 'pinch', label: 'PINCH', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 2, y: 5 }, matchable: false, isRest: false },
@@ -305,7 +305,7 @@ const routeDatabase = {
                 completion: true,
                 speed: { timeLimit: 30 },
                 pumpEfficiency: { maxPump: 0 },
-                noRecovery: true,
+                gripEfficiency: true,
                 flashClimb: true,
             }
         },
@@ -331,7 +331,7 @@ const routeDatabase = {
                 completion: true,
                 speed: { timeLimit: 40 },
                 pumpEfficiency: { maxPump: 0 },
-                noRecovery: true,
+                gripEfficiency: true,
                 flashClimb: true,
             }
         },
@@ -361,7 +361,7 @@ const routeDatabase = {
                 completion: true,
                 speed: { timeLimit: 30 },
                 pumpEfficiency: { maxPump: 0 },
-                noRecovery: true,
+                gripEfficiency: true,
                 flashClimb: true,
             }
         },
@@ -385,7 +385,7 @@ const routeDatabase = {
                 completion: true,
                 speed: { timeLimit: 30 },
                 pumpEfficiency: { maxPump: 0 },
-                noRecovery: true,
+                gripEfficiency: true,
                 flashClimb: true,
             }
         },
@@ -415,7 +415,7 @@ const routeDatabase = {
                 completion: true,
                 speed: { timeLimit: 60 },
                 pumpEfficiency: { maxPump: 2 },
-                noRecovery: true,
+                gripEfficiency: true,
                 flashClimb: true,
             }
         },
@@ -447,7 +447,7 @@ const routeDatabase = {
                 completion: true,
                 speed: { timeLimit: 75 },
                 pumpEfficiency: { maxPump: 2 },
-                noRecovery: true,
+                gripEfficiency: true,
                 flashClimb: true,
             }
         },
@@ -483,7 +483,7 @@ const routeDatabase = {
                 completion: true,
                 speed: { timeLimit: 45 },
                 pumpEfficiency: { maxPump: 2 },
-                noRecovery: true,
+                gripEfficiency: true,
                 flashClimb: true,
             }
         },
@@ -511,7 +511,7 @@ const routeDatabase = {
                 completion: true,
                 speed: { timeLimit: 60 },
                 pumpEfficiency: { maxPump: 2 },
-                noRecovery: true,
+                gripEfficiency: true,
                 flashClimb: true,
             }
         },
@@ -541,7 +541,7 @@ const routeDatabase = {
                 completion: true,
                 speed: { timeLimit: 75 },
                 pumpEfficiency: { maxPump: 2 },
-                noRecovery: true,
+                gripEfficiency: true,
                 flashClimb: true,
             }
         },
@@ -575,7 +575,7 @@ const routeDatabase = {
                 completion: true,
                 speed: { timeLimit: 55 },
                 pumpEfficiency: { maxPump: 0 },
-                noRecovery: true,
+                gripEfficiency: true,
                 flashClimb: true,
             }
         },
@@ -605,7 +605,7 @@ const routeDatabase = {
                 completion: true,
                 speed: { timeLimit: 75 },
                 pumpEfficiency: { maxPump: 2 },
-                noRecovery: true,
+                gripEfficiency: true,
                 flashClimb: true,
             }
         },
@@ -634,7 +634,7 @@ const routeDatabase = {
                 completion: true,
                 speed: { timeLimit: 75 },
                 pumpEfficiency: { maxPump: 2 },
-                noRecovery: true,
+                gripEfficiency: true,
                 flashClimb: true,
             }
         },
@@ -671,7 +671,7 @@ const routeDatabase = {
                 completion: true,
                 speed: { timeLimit: 75 },
                 pumpEfficiency: { maxPump: 2 },
-                noRecovery: true,
+                gripEfficiency: true,
                 flashClimb: true,
             }
         },
@@ -700,7 +700,7 @@ const routeDatabase = {
                 completion: true,
                 speed: { timeLimit: 75 },
                 pumpEfficiency: { maxPump: 2 },
-                noRecovery: true,
+                gripEfficiency: true,
                 flashClimb: true,
             }
         },
@@ -731,7 +731,7 @@ const routeDatabase = {
                 completion: true,
                 speed: { timeLimit: 90 },
                 pumpEfficiency: { maxPump: 2 },
-                noRecovery: true,
+                gripEfficiency: true,
                 flashClimb: true,
             }
         },
@@ -768,7 +768,7 @@ const routeDatabase = {
                 completion: true,
                 speed: { timeLimit: 75 },
                 pumpEfficiency: { maxPump: 2 },
-                noRecovery: true,
+                gripEfficiency: true,
                 flashClimb: true,
             }
         },
@@ -800,7 +800,7 @@ const routeDatabase = {
                 completion: true,
                 speed: { timeLimit: 90 },
                 pumpEfficiency: { maxPump: 2 },
-                noRecovery: true,
+                gripEfficiency: true,
                 flashClimb: true,
             }
         },
@@ -831,7 +831,7 @@ const routeDatabase = {
                 completion: true,
                 speed: { timeLimit: 90 },
                 pumpEfficiency: { maxPump: 2 },
-                noRecovery: true,
+                gripEfficiency: true,
                 flashClimb: true,
             }
         },
@@ -869,7 +869,7 @@ const routeDatabase = {
                 completion: true,
                 speed: { timeLimit: 75 },
                 pumpEfficiency: { maxPump: 2 },
-                noRecovery: true,
+                gripEfficiency: true,
                 flashClimb: true,
             }
         },
@@ -900,7 +900,7 @@ const routeDatabase = {
                 completion: true,
                 speed: { timeLimit: 90 },
                 pumpEfficiency: { maxPump: 2 },
-                noRecovery: true,
+                gripEfficiency: true,
                 flashClimb: true,
             }
         },
@@ -942,7 +942,7 @@ const routeDatabase = {
                 completion: true,
                 speed: { timeLimit: 120 },
                 pumpEfficiency: { maxPump: 2 },
-                noRecovery: true,
+                gripEfficiency: true,
                 flashClimb: true,
             }
         },

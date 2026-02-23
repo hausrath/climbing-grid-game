@@ -190,7 +190,7 @@ function completeRoute() {
         completion: true,
         speed: roundedTime <= timeLimit,
         pumpEfficiency: gameState.pumpState === 0,
-        noRecovery: gameState.shakesUsed === 0 && gameState.chalksUsed === 0,
+        gripEfficiency: gameState.gripState === 0,
         flashClimb: gameState.routeAttempts <= 1
     };
 
@@ -222,7 +222,7 @@ function completeRoute() {
             completion: true,
             speed: gameState.completedRoutes[routeKey].starResults?.speed || starResults.speed,
             pumpEfficiency: gameState.completedRoutes[routeKey].starResults?.pumpEfficiency || starResults.pumpEfficiency,
-            noRecovery: gameState.completedRoutes[routeKey].starResults?.noRecovery || starResults.noRecovery,
+            gripEfficiency: gameState.completedRoutes[routeKey].starResults?.gripEfficiency || starResults.gripEfficiency,
             flashClimb: gameState.completedRoutes[routeKey].starResults?.flashClimb || starResults.flashClimb
         };
         gameState.completedRoutes[routeKey].stars = Object.values(gameState.completedRoutes[routeKey].starResults).filter(v => v).length;
@@ -292,8 +292,8 @@ function completeRoute() {
             <div style="font-size: 0.7em; color: #bdb9ae;">${pumpEffLabel} (ended: ${PUMP_STATE_LABELS[gameState.pumpState] || 'Critical'})</div>
         </div>
         <div style="font-size: 1.2em; margin-bottom: 15px;">
-            ${starResults.noRecovery ? '⭐' : '☆'} No Recovery
-            <div style="font-size: 0.7em; color: #bdb9ae;">${gameState.shakesUsed + gameState.chalksUsed} recovery uses</div>
+            ${starResults.gripEfficiency ? '⭐' : '☆'} Grip Efficiency
+            <div style="font-size: 0.7em; color: #bdb9ae;">Finish with Chalked grip (ended: ${GRIP_STATE_LABELS[gameState.gripState] || 'Critical'})</div>
         </div>
         <div style="font-size: 1.2em; margin-bottom: 15px;">
             ${starResults.flashClimb ? '⭐' : '☆'} Flash Climb

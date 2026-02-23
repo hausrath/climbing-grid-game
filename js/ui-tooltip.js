@@ -32,7 +32,8 @@ function refreshTooltip() {
     const penaltyColors = ['#a8db60', '#fad882', '#f5aaa2', '#f55', '#f00'];
     const idealWeight = getIdealWeight(hold.angle);
     const restLabel = hold.isRest ? ' (REST)' : '';
-    const styleLabel = gameState.movementStyle !== 'regular' ? gameState.movementStyle.toUpperCase() : '';
+    const activeSkills = [gameState.crossActive && 'CROSS', gameState.reachActive && 'REACH'].filter(Boolean);
+    const styleLabel = activeSkills.length > 0 ? activeSkills.join('+') : '';
 
     // Build effective penalty breakdown for a given hand
     function buildHandBreakdown(hand) {
@@ -50,9 +51,11 @@ function refreshTooltip() {
         if (handMod > 0) { effective += 1; bumps.push('gaston'); }
 
         const isCross = isCrossMove(hand, direction);
+        let crossUsedInTooltip = false;
         if (isCross) {
-            if (gameState.movementStyle === 'cross') {
+            if (gameState.crossActive) {
                 effective = Math.max(0, effective - 1);
+                crossUsedInTooltip = true;
                 bumps.push('<span style="color:#a8db60">cross</span>');
             } else {
                 bumps.push('cross-body');
@@ -60,7 +63,7 @@ function refreshTooltip() {
         }
 
         if (isExtendedMove) {
-            if (gameState.movementStyle === 'reach') {
+            if (gameState.reachActive) {
                 bumps.push('<span style="color:#a8db60">reach</span>');
             } else {
                 effective += 1; bumps.push('distance');
@@ -68,7 +71,7 @@ function refreshTooltip() {
         }
 
         // Cross skill can also reduce gaston if not used for cross-body
-        if (!isCross && gameState.movementStyle === 'cross' && handMod > 0) {
+        if (!crossUsedInTooltip && gameState.crossActive && handMod > 0) {
             effective = Math.max(0, effective - 1);
             bumps.push('<span style="color:#a8db60">cross</span>');
         }

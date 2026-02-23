@@ -362,6 +362,8 @@ function startClimb(location, route) {
     gameState.weightAtMoveStart = 'center';
     gameState.consecutiveCrosses = 0;
     gameState.movementStyle = 'regular';
+    gameState.crossActive = false;
+    gameState.reachActive = false;
     gameState.crossCooldown = 0;
     gameState.reachCooldown = 0;
     gameState.shakeCooldown = 0;

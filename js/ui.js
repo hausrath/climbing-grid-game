@@ -145,25 +145,27 @@ function setWeight(weight) {
     refreshTooltip();
 }
 
-// Select movement style
+// Toggle a movement skill on/off (skills can stack)
 function selectMovementStyle(style) {
-    // Check if style is on cooldown
-    if (style === 'cross' && gameState.crossCooldown > 0) {
-        addFeedback(`Cross on cooldown! ${gameState.crossCooldown} moves remaining.`, 'penalty');
-        return;
+    if (style === 'cross') {
+        if (gameState.crossCooldown > 0) {
+            addFeedback(`Cross on cooldown! ${gameState.crossCooldown} moves remaining.`, 'penalty');
+            return;
+        }
+        gameState.crossActive = !gameState.crossActive;
+        addFeedback(gameState.crossActive ? 'Cross activated (negates cross-body penalty)' : 'Cross deactivated', 'neutral');
+    } else if (style === 'reach') {
+        if (gameState.reachCooldown > 0) {
+            addFeedback(`Reach on cooldown! ${gameState.reachCooldown} moves remaining.`, 'penalty');
+            return;
+        }
+        gameState.reachActive = !gameState.reachActive;
+        addFeedback(gameState.reachActive ? 'Reach activated (negates distance penalty)' : 'Reach deactivated', 'neutral');
+    } else if (style === 'regular') {
+        gameState.crossActive = false;
+        gameState.reachActive = false;
+        addFeedback('Skills deactivated', 'neutral');
     }
-    if (style === 'reach' && gameState.reachCooldown > 0) {
-        addFeedback(`Reach on cooldown! ${gameState.reachCooldown} moves remaining.`, 'penalty');
-        return;
-    }
-
-    gameState.movementStyle = style;
-    const styleNames = {
-        'cross': 'Cross (negates cross-body penalty)',
-        'regular': 'Regular (balanced)',
-        'reach': 'Reach (negates distance penalty)'
-    };
-    addFeedback(`${styleNames[style]} selected`, 'neutral');
     refreshTooltip();
     updateUI();
 }
@@ -237,17 +239,9 @@ function updateUI() {
         reachBtn.textContent = gameState.reachCooldown > 0 ? `REACH CD:${gameState.reachCooldown}` : 'REACH (1)';
     }
 
-    if (crossBtn) crossBtn.classList.remove('selected');
-    if (regularBtn) regularBtn.classList.remove('selected');
-    if (reachBtn) reachBtn.classList.remove('selected');
-
-    if (gameState.movementStyle === 'cross' && crossBtn) {
-        crossBtn.classList.add('selected');
-    } else if (gameState.movementStyle === 'regular' && regularBtn) {
-        regularBtn.classList.add('selected');
-    } else if (gameState.movementStyle === 'reach' && reachBtn) {
-        reachBtn.classList.add('selected');
-    }
+    if (crossBtn) crossBtn.classList.toggle('selected', gameState.crossActive);
+    if (reachBtn) reachBtn.classList.toggle('selected', gameState.reachActive);
+    if (regularBtn) regularBtn.classList.toggle('selected', !gameState.crossActive && !gameState.reachActive);
 
     // Gate weight section behind Weight Shift skill
     const weightSection = document.getElementById('weight-section');

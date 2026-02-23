@@ -19,6 +19,61 @@ function runSolver() {
     const skills = editorState.unlockedSkills;
     const startTime = performance.now();
     const maxY = Math.max(...sorted.map(h => h.position.y));
+    // Pre-check: verify every hold is reachable from at least one lower hold or the start
+    // Uses base reach of 2 — dyno is an active skill (per-move activation) so it doesn't
+    // change structural reachability. The solver doesn't model dyno activation.
+    const unreachableHolds = [];
+    for (let i = 0; i < sorted.length; i++) {
+        const hold = sorted[i];
+        const hy = hold.position.y;
+        const hx = hold.position.x;
+
+        // Check if reachable from start position
+        let canReach = false;
+        const dyFromStart = hy;
+        const dxFromStart = Math.abs(hx - editorState.startCol);
+        if (dyFromStart > 0 && dyFromStart <= 2 && dxFromStart <= 2) {
+            canReach = true;
+        }
+
+        // Check if reachable from any lower hold
+        if (!canReach) {
+            for (let j = 0; j < sorted.length; j++) {
+                if (i === j) continue;
+                const other = sorted[j];
+                const dy = hy - other.position.y;
+                const dx = Math.abs(hx - other.position.x);
+                if (dy > 0 && dy <= 2 && dx <= 2) {
+                    canReach = true;
+                    break;
+                }
+            }
+        }
+
+        if (!canReach) {
+            unreachableHolds.push(i);
+        }
+    }
+
+    if (unreachableHolds.length > 0) {
+        const elapsed = (performance.now() - startTime).toFixed(0);
+        const holdStats = sorted.map(() => ({
+            successCombos: new Set(), totalAttempts: 0, failures: 0,
+            failReasons: { pump: 0, grip: 0, penalty: 0 }, bestPumpArriving: 999, inBestPath: false
+        }));
+        solverResults = {
+            totalPaths: 0, successPaths: 0, bestFinalPump: 999, holdStats, elapsed,
+            highestRowReached: 0, maxY, shortestPathLength: 999,
+            unreachableHolds: unreachableHolds.map(i => ({
+                index: i,
+                hold: sorted[i],
+                label: (holdTypes.find(h => h.type === sorted[i].type)?.label || sorted[i].type)
+            }))
+        };
+        solverBestPath = null;
+        displaySolverResults();
+        return;
+    }
 
     let totalPaths = 0;
     let successPaths = 0;
@@ -242,6 +297,18 @@ function displaySolverResults() {
     const resultsDiv = document.getElementById('solver-results');
 
     let html = '';
+    if (r.unreachableHolds && r.unreachableHolds.length > 0) {
+        html += `<div class="result-row"><span class="fail" style="font-size:1.1em;">ROUTE IMPOSSIBLE</span></div>`;
+        html += `<div class="result-row" style="color:#bdb9ae;">Unreachable holds detected — no hold or start position is close enough</div>`;
+        for (const uh of r.unreachableHolds) {
+            html += `<div class="result-row" style="margin-top:4px;"><span style="color:#f5aaa2;">Hold #${uh.index + 1} (${uh.label} at ${uh.hold.position.x},${uh.hold.position.y})</span><span style="color:#738078;">no hold within reach below</span></div>`;
+        }
+        html += `<div class="result-row"><span>Time:</span><span>${r.elapsed}ms</span></div>`;
+        html += `<div class="result-row"><span>Skills:</span><span>${editorState.unlockedSkills.length > 0 ? editorState.unlockedSkills.join(', ') : 'none'}</span></div>`;
+        resultsDiv.innerHTML = html;
+        document.getElementById('solver-hold-summary').innerHTML = '';
+        return;
+    }
     if (r.successPaths > 0) {
         html += `<div class="result-row"><span>Successful paths:</span><span class="success">${r.successPaths}</span></div>`;
         html += `<div class="result-row"><span>Best final pump:</span><span class="success">${PUMP_STATE_LABELS[r.bestFinalPump] || r.bestFinalPump} (${r.bestFinalPump})</span></div>`;
@@ -390,6 +457,7 @@ function loadBestPath() {
     const sorted = getSortedHolds();
     const isImpossible = solverResults && solverResults.successPaths === 0;
 
+    let moveNum = 0;
     for (const step of solverBestPath) {
         if (simState.fell || simState.completed) break;
 
@@ -405,6 +473,7 @@ function loadBestPath() {
         }
 
         // Execute move
+        moveNum++;
         const hold = sorted[step.holdIndex];
         pushHistory();
         simState.weight = step.weight;
@@ -416,7 +485,7 @@ function loadBestPath() {
 
         const handLabel = step.hand === 'left' ? 'L' : 'R';
         const ht = holdTypes.find(h => h.type === hold.type);
-        let logText = `#${step.holdIndex + 1} ${ht?.label} ${hold.angle}° | ${handLabel} | eff:${result.effectivePenalty}`;
+        let logText = `#${moveNum} ${ht?.label} ${hold.angle}° | ${handLabel} | eff:${result.effectivePenalty}`;
         const logType = result.fell ? 'fell' : result.effectivePenalty === 0 ? 'bonus' : result.effectivePenalty >= 2 ? 'penalty' : 'neutral';
         addMoveLog(logText, logType);
         result.feedback.forEach(f => addMoveLog('  ' + f.text, f.type));

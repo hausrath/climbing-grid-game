@@ -71,7 +71,7 @@ function exportToJs() {
     js += '        completion: true,\n';
     js += `        speed: { timeLimit: ${editorState.stars.speed} },\n`;
     js += `        pumpEfficiency: { maxPump: ${editorState.stars.pumpEfficiency || 0} },\n`;
-    js += '        noRecovery: true,\n';
+    js += '        gripEfficiency: true,\n';
     js += '        flashClimb: true,\n';
     js += '    }\n';
     js += '}';

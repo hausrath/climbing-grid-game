@@ -65,17 +65,10 @@ function moveToHold(row, col) {
     let effectiveLevel = basePenaltyLevel;
     let levelBumps = [];
 
-    // +1 from hand-hold awkwardness (gaston at 135/225)
-    const handHoldModifier = getHandHoldPumpModifier(hold.type, hand, hold.angle) || 0;
-    if (handHoldModifier > 0) {
-        effectiveLevel += 1;
-        levelBumps.push('gaston');
-    }
-
     // +1 from distance surcharge (2+ spaces)
     let reachUsed = false;
     if (isExtendedMove) {
-        if (gameState.movementStyle === 'reach') {
+        if (gameState.reachActive) {
             reachUsed = true;
             feedback.push({ text: `Reach: distance penalty negated!`, type: 'bonus' });
         } else {
@@ -87,20 +80,13 @@ function moveToHold(row, col) {
     // Cross-body: penalty is already in the base table, Cross reduces it by 1
     let crossUsed = false;
     if (crossMove) {
-        if (gameState.movementStyle === 'cross') {
+        if (gameState.crossActive) {
             crossUsed = true;
             effectiveLevel = Math.max(0, effectiveLevel - 1);
             feedback.push({ text: `Cross: cross-body penalty negated!`, type: 'bonus' });
         } else {
             levelBumps.push('cross-body');
         }
-    }
-
-    // Cross can also reduce gaston if not already used for cross-body
-    if (!crossUsed && gameState.movementStyle === 'cross' && handHoldModifier > 0) {
-        effectiveLevel = Math.max(0, effectiveLevel - 1);
-        crossUsed = true;
-        feedback.push({ text: `Cross: gaston penalty reduced!`, type: 'bonus' });
     }
 
     // Commit: reduce effective penalty level by 1
@@ -221,8 +207,7 @@ function moveToHold(row, col) {
         gameState.consecutiveCrosses = 0;
     }
 
-    // Weight only changes via manual Weight Shift skill (unlocked in Area 3)
-    // No auto-shift — weight stays at center until player learns to control it
+    // Weight only changes via manual Weight Shift skill (unlocked at Area 1)
 
     // Update hand tracking
     gameState.currentHand = gameState.selectedHand;
@@ -251,7 +236,8 @@ function moveToHold(row, col) {
 
     // Reset per-move state
     gameState.selectedHand = null;
-    gameState.movementStyle = 'regular';
+    gameState.crossActive = false;
+    gameState.reachActive = false;
     gameState.weightAtMoveStart = gameState.weight;
 
     // Update viewport and render
