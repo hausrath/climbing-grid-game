@@ -193,9 +193,7 @@ function runSolver() {
                         const dy = hold.position.y - recState.currentRow;
                         const dx = Math.abs(hold.position.x - recState.currentCol);
                         const extended = (dy >= 2 || dx >= 2);
-                        const gaston = getHandHoldPumpModifier(hold.type, hand, hold.angle) > 0;
-
-                        const crossOpts = (skills.includes('cross') && recState.crossCooldown <= 0 && (crossMove || gaston)) ? [false, true] : [false];
+                        const crossOpts = (skills.includes('cross') && recState.crossCooldown <= 0 && crossMove) ? [false, true] : [false];
                         const reachOpts = (skills.includes('reach') && recState.reachCooldown <= 0 && extended) ? [false, true] : [false];
                         const commitOpts = (skills.includes('commit') && recState.commitCooldown <= 0) ? [false, true] : [false];
 
@@ -485,10 +483,19 @@ function loadBestPath() {
 
         const handLabel = step.hand === 'left' ? 'L' : 'R';
         const ht = holdTypes.find(h => h.type === hold.type);
-        let logText = `#${moveNum} ${ht?.label} ${hold.angle}° | ${handLabel} | eff:${result.effectivePenalty}`;
+        const dirLabel = result.direction.replace('up-', 'U').replace('up', 'U');
+        const weightStr = editorState.unlockedSkills.includes('weightshift') ? ` ${step.weight[0].toUpperCase()}` : '';
+        const skillsUsed = [];
+        if (result.crossUsed) skillsUsed.push('Cross');
+        if (result.reachUsed) skillsUsed.push('Reach');
+        if (result.commitUsed) skillsUsed.push('Commit');
+        const skillStr = skillsUsed.length > 0 ? ` <${skillsUsed.join('+')}>` : '';
+        const modsStr = result.modifiers.length > 0 ? ` [${result.modifiers.join(',')}]` : '';
+        let logText = `#${moveNum} ${ht?.label} ${hold.angle}° | ${handLabel}${weightStr} | ${dirLabel} | base:${result.basePenalty} eff:${result.effectivePenalty}${modsStr}${skillStr}`;
         const logType = result.fell ? 'fell' : result.effectivePenalty === 0 ? 'bonus' : result.effectivePenalty >= 2 ? 'penalty' : 'neutral';
         addMoveLog(logText, logType);
         result.feedback.forEach(f => addMoveLog('  ' + f.text, f.type));
+        addMoveLog(`  Pump: ${PUMP_STATE_LABELS[simState.pumpState] || 'Critical'} | Grip: ${GRIP_STATE_LABELS[simState.gripState] || 'Critical'}`, 'neutral');
     }
 
     if (simState.completed) {

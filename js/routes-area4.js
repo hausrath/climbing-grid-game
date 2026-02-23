@@ -1,0 +1,90 @@
+// AREA 4: JUG JUNCTION (Unlocks Match — reset hands on matchable holds)
+const ROUTES_AREA_4 = [
+    {
+        id: 'jj-1',
+        name: 'Match Point',
+        grade: 'V2',
+        holdCount: 10,
+        description: 'Matching resets your hand sequence. Use it to pick the right hand for the next section.',
+        // Route goes right then left. Matching at the turning point
+        // lets you choose the optimal hand for the new direction.
+        holds: [
+            { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 2, y: 1 }, matchable: false, isRest: false },
+            { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 3, y: 2 }, matchable: false, isRest: false },
+            { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 4, y: 3 }, matchable: false, isRest: false },
+            { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 4, y: 4 }, matchable: true, isRest: false },
+            { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 3, y: 5 }, matchable: false, isRest: false },
+            { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 2, y: 6 }, matchable: false, isRest: false },
+            { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 1, y: 7 }, matchable: false, isRest: false },
+            { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 1, y: 8 }, matchable: true, isRest: false },
+            { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 2, y: 9 }, matchable: false, isRest: false },
+            { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 2, y: 10 }, matchable: true, isRest: true },
+        ],
+        stars: {
+            completion: true,
+            speed: { timeLimit: 55 },
+            pumpEfficiency: { maxPump: 0 },
+            gripEfficiency: true,
+            flashClimb: true,
+        }
+    },
+    {
+        id: 'jj-2',
+        name: 'Match and Shift',
+        grade: 'V3',
+        holdCount: 12,
+        description: 'Match at key points, shift weight for the angles. Cross for the gastons.',
+        // Match + Weight Shift + Cross.
+        // Match point lets player reset before a weight-demanding section.
+        holds: [
+            { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 2, y: 1 }, matchable: false, isRest: false },
+            { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 3, y: 2 }, matchable: false, isRest: false },
+            { type: 'crimp', label: 'CRIMP', angle: 45, pumpRating: 3, gripDrain: 2, position: { x: 3, y: 3 }, matchable: false, isRest: false },
+            { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 3, y: 4 }, matchable: true, isRest: false },
+            { type: 'crimp', label: 'CRIMP', angle: 315, pumpRating: 3, gripDrain: 2, position: { x: 2, y: 5 }, matchable: false, isRest: false },
+            { type: 'crimp', label: 'CRIMP', angle: 225, pumpRating: 4, gripDrain: 2, position: { x: 3, y: 6 }, matchable: false, isRest: false },
+            { type: 'jug', label: 'JUG', angle: 315, pumpRating: 1, gripDrain: 1, position: { x: 3, y: 7 }, matchable: true, isRest: false },
+            { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 2, y: 8 }, matchable: false, isRest: false },
+            { type: 'crimp', label: 'CRIMP', angle: 45, pumpRating: 3, gripDrain: 2, position: { x: 1, y: 9 }, matchable: false, isRest: false },
+            { type: 'jug', label: 'JUG', angle: 45, pumpRating: 2, gripDrain: 1, position: { x: 1, y: 10 }, matchable: false, isRest: false },
+            { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 2, y: 11 }, matchable: false, isRest: false },
+            { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 2, y: 12 }, matchable: true, isRest: true },
+        ],
+        stars: {
+            completion: true,
+            speed: { timeLimit: 75 },
+            pumpEfficiency: { maxPump: 2 },
+            gripEfficiency: true,
+            flashClimb: true,
+        }
+    },
+    {
+        id: 'jj-3',
+        name: 'The Junction Test',
+        grade: 'V4',
+        holdCount: 12,
+        description: 'Match, Weight Shift, Cross, and Reach — all four skills tested.',
+        // All 4 skills required. Extended gaston at wrong weight with hand trap.
+        holds: [
+            { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 2, y: 1 }, matchable: false, isRest: false },
+            { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 3, y: 2 }, matchable: false, isRest: false },
+            { type: 'crimp', label: 'CRIMP', angle: 0, pumpRating: 3, gripDrain: 2, position: { x: 3, y: 4 }, matchable: false, isRest: false },
+            { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 3, y: 5 }, matchable: true, isRest: false },
+            { type: 'crimp', label: 'CRIMP', angle: 315, pumpRating: 3, gripDrain: 2, position: { x: 2, y: 6 }, matchable: false, isRest: false },
+            { type: 'crimp', label: 'CRIMP', angle: 225, pumpRating: 4, gripDrain: 2, position: { x: 3, y: 7 }, matchable: false, isRest: false },
+            { type: 'jug', label: 'JUG', angle: 315, pumpRating: 1, gripDrain: 1, position: { x: 3, y: 8 }, matchable: true, isRest: false },
+            { type: 'crimp', label: 'CRIMP', angle: 45, pumpRating: 3, gripDrain: 2, position: { x: 2, y: 9 }, matchable: false, isRest: false },
+            { type: 'crimp', label: 'CRIMP', angle: 45, pumpRating: 3, gripDrain: 2, position: { x: 1, y: 10 }, matchable: false, isRest: false },
+            { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 1, y: 11 }, matchable: false, isRest: false },
+            { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 2, y: 12 }, matchable: false, isRest: false },
+            { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 2, y: 13 }, matchable: true, isRest: true },
+        ],
+        stars: {
+            completion: true,
+            speed: { timeLimit: 75 },
+            pumpEfficiency: { maxPump: 2 },
+            gripEfficiency: true,
+            flashClimb: true,
+        }
+    },
+];

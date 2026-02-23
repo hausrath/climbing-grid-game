@@ -24,8 +24,6 @@ const HOLD_GRIP_COST = {
     pocket: 2,
     undercling: 2,
     pinch: 3,
-    gaston: 3,
-    sidepull: 3,
     crimp: 4,
     sloper: 4
 };
@@ -131,79 +129,6 @@ function lookupPenalty(direction, hand, holdAngle, weight) {
     const key = `${direction}-${handCode}-${normalized}-${weightCode}`;
     const result = PENALTY_MAP.get(key);
     return result !== undefined ? result : 0;
-}
-
-// ============ HAND-HOLD PUMP MODIFIERS (Gaston) ============
-const HAND_HOLD_PUMP_RAW = [
-    ['jug', 'L', 0, 0], ['jug', 'R', 0, 0],
-    ['jug', 'L', 45, 0], ['jug', 'R', 45, 0],
-    ['jug', 'L', 90, 0], ['jug', 'R', 90, 0],
-    ['jug', 'L', 135, 0], ['jug', 'R', 135, 0],
-    ['jug', 'L', 180, 0], ['jug', 'R', 180, 0],
-    ['jug', 'L', 225, 0], ['jug', 'R', 225, 0],
-    ['jug', 'L', 270, 0], ['jug', 'R', 270, 0],
-    ['jug', 'L', 315, 0], ['jug', 'R', 315, 0],
-    ['crimp', 'L', 0, 0], ['crimp', 'R', 0, 0],
-    ['crimp', 'L', 45, 0], ['crimp', 'R', 45, 0],
-    ['crimp', 'L', 90, 0], ['crimp', 'R', 90, 0],
-    ['crimp', 'L', 135, 0], ['crimp', 'R', 135, 0],
-    ['crimp', 'L', 180, 0], ['crimp', 'R', 180, 0],
-    ['crimp', 'L', 225, 0], ['crimp', 'R', 225, 0],
-    ['crimp', 'L', 270, 0], ['crimp', 'R', 270, 0],
-    ['crimp', 'L', 315, 0], ['crimp', 'R', 315, 0],
-    ['sloper', 'L', 0, 0], ['sloper', 'R', 0, 0],
-    ['sloper', 'L', 45, 0], ['sloper', 'R', 45, 0],
-    ['sloper', 'L', 90, 0], ['sloper', 'R', 90, 0],
-    ['sloper', 'L', 135, 0], ['sloper', 'R', 135, 0],
-    ['sloper', 'L', 180, 0], ['sloper', 'R', 180, 0],
-    ['sloper', 'L', 225, 0], ['sloper', 'R', 225, 0],
-    ['sloper', 'L', 270, 0], ['sloper', 'R', 270, 0],
-    ['sloper', 'L', 315, 0], ['sloper', 'R', 315, 0],
-    ['pinch', 'L', 0, 0], ['pinch', 'R', 0, 0],
-    ['pinch', 'L', 45, 0], ['pinch', 'R', 45, 0],
-    ['pinch', 'L', 90, 0], ['pinch', 'R', 90, 0],
-    ['pinch', 'L', 135, 0], ['pinch', 'R', 135, 0],
-    ['pinch', 'L', 180, 0], ['pinch', 'R', 180, 0],
-    ['pinch', 'L', 225, 0], ['pinch', 'R', 225, 0],
-    ['pinch', 'L', 270, 0], ['pinch', 'R', 270, 0],
-    ['pinch', 'L', 315, 0], ['pinch', 'R', 315, 0],
-    ['pocket', 'L', 0, 0], ['pocket', 'R', 0, 0],
-    ['pocket', 'L', 45, 0], ['pocket', 'R', 45, 0],
-    ['pocket', 'L', 90, 0], ['pocket', 'R', 90, 0],
-    ['pocket', 'L', 135, 0], ['pocket', 'R', 135, 0],
-    ['pocket', 'L', 180, 0], ['pocket', 'R', 180, 0],
-    ['pocket', 'L', 225, 0], ['pocket', 'R', 225, 0],
-    ['pocket', 'L', 270, 0], ['pocket', 'R', 270, 0],
-    ['pocket', 'L', 315, 0], ['pocket', 'R', 315, 0],
-    ['edge', 'L', 0, 0], ['edge', 'R', 0, 0],
-    ['edge', 'L', 45, 0], ['edge', 'R', 45, 0],
-    ['edge', 'L', 90, 0], ['edge', 'R', 90, 0],
-    ['edge', 'L', 135, 0], ['edge', 'R', 135, 0],
-    ['edge', 'L', 180, 0], ['edge', 'R', 180, 0],
-    ['edge', 'L', 225, 0], ['edge', 'R', 225, 0],
-    ['edge', 'L', 270, 0], ['edge', 'R', 270, 0],
-    ['edge', 'L', 315, 0], ['edge', 'R', 315, 0],
-    ['undercling', 'L', 0, 0], ['undercling', 'R', 0, 0],
-    ['undercling', 'L', 45, 0], ['undercling', 'R', 45, 0],
-    ['undercling', 'L', 90, 0], ['undercling', 'R', 90, 0],
-    ['undercling', 'L', 135, 0], ['undercling', 'R', 135, 0],
-    ['undercling', 'L', 180, 0], ['undercling', 'R', 180, 0],
-    ['undercling', 'L', 225, 0], ['undercling', 'R', 225, 0],
-    ['undercling', 'L', 270, 0], ['undercling', 'R', 270, 0],
-    ['undercling', 'L', 315, 0], ['undercling', 'R', 315, 0],
-];
-
-const HAND_HOLD_PUMP_MAP = new Map();
-HAND_HOLD_PUMP_RAW.forEach(entry => {
-    const key = `${entry[0]}-${entry[1]}-${entry[2]}`;
-    HAND_HOLD_PUMP_MAP.set(key, entry[3]);
-});
-
-function getHandHoldPumpModifier(holdType, hand, angle) {
-    const normalized = normalizeAngle(angle);
-    const handCode = hand === 'left' ? 'L' : 'R';
-    const key = `${holdType}-${handCode}-${normalized}`;
-    return HAND_HOLD_PUMP_MAP.get(key) || 0;
 }
 
 // ============ DIRECTION & MOVE HELPERS ============

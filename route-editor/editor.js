@@ -14,6 +14,7 @@ const editorState = {
 function initEditor() {
     renderGrid();
     updateHoldCount();
+    updateSkills();
 }
 
 // ---- Route Metadata ----
@@ -304,12 +305,8 @@ function buildPenaltyTooltip(hold) {
     let html = '';
     for (const dir of directions) {
         for (const hand of hands) {
-            const p = lookupPenalty(dir, hand, hold.angle, idealWt);
-            const gaston = getHandHoldPumpModifier(hold.type, hand, hold.angle);
-            const eff = Math.min(p + gaston, 4);
-            const cls = `p${Math.min(eff, 4)}`;
-            const gastonMark = gaston > 0 ? '+G' : '';
-            html += `<span class="${cls}">${dirLabels[dir]}+${handLabels[hand]}=${eff}${gastonMark}</span> `;
+            const eff = Math.min(lookupPenalty(dir, hand, hold.angle, idealWt), 4);
+            html += `<span class="p${eff}">${dirLabels[dir]}+${handLabels[hand]}=${eff}</span> `;
         }
         html += '<br>';
     }

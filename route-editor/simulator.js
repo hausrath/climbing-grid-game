@@ -99,18 +99,9 @@ function simulateMove(state, hold, hand, weight, options) {
     let effectiveLevel = result.basePenalty;
     let levelBumps = [];
 
-    // Gaston
-    const handHoldMod = getHandHoldPumpModifier(hold.type, hand, hold.angle);
-    if (handHoldMod > 0) {
-        effectiveLevel += 1;
-        levelBumps.push('gaston');
-    }
-
     // Distance
-    let reachUsed = false;
     if (isExtendedMove) {
         if (useReach && skills.includes('reach') && state.reachCooldown <= 0) {
-            reachUsed = true;
             result.reachUsed = true;
             result.feedback.push({ text: 'Reach: distance penalty negated', type: 'bonus' });
         } else {
@@ -120,24 +111,14 @@ function simulateMove(state, hold, hand, weight, options) {
     }
 
     // Cross skill
-    let crossUsed = false;
     if (crossMove) {
         if (useCross && skills.includes('cross') && state.crossCooldown <= 0) {
-            crossUsed = true;
             result.crossUsed = true;
             effectiveLevel = Math.max(0, effectiveLevel - 1);
             result.feedback.push({ text: 'Cross: cross-body penalty reduced', type: 'bonus' });
         } else {
             levelBumps.push('cross-body');
         }
-    }
-
-    // Cross for gaston (if not already used for cross-body)
-    if (!crossUsed && useCross && skills.includes('cross') && state.crossCooldown <= 0 && handHoldMod > 0) {
-        effectiveLevel = Math.max(0, effectiveLevel - 1);
-        crossUsed = true;
-        result.crossUsed = true;
-        result.feedback.push({ text: 'Cross: gaston penalty reduced', type: 'bonus' });
     }
 
     // Commit

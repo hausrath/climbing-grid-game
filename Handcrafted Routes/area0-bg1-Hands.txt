@@ -4,7 +4,7 @@ name: Hands
 grade: V0
 area: 0
 description: A simple route
-holdCount: 7
+holdCount: 6
 startCol: 2
 
 === HOLDS ===
@@ -16,7 +16,7 @@ startCol: 2
   5  2  jug           0     1     1     no    no
   6  1  jug           0     1     1     no    no
   7  2  edge          0     1     1     no    no
-  8  3  jug           0     1     1     no    no
+  8  2  jug           0     1     1     no    no
 
 === STARS ===
 speed: 30

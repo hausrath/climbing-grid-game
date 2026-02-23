@@ -1,0 +1,23 @@
+=== ROUTE ===
+id: oa1
+name: The Weight
+grade: V1
+area: 0
+description: Shift your weight to avoid the pump to the top
+holdCount: 6
+startCol: 2
+
+=== HOLDS ===
+# y  x  type        angle  pump  grip  match  rest
+  1  2  edge         45     1     1     no    no
+  2  2  pocket        0     1     1     no    no
+  3  2  jug         315     1     1     no    no
+  4  2  pinch         0     1     1     no    no
+  5  2  jug          90     1     1     no    no
+  6  2  pocket        0     1     1     no    no
+  7  2  jug         270     1     1     no    no
+  8  2  edge        135     1     1     no    no
+
+=== STARS ===
+speed: 30
+pumpEfficiency: 0

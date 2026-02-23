@@ -47,15 +47,10 @@ function refreshTooltip() {
         let effective = basePenalty;
         let bumps = [];
 
-        const handMod = getHandHoldPumpModifier(hold.type, hand, hold.angle) || 0;
-        if (handMod > 0) { effective += 1; bumps.push('gaston'); }
-
         const isCross = isCrossMove(hand, direction);
-        let crossUsedInTooltip = false;
         if (isCross) {
             if (gameState.crossActive) {
                 effective = Math.max(0, effective - 1);
-                crossUsedInTooltip = true;
                 bumps.push('<span style="color:#a8db60">cross</span>');
             } else {
                 bumps.push('cross-body');
@@ -68,12 +63,6 @@ function refreshTooltip() {
             } else {
                 effective += 1; bumps.push('distance');
             }
-        }
-
-        // Cross skill can also reduce gaston if not used for cross-body
-        if (!crossUsedInTooltip && gameState.crossActive && handMod > 0) {
-            effective = Math.max(0, effective - 1);
-            bumps.push('<span style="color:#a8db60">cross</span>');
         }
 
         if (gameState.commitActive && effective > 0) {
@@ -228,8 +217,8 @@ const SKILL_TOOLTIPS = {
     cross: {
         name: 'Cross',
         key: '3',
-        what: 'Reduces cross-body or gaston penalty by 1 level.',
-        when: 'Activate before reaching across your body or grabbing a gaston-angled hold (L@135\u00B0 / R@225\u00B0). 3-move cooldown.'
+        what: 'Reduces cross-body penalty by 1 level.',
+        when: 'Activate before reaching across your body. 3-move cooldown.'
     },
     regular: {
         name: 'Regular',
