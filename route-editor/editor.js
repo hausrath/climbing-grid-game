@@ -5,7 +5,7 @@ const editorState = {
     holds: [],
     gridHeight: 10,
     selectedHoldIndex: null,
-    startCol: 2,
+    startCol: 3,
     stars: { speed: 30, pumpEfficiency: 0 },
     unlockedSkills: []
 };
@@ -71,7 +71,7 @@ function renderGrid() {
         label.textContent = y;
         rowDiv.appendChild(label);
 
-        for (let x = 0; x < 5; x++) {
+        for (let x = 0; x < 7; x++) {
             const cell = document.createElement('div');
             cell.className = 'grid-cell';
             cell.dataset.x = x;

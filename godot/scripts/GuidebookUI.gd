@@ -36,7 +36,7 @@ func _render_guidebook() -> void:
 	for i in range(GameState.locations.size()):
 		var loc: Dictionary = GameState.locations[i]
 		var loc_id: int = loc.get("id", i)
-		if not GameState.is_location_unlocked(loc_id):
+		if not GameState.is_location_unlocked(loc):
 			continue
 		_add_location_block(loc, loc_id)
 

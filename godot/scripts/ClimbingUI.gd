@@ -150,14 +150,14 @@ func _update_resource_bars() -> void:
 		pump_bar.value = GameState.pump_state
 	if pump_label:
 		pump_label.text = "Pump: %s (%d/3)" % [
-			Constants.PUMP_STATE_LABELS.get(GameState.pump_state, "?"), GameState.pump_state]
+			Constants.PUMP_STATE_LABELS[min(GameState.pump_state, 2)], GameState.pump_state]
 
 	if grip_bar:
 		grip_bar.max_value = 3
 		grip_bar.value = GameState.grip_state
 	if grip_label:
 		grip_label.text = "Grip: %s | decay %d/3" % [
-			Constants.GRIP_STATE_LABELS.get(GameState.grip_state, "?"), GameState.grip_decay_counter]
+			Constants.GRIP_STATE_LABELS[min(GameState.grip_state, 2)], GameState.grip_decay_counter]
 
 
 func _update_move_count() -> void:
@@ -172,7 +172,7 @@ func _update_conditions_sidebar() -> void:
 		sidebar_conditions.visible = false
 		return
 	sidebar_conditions.visible = true
-	var weather: String = GameState.daily_conditions.get("weather", "mild")
+	var weather: String = GameState.current_conditions.get("temperature", "mild")
 	var time_of_day: String = GameState.time_of_day
 	conditions_label.text = "Weather: %s\nTime: %s" % [weather.capitalize(), time_of_day.capitalize()]
 

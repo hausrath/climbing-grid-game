@@ -215,6 +215,7 @@ Eight skills unlock as the player earns stars at locations. All skills except We
 | **Commit** | R | Area 4 (Jug Junction) | areaUnlock (8★) | −1 effective penalty for one move (one-shot) | 10 moves |
 | **Bump** | B | Area 5 (Pinch Peak) | areaUnlock (8★) | Reposition laterally without changing hands *(not yet implemented in climbing code)* | — |
 | **Dyno** | T | Area 7 (Steep Street) | areaUnlock (8★) | Extends max reach to 3 spaces (dy or dx) for one move | 5 moves |
+| **Body Tension** | G | Area 8 (TBD) | areaUnlock (8★) | Provides body tension for x moves to get through specific type of sequence. This is a future add that is to be determined | 5 moves |
 
 ### Skill Mechanics Detail
 

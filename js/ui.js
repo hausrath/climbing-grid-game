@@ -6,8 +6,8 @@ function renderGrid() {
     // Determine which holds are reachable from current position
     const playerVRow = routeRowToViewportRow(gameState.currentRow);
 
-    for (let row = 0; row < 5; row++) {
-        for (let col = 0; col < 5; col++) {
+    for (let row = 0; row < 7; row++) {
+        for (let col = 0; col < 7; col++) {
             const cell = document.createElement('div');
             cell.className = 'grid-cell';
             cell.dataset.row = row;

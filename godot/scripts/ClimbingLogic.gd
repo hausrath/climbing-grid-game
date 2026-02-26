@@ -118,7 +118,7 @@ func move_to_hold(row: int, col: int) -> void:
 
 	# Pump feedback
 	if pump_change > 0:
-		var level_name: String = Constants.PENALTY_LEVEL_NAMES.get(effective_level, "Unknown")
+		var level_name: String = Constants.PENALTY_LEVEL_NAMES[min(effective_level, 4)]
 		var bump_str := (" (%s)" % ", ".join(level_bumps)) if not level_bumps.is_empty() else ""
 		feedback.append({"text": "%s penalty%s: pump +%d state" % [level_name, bump_str, pump_change],
 			"type": "penalty" if pump_change >= 2 else "neutral"})
@@ -144,7 +144,7 @@ func move_to_hold(row: int, col: int) -> void:
 			grip_advanced = true
 
 	if grip_advanced:
-		var grip_label: String = Constants.GRIP_STATE_LABELS.get(GameState.grip_state, "Critical")
+		var grip_label: String = Constants.GRIP_STATE_LABELS[min(GameState.grip_state, 2)]
 		feedback.append({"text": "Grip decayed to: %s" % grip_label,
 			"type": "penalty" if GameState.grip_state >= 2 else "neutral"})
 	else:
@@ -154,8 +154,8 @@ func move_to_hold(row: int, col: int) -> void:
 	# Step 5: Apply pump
 	GameState.pump_state = new_pump
 
-	var pump_label: String = Constants.PUMP_STATE_LABELS.get(GameState.pump_state, "Critical")
-	var grip_label2: String = Constants.GRIP_STATE_LABELS.get(GameState.grip_state, "Critical")
+	var pump_label: String = Constants.PUMP_STATE_LABELS[min(GameState.pump_state, 2)]
+	var grip_label2: String = Constants.GRIP_STATE_LABELS[min(GameState.grip_state, 2)]
 	feedback.append({"text": "%s (%d°) — Pump: %s, Grip: %s" % [
 		hold.get("label","?"), hold.get("angle",0), pump_label, grip_label2], "type": "neutral"})
 

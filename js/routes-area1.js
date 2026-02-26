@@ -6,7 +6,7 @@ const ROUTES_AREA_1 = [
         grade: 'V1',
         holdCount: 8,
         description: 'Reach wide to start and move up good holds to the finish',
-        startCol: 2,
+        startCol: 3,
         holds: [
             { type: 'pocket', label: 'POCKET', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 4, y: 1 }, matchable: false, isRest: false },
             { type: 'edge', label: 'EDGE', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 3, y: 2 }, matchable: false, isRest: false },
@@ -31,7 +31,7 @@ const ROUTES_AREA_1 = [
         grade: 'V2',
         holdCount: 8,
         description: 'Pockets down low lead to a reachy pinch move up top',
-        startCol: 0,
+        startCol: 1,
         holds: [
             { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 1, y: 1 }, matchable: false, isRest: false },
             { type: 'pocket', label: 'POCKET', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 3, y: 2 }, matchable: false, isRest: false },
@@ -56,7 +56,7 @@ const ROUTES_AREA_1 = [
         grade: 'V2',
         holdCount: 9,
         description: 'Survive tenuous holds to reach for a juggy end',
-        startCol: 3,
+        startCol: 4,
         holds: [
             { type: 'edge', label: 'EDGE', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 2, y: 1 }, matchable: false, isRest: false },
             { type: 'pocket', label: 'POCKET', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 4, y: 2 }, matchable: false, isRest: false },

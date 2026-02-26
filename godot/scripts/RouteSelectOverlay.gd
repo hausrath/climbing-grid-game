@@ -31,7 +31,7 @@ func _render(location: Dictionary) -> void:
 		location_label.text = location.get("name", "Unknown Location")
 
 	if conditions_label:
-		var weather: String = GameState.daily_conditions.get("weather", "mild")
+		var weather: String = GameState.current_conditions.get("temperature", "mild")
 		var time_str: String = GameState.time_of_day
 		conditions_label.text = "Conditions: %s | %s" % [weather.capitalize(), time_str.capitalize()]
 
@@ -49,7 +49,7 @@ func _render(location: Dictionary) -> void:
 		var stars_earned: int = completion.get("stars", 0)
 		var star_results: Dictionary = completion.get("starResults", {})
 		var completed: bool = not completion.is_empty()
-		var loot_collected: bool = GameState.route_loot_collected.get(route_key, false)
+		var loot_collected: bool = GameState.collected_loot.get(route_key, false)
 
 		var row := HBoxContainer.new()
 		row.add_theme_constant_override("separation", 12)

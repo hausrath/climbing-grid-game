@@ -1,9 +1,9 @@
-// Initialize grid (5 columns, dynamic rows based on route height)
+// Initialize grid (7 columns, dynamic rows based on route height)
 function initGrid() {
     gameState.grid = [];
-    for (let row = 0; row < 5; row++) {
+    for (let row = 0; row < 7; row++) {
         gameState.grid[row] = [];
-        for (let col = 0; col < 5; col++) {
+        for (let col = 0; col < 7; col++) {
             gameState.grid[row][col] = null;
         }
     }
@@ -26,7 +26,7 @@ function loadRoute(route) {
     gameState.routeGrid = [];
     for (let row = 0; row <= maxY; row++) {
         gameState.routeGrid[row] = [];
-        for (let col = 0; col < 5; col++) {
+        for (let col = 0; col < 7; col++) {
             gameState.routeGrid[row][col] = null;
         }
     }
@@ -54,7 +54,7 @@ function loadRoute(route) {
         };
     });
 
-    // Initialize the 5x5 viewport grid from the bottom of the route
+    // Initialize the 7x7 viewport grid from the bottom of the route
     initGrid();
 
     // Player starts at bottom of route (conceptual row 0)
@@ -66,16 +66,16 @@ function loadRoute(route) {
     updateViewport();
 }
 
-// Update the 5x5 viewport grid based on current player position
+// Update the 7x7 viewport grid based on current player position
 function updateViewport() {
-    // Player should stay near the bottom of the viewport (viewport row 3)
-    // so that upcoming holds above are visible in rows 0-2.
-    // viewportBottom = the route row that maps to viewport row 4 (bottom of screen)
+    // Player should stay near the bottom of the viewport (viewport row 5)
+    // so that upcoming holds above are visible in rows 0-4.
+    // viewportBottom = the route row that maps to viewport row 6 (bottom of screen)
     const playerRouteRow = gameState.currentRow;
     const maxRouteRow = gameState.routeGrid ? gameState.routeGrid.length - 1 : 0;
 
-    // Place the player at viewport row 3 (one from bottom), so we see 3 rows above
-    // vRow 3 maps to routeRow = viewportBottom + (4-3) = viewportBottom + 1
+    // Place the player at viewport row 5 (one from bottom), so we see 5 rows above
+    // vRow 5 maps to routeRow = viewportBottom + (6-5) = viewportBottom + 1
     // So viewportBottom = playerRouteRow - 1
     let desiredBottom = playerRouteRow - 1;
 
@@ -83,8 +83,8 @@ function updateViewport() {
     desiredBottom = Math.max(0, desiredBottom);
 
     // Also clamp so we don't show too far beyond the top of the route
-    if (maxRouteRow >= 4 && desiredBottom + 4 > maxRouteRow) {
-        desiredBottom = maxRouteRow - 4;
+    if (maxRouteRow >= 6 && desiredBottom + 6 > maxRouteRow) {
+        desiredBottom = maxRouteRow - 6;
     }
     desiredBottom = Math.max(0, desiredBottom);
 
@@ -93,9 +93,9 @@ function updateViewport() {
     // If route grid exists, copy relevant rows into viewport
     if (!gameState.routeGrid) return;
 
-    for (let vRow = 0; vRow < 5; vRow++) {
-        const routeRow = gameState.viewportBottom + (4 - vRow); // Flip: viewport row 0 = top = highest route row
-        for (let col = 0; col < 5; col++) {
+    for (let vRow = 0; vRow < 7; vRow++) {
+        const routeRow = gameState.viewportBottom + (6 - vRow); // Flip: viewport row 0 = top = highest route row
+        for (let col = 0; col < 7; col++) {
             if (routeRow >= 0 && routeRow <= maxRouteRow && gameState.routeGrid[routeRow]) {
                 gameState.grid[vRow][col] = gameState.routeGrid[routeRow][col];
             } else {
@@ -107,10 +107,10 @@ function updateViewport() {
 
 // Get the viewport row for a given route row
 function routeRowToViewportRow(routeRow) {
-    return 4 - (routeRow - gameState.viewportBottom);
+    return 6 - (routeRow - gameState.viewportBottom);
 }
 
 // Get the route row for a given viewport row
 function viewportRowToRouteRow(viewportRow) {
-    return gameState.viewportBottom + (4 - viewportRow);
+    return gameState.viewportBottom + (6 - viewportRow);
 }

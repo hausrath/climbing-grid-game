@@ -21,13 +21,13 @@ func use_shake() -> void:
 
 	var old_state: int = GameState.pump_state
 	GameState.pump_state = max(0, GameState.pump_state - 1)
-	var new_label: String = Constants.PUMP_STATE_LABELS.get(GameState.pump_state, "Fresh")
+	var new_label: String = Constants.PUMP_STATE_LABELS[min(GameState.pump_state, 2)]
 
 	GameState.shakes_used += 1
 	GameState.shake_cooldown = GameState.action_cooldown_length
 
 	emit_signal("feedback_added",
-		"Shook out! Pump: %s -> %s" % [Constants.PUMP_STATE_LABELS.get(old_state, "?"), new_label],
+		"Shook out! Pump: %s -> %s" % [Constants.PUMP_STATE_LABELS[min(old_state, 2)], new_label],
 		"bonus")
 	emit_signal("feedback_added", "Cooldown: %d moves" % GameState.shake_cooldown, "neutral")
 
@@ -56,7 +56,7 @@ func use_chalk() -> void:
 
 	GameState.chalk_remaining -= 1
 
-	var old_grip_label: String = Constants.GRIP_STATE_LABELS.get(GameState.grip_state, "Critical")
+	var old_grip_label: String = Constants.GRIP_STATE_LABELS[min(GameState.grip_state, 2)]
 	GameState.grip_state = 0
 	GameState.grip_decay_counter = 0
 

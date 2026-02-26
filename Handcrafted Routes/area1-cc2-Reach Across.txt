@@ -5,7 +5,7 @@ grade: V2
 area: 0
 description: Pockets down low lead to a reachy pinch move up top
 holdCount: 8
-startCol: 0
+startCol: 1
 
 === HOLDS ===
 # y  x  type        angle  pump  grip  match  rest

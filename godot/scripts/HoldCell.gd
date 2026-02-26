@@ -58,7 +58,7 @@ func clear() -> void:
 
 func _draw() -> void:
 	var center := size / 2.0
-	var radius := min(size.x, size.y) / 2.0 - 4.0
+	var radius: float = min(size.x, size.y) / 2.0 - 4.0
 
 	# Background
 	draw_rect(Rect2(Vector2.ZERO, size), Color(0.08, 0.08, 0.08))

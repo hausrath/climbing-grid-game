@@ -54,14 +54,14 @@ func _refresh_buttons() -> void:
 		var loc: Dictionary = GameState.locations[i]
 		var btn: Button = _location_buttons[i]
 		var loc_id: int = loc.get("id", i)
-		var unlocked: bool = GameState.is_location_unlocked(loc_id)
+		var unlocked: bool = GameState.is_location_unlocked(loc)
 		var stars: int = GameState.calculate_location_stars(loc_id)
 		var row_pos: int = loc.get("row", i / 5)
 		var col_pos: int = loc.get("col", i % 5)
 		var tier: int = loc.get("tier", 0)
 
 		if unlocked:
-			btn.text = "%s\n(%d,% d) T%d\n★ %d" % [loc.get("name", "?"), row_pos, col_pos, tier, stars]
+			btn.text = "%s\n(%d,%d) T%d\n★ %d" % [loc.get("name", "?"), row_pos, col_pos, tier, stars]
 			btn.disabled = false
 			btn.modulate = Color.WHITE if GameState.current_location.get("id", -1) != loc_id else Color(0.8, 1.0, 0.8)
 		else:
@@ -79,7 +79,7 @@ func _on_location_pressed(index: int) -> void:
 	if index >= GameState.locations.size():
 		return
 	var loc: Dictionary = GameState.locations[index]
-	if GameState.is_location_unlocked(loc.get("id", index)):
+	if GameState.is_location_unlocked(loc):
 		emit_signal("location_selected", loc)
 
 
@@ -87,7 +87,7 @@ func _on_location_hovered(index: int) -> void:
 	if index >= GameState.locations.size():
 		return
 	var loc: Dictionary = GameState.locations[index]
-	if not GameState.is_location_unlocked(loc.get("id", index)):
+	if not GameState.is_location_unlocked(loc):
 		return
 	if tooltip_panel and tooltip_label:
 		var loc_id: int = loc.get("id", index)

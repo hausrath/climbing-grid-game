@@ -6,7 +6,7 @@ const ROUTES_AREA_2 = [
         grade: 'V1',
         holdCount: 8,
         description: 'Shift your weight to avoid the pump to the top',
-        startCol: 2,
+        startCol: 3,
         holds: [
             { type: 'edge', label: 'EDGE', angle: 45, pumpRating: 1, gripDrain: 1, position: { x: 2, y: 1 }, matchable: false, isRest: false },
             { type: 'pocket', label: 'POCKET', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 2, y: 2 }, matchable: false, isRest: false },
@@ -31,7 +31,7 @@ const ROUTES_AREA_2 = [
         grade: 'V2',
         holdCount: 7,
         description: 'Good holds requiring careful balance',
-        startCol: 2,
+        startCol: 3,
         holds: [
             { type: 'edge', label: 'EDGE', angle: 45, pumpRating: 1, gripDrain: 1, position: { x: 3, y: 1 }, matchable: false, isRest: false },
             { type: 'edge', label: 'EDGE', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 2, y: 2 }, matchable: false, isRest: false },
@@ -55,7 +55,7 @@ const ROUTES_AREA_2 = [
         grade: 'V0',
         holdCount: 7,
         description: 'Big start, big finish, with a bit of everything in between',
-        startCol: 3,
+        startCol: 4,
         holds: [
             { type: 'crimp', label: 'CRIMP', angle: 315, pumpRating: 1, gripDrain: 1, position: { x: 1, y: 1 }, matchable: false, isRest: false },
             { type: 'jug', label: 'JUG', angle: 45, pumpRating: 1, gripDrain: 1, position: { x: 3, y: 2 }, matchable: false, isRest: false },

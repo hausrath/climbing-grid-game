@@ -6,7 +6,7 @@ const ROUTES_AREA_0 = [
         grade: 'V0',
         holdCount: 8,
         description: 'A simple route',
-        startCol: 2,
+        startCol: 3,
         holds: [
             { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 2, y: 1 }, matchable: false, isRest: false },
             { type: 'edge', label: 'EDGE', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 2, y: 2 }, matchable: false, isRest: false },
@@ -31,7 +31,7 @@ const ROUTES_AREA_0 = [
         grade: 'V0',
         holdCount: 6,
         description: '',
-        startCol: 2,
+        startCol: 3,
         holds: [
             { type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 3, y: 1 }, matchable: false, isRest: false },
             { type: 'pocket', label: 'POCKET', angle: 0, pumpRating: 2, gripDrain: 1, position: { x: 4, y: 2 }, matchable: false, isRest: false },
@@ -54,7 +54,7 @@ const ROUTES_AREA_0 = [
         grade: 'V0',
         holdCount: 8,
         description: '',
-        startCol: 2,
+        startCol: 3,
         holds: [
             { type: 'pocket', label: 'POCKET', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 1, y: 1 }, matchable: false, isRest: false },
             { type: 'edge', label: 'EDGE', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 2, y: 2 }, matchable: false, isRest: false },
@@ -79,7 +79,7 @@ const ROUTES_AREA_0 = [
         grade: 'V1',
         holdCount: 9,
         description: 'Can you climb the danger noodle?',
-        startCol: 2,
+        startCol: 3,
         holds: [
             { type: 'pocket', label: 'POCKET', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 1, y: 1 }, matchable: false, isRest: false },
             { type: 'pocket', label: 'POCKET', angle: 0, pumpRating: 1, gripDrain: 1, position: { x: 0, y: 2 }, matchable: false, isRest: false },

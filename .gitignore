@@ -1,0 +1,5 @@
+# macOS
+.DS_Store
+
+# Godot editor-generated cache (auto-regenerated on open)
+godot/.godot/

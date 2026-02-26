@@ -3,11 +3,11 @@ extends Control
 # 3-panel climbing screen. Wires all logic-script signals to UI methods.
 # Mirrors the climbing mode sections of js/main.js and js/ui.js.
 
-@onready var climbing_grid: Control = $CenterPanel/GridWrapper/ClimbingGrid
+@onready var climbing_grid: Control = $ClimbingUI/CenterPanel/GridWrapper/ClimbingGrid
 @onready var climbing_ui: Control = $ClimbingUI
 @onready var tooltip_ctrl: Control = $TooltipController
 @onready var game_over_popup: Control = $GameOverPopup
-@onready var route_name_label: Label = $CenterPanel/RouteNameLabel
+@onready var route_name_label: Label = $ClimbingUI/CenterPanel/RouteNameLabel
 
 # Logic node references (set by Main.gd via assign_logic_nodes)
 var climbing_logic: Node = null

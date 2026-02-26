@@ -5,7 +5,7 @@ grade: V0
 area: 0
 description: 
 holdCount: 7
-startCol: 2
+startCol: 3
 
 === HOLDS ===
 # y  x  type        angle  pump  grip  match  rest

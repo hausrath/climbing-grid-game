@@ -82,6 +82,7 @@ var chalk_remaining: int = 3
 var max_chalk: int = 3
 var route_attempts: int = 0
 var rest_hold_indices: Array = []
+var climb_start_time: float = 0.0
 
 var grid: Array = []        # 7x7 viewport grid (display)
 var route_grid: Array = []  # Full route grid (variable height)
@@ -133,7 +134,7 @@ func _generate_locations() -> void:
 		else:
 			difficulty_tier = "expert"
 		var is_boss := (row == 4 and col == 4)
-		var modifier := LOCATION_MODIFIERS[rng.randi() % LOCATION_MODIFIERS.size()]
+		var modifier: Dictionary = LOCATION_MODIFIERS[rng.randi() % LOCATION_MODIFIERS.size()]
 		locations.append({
 			"id": i, "name": LOCATION_NAMES[i],
 			"row": row, "col": col,
@@ -155,7 +156,7 @@ func calculate_total_stars() -> int:
 func calculate_location_stars(location_id: int) -> int:
 	var total := 0
 	for key in completed_routes:
-		var parts := key.split("-")
+		var parts: PackedStringArray = key.split("-")
 		if parts.size() >= 1 and int(parts[0]) == location_id:
 			total += completed_routes[key].get("stars", 0)
 	return total
@@ -167,10 +168,10 @@ func is_location_unlocked(location: Dictionary) -> bool:
 		return true
 	var offsets := [[-1, 0], [1, 0], [0, -1], [0, 1]]
 	for offset in offsets:
-		var adj_row := location["row"] + offset[0]
-		var adj_col := location["col"] + offset[1]
+		var adj_row: int = location["row"] + offset[0]
+		var adj_col: int = location["col"] + offset[1]
 		if adj_row >= 0 and adj_row < 5 and adj_col >= 0 and adj_col < 5:
-			var adj_loc := locations[adj_row * 5 + adj_col]
+			var adj_loc: Dictionary = locations[adj_row * 5 + adj_col]
 			if calculate_location_stars(adj_loc["id"]) >= 8:
 				return true
 	return false

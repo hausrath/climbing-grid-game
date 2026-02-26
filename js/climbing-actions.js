@@ -151,7 +151,7 @@ function findCurrentHold() {
     if (!gameState.routeGrid) return null;
     const row = gameState.currentRow;
     if (row >= 0 && row < gameState.routeGrid.length) {
-        for (let col = 0; col < 5; col++) {
+        for (let col = 0; col < 7; col++) {
             if (gameState.routeGrid[row][col] && gameState.routeGrid[row][col].col === gameState.currentCol) {
                 return gameState.routeGrid[row][col];
             }

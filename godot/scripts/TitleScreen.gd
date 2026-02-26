@@ -3,9 +3,9 @@ extends Control
 # Title screen — shown at game start. Any key/click → Main.start_game().
 # Mirrors the title screen block in js/main.js.
 
-@onready var title_label: Label = $TitleLabel
-@onready var subtitle_label: Label = $SubtitleLabel
-@onready var press_label: Label = $PressLabel
+@onready var title_label: Label = $VBoxContainer/TitleLabel
+@onready var subtitle_label: Label = $VBoxContainer/SubtitleLabel
+@onready var press_label: Label = $VBoxContainer/PressLabel
 
 var _blink_timer: float = 0.0
 var _blink_visible: bool = true

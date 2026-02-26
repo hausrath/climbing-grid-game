@@ -43,7 +43,7 @@ func _build_hold_text(hold: Dictionary) -> String:
 		for weight in ["left", "center", "right"]:
 			var base: int = RouteDB.lookup_penalty("up", hand, angle, weight)
 			var label_str := "%s hand / %s wt" % [hand.capitalize(), weight.capitalize()]
-			var level_name: String = Constants.PENALTY_LEVEL_NAMES.get(base, "?")
+			var level_name: String = Constants.PENALTY_LEVEL_NAMES[min(base, 4)]
 			var color := _penalty_color(base)
 			lines.append("[color=%s]%s: %s[/color]" % [color, label_str, level_name])
 
