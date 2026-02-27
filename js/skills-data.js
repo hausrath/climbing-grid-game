@@ -90,6 +90,43 @@ const skillDatabase = {
 // Ordered list of skill unlock progression
 const SKILL_UNLOCK_ORDER = ['cross', 'reach', 'weightShift', 'match', 'deadpoint', 'commit', 'bump', 'dyno'];
 
+// ============ ACTION INTRODUCTIONS (Shake / Chalk tutorial popups) ============
+// These show once on the victory screen when the player first unlocks access to each action.
+const actionDatabase = {
+    shake: {
+        id: 'shake',
+        name: 'Shake',
+        unlockLocation: 0,
+        unlockRouteCount: 1,
+        description: 'On rest holds marked with 👋, shake out your forearms to fully restore pump.',
+        effect: 'Resets pump to Fresh. Use the SHAKE button (Q) while standing on a shakable hold. 1-move cooldown.'
+    },
+    chalk: {
+        id: 'chalk',
+        name: 'Chalk',
+        unlockLocation: 0,
+        unlockRouteCount: 2,
+        description: 'On holds marked with 💨, re-chalk your hands to restore grip.',
+        effect: 'Resets grip to Chalked. Use the CHALK button (E) while on a chalkable hold. Limited uses per climb.'
+    }
+};
+
+// Check which actions should show their intro popup after completing a route
+function tryUnlockActionOnCompletion(locationId) {
+    const newActions = [];
+    const locationRoutes = getRoutesForLocation(locationId);
+    const completedCount = locationRoutes.filter(r => gameState.completedRoutes[`${locationId}-${r.id}`]).length;
+    for (const [actionId, action] of Object.entries(actionDatabase)) {
+        if (action.unlockLocation === locationId && !gameState.unlockedActions.includes(actionId)) {
+            if (completedCount >= action.unlockRouteCount) {
+                gameState.unlockedActions.push(actionId);
+                newActions.push(action);
+            }
+        }
+    }
+    return newActions;
+}
+
 // Check if a skill is unlocked based on visited locations
 function isSkillUnlocked(skillId) {
     const skill = skillDatabase[skillId];

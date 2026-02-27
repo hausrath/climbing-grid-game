@@ -257,9 +257,21 @@ function completeRoute() {
 
     // Check for skill unlocks triggered by route completion
     const newSkills = tryUnlockSkillOnCompletion(location.id);
-    let skillUnlockHtml = '';
-    if (newSkills.length > 0) {
-        skillUnlockHtml = newSkills.map(skill => `
+    const newActions = tryUnlockActionOnCompletion(location.id);
+    const unlockHtmlItems = [
+        ...newActions.map(action => `
+            <div style="margin: 20px 0; padding: 20px; background: linear-gradient(135deg, rgba(109, 188, 227, 0.15), rgba(168, 219, 96, 0.15)); border: 2px solid #6dbce3; border-radius: 12px;">
+                <div style="font-size: 1.4em; font-weight: bold; font-family: 'Righteous', cursive; color: #6dbce3;">
+                    NEW ACTION UNLOCKED!
+                </div>
+                <div style="font-size: 1.6em; color: #fad882; margin: 10px 0; font-family: 'Righteous', cursive;">
+                    ${action.name}
+                </div>
+                <div style="color: #bdb9ae; font-size: 0.95em;">${action.description}</div>
+                <div style="color: #738078; font-size: 0.85em; margin-top: 8px;">${action.effect}</div>
+            </div>
+        `),
+        ...newSkills.map(skill => `
             <div style="margin: 20px 0; padding: 20px; background: linear-gradient(135deg, rgba(250, 216, 130, 0.15), rgba(168, 219, 96, 0.15)); border: 2px solid #fad882; border-radius: 12px; position: relative; overflow: hidden;">
                 <style>
                     @keyframes skillShimmer {
@@ -282,8 +294,9 @@ function completeRoute() {
                 <div style="color: #bdb9ae; font-size: 0.95em;">${skill.description}</div>
                 <div style="color: #738078; font-size: 0.85em; margin-top: 8px;">${skill.effect}</div>
             </div>
-        `).join('');
-    }
+        `)
+    ];
+    const skillUnlockHtml = unlockHtmlItems.join('');
 
     // Build star display
     const starDisplay = `

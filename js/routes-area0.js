@@ -74,4 +74,32 @@ const ROUTES_AREA_0 = [
             flashClimb: true,
         }
     },
+    {
+        id: 'bg4',
+        name: 'Combined',
+        grade: 'V1',
+        holdCount: 11,
+        description: 'Use all of your skills to reach the top!',
+        startCol: 3,
+        holds: [
+            { type: 'jug',    label: 'JUG',    angle: 0,   pumpRating: 1, gripDrain: 1, position: { x: 3, y: 1 }, matchable: false, isRest: false },
+            { type: 'jug',    label: 'JUG',    angle: 315, pumpRating: 1, gripDrain: 1, position: { x: 2, y: 2 }, matchable: false, isRest: false },
+            { type: 'pocket', label: 'POCKET', angle: 0,   pumpRating: 2, gripDrain: 1, position: { x: 4, y: 2 }, matchable: false, isRest: false },
+            { type: 'jug',    label: 'JUG',    angle: 270, pumpRating: 2, gripDrain: 1, position: { x: 3, y: 3 }, matchable: false, isRest: false, shakable: true },
+            { type: 'pinch',  label: 'PINCH',  angle: 45,  pumpRating: 1, gripDrain: 1, position: { x: 3, y: 4 }, matchable: false, isRest: false },
+            { type: 'edge',   label: 'EDGE',   angle: 0,   pumpRating: 1, gripDrain: 1, position: { x: 2, y: 5 }, matchable: false, isRest: false, chalkable: true },
+            { type: 'crimp',  label: 'CRIMP',  angle: 315, pumpRating: 1, gripDrain: 1, position: { x: 2, y: 6 }, matchable: false, isRest: false },
+            { type: 'pocket', label: 'POCKET', angle: 45,  pumpRating: 1, gripDrain: 1, position: { x: 3, y: 6 }, matchable: false, isRest: false },
+            { type: 'edge',   label: 'EDGE',   angle: 0,   pumpRating: 1, gripDrain: 1, position: { x: 2, y: 7 }, matchable: false, isRest: false },
+            { type: 'jug',    label: 'JUG',    angle: 45,  pumpRating: 1, gripDrain: 1, position: { x: 4, y: 7 }, matchable: false, isRest: false },
+            { type: 'jug',    label: 'JUG',    angle: 0,   pumpRating: 1, gripDrain: 1, position: { x: 3, y: 8 }, matchable: false, isRest: false },
+        ],
+        stars: {
+            completion: true,
+            speed: { timeLimit: 30 },
+            pumpEfficiency: { maxPump: 0 },
+            gripEfficiency: true,
+            flashClimb: true,
+        }
+    },
 ];

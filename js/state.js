@@ -55,6 +55,7 @@ const gameState = {
     pumpDecayCounter: 0, // Counts ticks from hold-type cost (advances pump state every 3)
     // Skills - location-gated unlocks (no star purchasing)
     unlockedSkills: [], // Array of skill IDs unlocked by visiting locations
+    unlockedActions: [], // Array of action IDs (shake, chalk) whose intro popups have been shown
 
     // Skill state tracking (per-climb, reset each attempt)
     skillState: {
