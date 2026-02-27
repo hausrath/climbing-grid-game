@@ -41,6 +41,19 @@ function renderGrid() {
                     <div class="hold-angle-indicator">${hold.angle}°</div>
                 `;
 
+                if (hold.shakable) {
+                    const icon = document.createElement('span');
+                    icon.className = 'hold-icon-shakable';
+                    icon.textContent = '👋';
+                    holdEl.appendChild(icon);
+                }
+                if (hold.chalkable) {
+                    const icon = document.createElement('span');
+                    icon.className = 'hold-icon-chalkable';
+                    icon.textContent = '💨';
+                    holdEl.appendChild(icon);
+                }
+
                 // Show hand indicator on player's current hold
                 const isPlayerHold = (routeRow === gameState.currentRow && col === gameState.currentCol);
                 if (isPlayerHold && gameState.lastHandUsed) {
@@ -261,8 +274,9 @@ function updateUI() {
     const shakeBtn = document.getElementById('shake-btn');
     const chalkBtn = document.getElementById('chalk-btn');
 
-    shakeBtn.disabled = gameState.shakeCooldown > 0;
-    chalkBtn.disabled = gameState.chalkCooldown > 0;
+    const curHold = gameState.routeGrid?.[gameState.currentRow]?.[gameState.currentCol];
+    shakeBtn.disabled = gameState.shakeCooldown > 0 || !curHold?.shakable;
+    chalkBtn.disabled = gameState.chalkCooldown > 0 || !curHold?.chalkable;
 
     if (gameState.shakeCooldown > 0) {
         shakeBtn.textContent = `CD: ${gameState.shakeCooldown}`;
@@ -321,15 +335,16 @@ function updateUI() {
     document.getElementById('grip-value').textContent = gripLabel;
     document.getElementById('grip-value').style.color = gripColors[gameState.gripState] || '#f5aaa2';
 
-    // Update pump bar to show state visually (0=0%, 1=50%, 2=100%)
-    const pumpPercent = (gameState.pumpState / 2) * 100;
+    // Update pump bar: starts empty, fills as pump accumulates (fall at state 3 = 100%)
+    const pumpPercent = Math.min(100, (gameState.pumpState / 3) * 100);
     document.getElementById('pump-bar').style.width = `${pumpPercent}%`;
     document.getElementById('pump-bar').style.background = pumpColors[gameState.pumpState] || '#f5aaa2';
     document.getElementById('pump-bar-text').textContent = pumpLabel;
 
-    // Update grip bar to show decay countdown (threshold = 3 ticks)
-    const gripDecayProgress = (gameState.gripDecayCounter / 3) * 100;
-    document.getElementById('grip-bar').style.width = `${gripDecayProgress}%`;
+    // Update grip bar: starts full, depletes as grip is lost (3 states × 3 ticks = 9 total)
+    const usedGripTicks = (gameState.gripState * 3) + gameState.gripDecayCounter;
+    const gripPercent = Math.max(0, ((9 - usedGripTicks) / 9) * 100);
+    document.getElementById('grip-bar').style.width = `${gripPercent}%`;
     document.getElementById('grip-bar').style.background = gripColors[gameState.gripState] || '#f5aaa2';
     document.getElementById('grip-bar-text').textContent = `${gripLabel} (${gameState.gripDecayCounter}/3)`;
 

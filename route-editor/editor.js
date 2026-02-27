@@ -119,6 +119,8 @@ function renderGrid() {
                     const flags = [];
                     if (hold.matchable) flags.push('M');
                     if (hold.isRest) flags.push('R');
+                    if (hold.shakable) flags.push('S');
+                    if (hold.chalkable) flags.push('C');
                     if (flags.length > 0) {
                         const flagSpan = document.createElement('div');
                         flagSpan.className = 'hold-flags';
@@ -201,7 +203,7 @@ function placeHold(x, y) {
         type: 'jug', label: 'JUG', angle: 0,
         pumpRating: 1, gripDrain: 1,
         position: { x, y },
-        matchable: false, isRest: false
+        matchable: false, isRest: false, shakable: false, chalkable: false
     };
     editorState.holds.push(newHold);
     const idx = editorState.holds.length - 1;
@@ -240,6 +242,8 @@ function selectHold(holdIdx) {
     document.getElementById('hold-grip').value = hold.gripDrain;
     document.getElementById('hold-matchable').checked = hold.matchable;
     document.getElementById('hold-rest').checked = hold.isRest;
+    document.getElementById('hold-shakable').checked = hold.shakable || false;
+    document.getElementById('hold-chalkable').checked = hold.chalkable || false;
 
     // Update compass
     document.querySelectorAll('.compass-segment').forEach(seg => {
@@ -265,6 +269,8 @@ function updateHoldProp() {
     hold.gripDrain = parseInt(document.getElementById('hold-grip').value);
     hold.matchable = document.getElementById('hold-matchable').checked;
     hold.isRest = document.getElementById('hold-rest').checked;
+    hold.shakable = document.getElementById('hold-shakable').checked;
+    hold.chalkable = document.getElementById('hold-chalkable').checked;
     renderGrid();
 }
 

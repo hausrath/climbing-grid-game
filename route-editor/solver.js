@@ -155,6 +155,10 @@ function runSolver() {
 
         let anySuccess = false;
 
+        const currentHoldForRecovery = sorted.find(
+            h => h.position.x === state.currentCol && h.position.y === state.currentRow
+        ) || null;
+
         for (const holdIdx of reachable) {
             const hold = sorted[holdIdx];
 
@@ -169,8 +173,8 @@ function runSolver() {
                 : [getIdealWeight(hold.angle)];
 
             const recoveryOptions = [null];
-            if (state.shakeCooldown <= 0 && state.pumpState > 0) recoveryOptions.push('shake');
-            if (state.chalkCooldown <= 0 && state.chalkRemaining > 0 && state.gripState > 0) recoveryOptions.push('chalk');
+            if (state.shakeCooldown <= 0 && state.pumpState > 0 && currentHoldForRecovery?.shakable) recoveryOptions.push('shake');
+            if (state.chalkCooldown <= 0 && state.chalkRemaining > 0 && state.gripState > 0 && currentHoldForRecovery?.chalkable) recoveryOptions.push('chalk');
 
             for (const recovery of recoveryOptions) {
                 let recState = cloneState(state);

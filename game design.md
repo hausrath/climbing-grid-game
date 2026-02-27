@@ -17,8 +17,8 @@ A turn-based, deterministic puzzle game about climbing a scrolling grid. The pla
 
 ## The Grid & Viewport
 
-- The climbing wall is a **5-column** grid of unlimited height.
-- The viewport shows **5 rows** at a time and scrolls as the player climbs.
+- The climbing wall is a **7-column** grid of unlimited height.
+- The viewport shows **7 rows** at a time and scrolls as the player climbs.
 - The player always climbs **upward** — moves to the same row or below are rejected.
 - **Normal reach**: dy ≤ 2 AND dx ≤ 2 (two rows up or two columns across).
 - **Dyno reach**: dy ≤ 3 AND dx ≤ 3 (expanded when Dyno is active).
@@ -443,6 +443,38 @@ Routes are defined in `js/routes-area0.js` through `js/routes-area7.js` as array
 | ss-1 | Bump and Go | V3 | 12 | 2 | Matchable holds 1, 6, 12. Angled holds at crux. Designed around Bump repositioning. Rest on hold 12. |
 | ss-2 | Street Smarts | V4 | 14 | 2 | Matchable holds 4, 8, 14. Gaston angles (225°, 315°). Bump + weight + gaston control. Rest on hold 14. |
 | ss-3 | The Grand Wall | V5 | 16 | 2 | Matchable holds 6, 10, 17. Dense angle variation over 16 holds. All seven skills required. Rest on hold 17. |
+
+---
+
+## Adding a Route to the Game
+
+1. **Create the `.txt` file** in `Handcrafted Routes/` following the format below (use the route editor to export).
+2. **Open `js/routes-areaX.js`** for the target area.
+3. **Append a route object** to the `ROUTES_AREA_X` array before the closing `];`. Copy an existing entry as a template.
+4. **Map each hold line** from the txt to a hold object:
+   - txt `y x` → `position: { x: col, y: row }`
+   - `type` → lowercase string; `label` → uppercase of same
+   - `match yes/no` → `matchable: true/false`; `rest yes/no` → `isRest: true/false`
+   - Ignore txt-only columns (`pump`, `grip`, `shake`, `chalk`) — they are editor metadata only
+5. **Set `holdCount`** to the number of entries in the `holds` array (ignore the txt `holdCount` field).
+6. **Column bounds**: valid `x` values are **0–6**. The grid is 7 columns wide.
+
+### Txt File Format Reference
+
+```
+=== ROUTE ===
+id: <id>          name: <name>        grade: V0–V6
+area: <0–7>       description: <text> holdCount: <ignored>
+startCol: <0–6>
+
+=== HOLDS ===
+# y  x  type   angle  pump  grip  match  rest
+  1  2  jug      0     1     1     no    no
+
+=== STARS ===
+speed: <seconds>
+pumpEfficiency: 0
+```
 
 ---
 

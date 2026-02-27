@@ -4,19 +4,21 @@ name: Little Ladder
 grade: V0
 area: 0
 description: 
-holdCount: 7
+holdCount: 8
 startCol: 3
 
 === HOLDS ===
-# y  x  type        angle  pump  grip  match  rest
-  1  1  pocket        0     1     1     no    no
-  2  2  edge          0     1     1     no    no
-  3  2  jug           0     1     1     no    no
-  4  1  edge          0     1     1     no    no
-  5  2  pocket        0     1     1     no    no
-  6  1  jug           0     1     1     no    no
-  7  2  pinch         0     1     1     no    no
-  8  3  jug           0     1     1     no    no
+# y  x  type        angle  pump  grip  match  rest  shake  chalk
+  1  2  pocket        0     1     1     no    no     no     no
+  2  2  crimp         0     1     1     no    no     no     no
+  2  3  edge          0     1     1     no    no     no     no
+  3  2  jug           0     1     1     no    no     no     no
+  4  1  edge          0     1     1     no    no    yes    yes
+  5  1  crimp         0     1     1     no    no     no     no
+  5  2  jug           0     1     1     no    no     no     no
+  6  1  jug           0     1     1     no    no     no     no
+  7  2  pinch         0     1     1     no    no     no     no
+  8  3  jug           0     1     1     no    no     no     no
 
 === STARS ===
 speed: 30

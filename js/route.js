@@ -47,6 +47,8 @@ function loadRoute(route) {
             gripDrain: holdData.gripDrain,
             matchable: holdData.matchable || false,
             isRest: holdData.isRest || false,
+            shakable: holdData.shakable || false,
+            chalkable: holdData.chalkable || false,
             holdIndex: index + 1,
             row: row,
             col: col,

@@ -65,19 +65,21 @@ function moveToHold(row, col) {
     let effectiveLevel = basePenaltyLevel;
     let levelBumps = [];
 
-    // +1 from distance surcharge (2+ spaces)
+    // Extended moves require Reach skill — no skill = instant fall
     let reachUsed = false;
     if (isExtendedMove) {
         if (gameState.reachActive) {
             reachUsed = true;
             feedback.push({ text: `Reach: distance penalty negated!`, type: 'bonus' });
         } else {
-            effectiveLevel += 1;
-            levelBumps.push('distance');
+            feedback.push({ text: `Extended move without Reach — you fell!`, type: 'penalty' });
+            feedback.forEach(f => addFeedback(f.text, f.type));
+            endGame(false, `Extended moves require the Reach skill!`);
+            return;
         }
     }
 
-    // Cross-body: penalty is already in the base table, Cross reduces it by 1
+    // Cross-body moves require Cross skill — no skill = instant fall
     let crossUsed = false;
     if (crossMove) {
         if (gameState.crossActive) {
@@ -85,7 +87,10 @@ function moveToHold(row, col) {
             effectiveLevel = Math.max(0, effectiveLevel - 1);
             feedback.push({ text: `Cross: cross-body penalty negated!`, type: 'bonus' });
         } else {
-            levelBumps.push('cross-body');
+            feedback.push({ text: `Cross-body move without Cross skill — you fell!`, type: 'penalty' });
+            feedback.forEach(f => addFeedback(f.text, f.type));
+            endGame(false, `Cross-body moves require the Cross skill!`);
+            return;
         }
     }
 
@@ -101,7 +106,6 @@ function moveToHold(row, col) {
     // ---- Step 3: Map effective level to pump state change ----
     let pumpStateChange = 0;
     if (effectiveLevel >= 3) {
-        // Severe or worse = instant fall
         feedback.push({ text: `Severe penalty — you fell!`, type: 'penalty' });
         addFeedback(`Severe penalty — you fell!`, 'penalty');
         feedback.forEach(f => addFeedback(f.text, f.type));

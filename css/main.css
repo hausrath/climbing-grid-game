@@ -221,6 +221,24 @@ body {
     background: linear-gradient(135deg, rgba(109, 188, 227, 0.2), rgba(36, 52, 71, 0.3));
 }
 
+.hold-icon-shakable {
+    position: absolute;
+    bottom: -8px;
+    left: -8px;
+    font-size: 0.85em;
+    line-height: 1;
+    pointer-events: none;
+}
+
+.hold-icon-chalkable {
+    position: absolute;
+    bottom: -8px;
+    right: -8px;
+    font-size: 0.85em;
+    line-height: 1;
+    pointer-events: none;
+}
+
 .hold.degraded {
     border-color: #f5aaa2;
     position: relative;

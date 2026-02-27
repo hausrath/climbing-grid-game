@@ -99,25 +99,28 @@ function simulateMove(state, hold, hand, weight, options) {
     let effectiveLevel = result.basePenalty;
     let levelBumps = [];
 
-    // Distance
+    // Extended moves require Reach skill — no skill = instant fall
     if (isExtendedMove) {
         if (useReach && skills.includes('reach') && state.reachCooldown <= 0) {
             result.reachUsed = true;
             result.feedback.push({ text: 'Reach: distance penalty negated', type: 'bonus' });
         } else {
-            effectiveLevel += 1;
-            levelBumps.push('distance');
+            result.success = false; result.fell = true;
+            result.fallReason = 'Extended move without Reach skill';
+            return result;
         }
     }
 
-    // Cross skill
+    // Cross-body moves require Cross skill — no skill = instant fall
     if (crossMove) {
         if (useCross && skills.includes('cross') && state.crossCooldown <= 0) {
             result.crossUsed = true;
             effectiveLevel = Math.max(0, effectiveLevel - 1);
             result.feedback.push({ text: 'Cross: cross-body penalty reduced', type: 'bonus' });
         } else {
-            levelBumps.push('cross-body');
+            result.success = false; result.fell = true;
+            result.fallReason = 'Cross-body move without Cross skill';
+            return result;
         }
     }
 

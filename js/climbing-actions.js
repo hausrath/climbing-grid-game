@@ -1,5 +1,10 @@
 // ============ SHAKE (reduces pump state by 1) ============
 function useShake() {
+    const currentHold = gameState.routeGrid?.[gameState.currentRow]?.[gameState.currentCol];
+    if (!currentHold?.shakable) {
+        addFeedback(`Can't shake here — find a rest position!`, 'penalty');
+        return;
+    }
     if (gameState.shakeCooldown > 0) {
         addFeedback(`Shake on cooldown! ${gameState.shakeCooldown} moves remaining.`, 'penalty');
         return;
@@ -38,6 +43,11 @@ function useShake() {
 
 // ============ CHALK (resets grip state to 0) ============
 function useChalk() {
+    const currentHold = gameState.routeGrid?.[gameState.currentRow]?.[gameState.currentCol];
+    if (!currentHold?.chalkable) {
+        addFeedback(`Can't chalk here — no chalk bucket!`, 'penalty');
+        return;
+    }
     if (gameState.chalkRemaining <= 0) {
         addFeedback(`Out of chalk! No uses remaining this climb.`, 'penalty');
         return;

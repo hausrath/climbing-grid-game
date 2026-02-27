@@ -122,7 +122,7 @@ function refreshTooltip() {
                 <div style="color: #bdb9ae; font-size: 0.9em;">Grip cost: ${gripCost} tick${gripCost !== 1 ? 's' : ''} | Chalk: ${gameState.chalkRemaining}/${gameState.maxChalk}</div>
             </div>
             <div style="margin-top: 4px; font-size: 0.8em; color: #bdb9ae; border-top: 1px solid #738078; padding-top: 4px;">
-                Ideal Weight: ${idealWeight} | ${hold.matchable ? 'Matchable' : 'No match'}
+                Ideal Weight: ${idealWeight} | ${hold.matchable ? 'Matchable' : 'No match'}${hold.shakable ? ' | 👋 Shake' : ''}${hold.chalkable ? ' | 💨 Chalk' : ''}
             </div>
         </div>
     `;

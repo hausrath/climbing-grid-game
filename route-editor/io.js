@@ -26,7 +26,7 @@ function exportToTxt() {
     txt += `startCol: ${editorState.startCol}\n`;
 
     txt += '\n=== HOLDS ===\n';
-    txt += '# y  x  type        angle  pump  grip  match  rest\n';
+    txt += '# y  x  type        angle  pump  grip  match  rest  shake  chalk\n';
 
     for (const hold of sorted) {
         const typeStr = hold.type.padEnd(11);
@@ -35,7 +35,9 @@ function exportToTxt() {
         const gripStr = String(hold.gripDrain).padStart(4);
         const matchStr = (hold.matchable ? 'yes' : 'no').padStart(5);
         const restStr = (hold.isRest ? 'yes' : 'no').padStart(4);
-        txt += `  ${String(hold.position.y).padStart(1)}  ${hold.position.x}  ${typeStr} ${angleStr}  ${pumpStr}  ${gripStr}  ${matchStr}  ${restStr}\n`;
+        const shakeStr = (hold.shakable ? 'yes' : 'no').padStart(5);
+        const chalkStr = (hold.chalkable ? 'yes' : 'no').padStart(5);
+        txt += `  ${String(hold.position.y).padStart(1)}  ${hold.position.x}  ${typeStr} ${angleStr}  ${pumpStr}  ${gripStr}  ${matchStr}  ${restStr}  ${shakeStr}  ${chalkStr}\n`;
     }
 
     txt += '\n=== STARS ===\n';
@@ -63,7 +65,7 @@ function exportToJs() {
     for (const hold of sorted) {
         const ht = holdTypes.find(h => h.type === hold.type);
         const label = ht ? ht.label : hold.type.toUpperCase();
-        js += `        { type: '${hold.type}', label: '${label}', angle: ${hold.angle}, pumpRating: ${hold.pumpRating}, gripDrain: ${hold.gripDrain}, position: { x: ${hold.position.x}, y: ${hold.position.y} }, matchable: ${hold.matchable}, isRest: ${hold.isRest} },\n`;
+        js += `        { type: '${hold.type}', label: '${label}', angle: ${hold.angle}, pumpRating: ${hold.pumpRating}, gripDrain: ${hold.gripDrain}, position: { x: ${hold.position.x}, y: ${hold.position.y} }, matchable: ${hold.matchable}, isRest: ${hold.isRest}, shakable: ${hold.shakable || false}, chalkable: ${hold.chalkable || false} },\n`;
     }
 
     js += '    ],\n';
@@ -121,12 +123,14 @@ function importFromTxt(text) {
                 const grip = parseInt(parts[5]);
                 const matchable = parts[6] === 'yes';
                 const isRest = parts[7] === 'yes';
+                const shakable = parts.length >= 9 ? parts[8] === 'yes' : false;
+                const chalkable = parts.length >= 10 ? parts[9] === 'yes' : false;
 
                 const ht = holdTypes.find(h => h.type === type);
                 newHolds.push({
                     type, label: ht ? ht.label : type.toUpperCase(),
                     angle, pumpRating: pump, gripDrain: grip,
-                    position: { x, y }, matchable, isRest
+                    position: { x, y }, matchable, isRest, shakable, chalkable
                 });
             }
         }
@@ -202,12 +206,14 @@ function importFromJs(text) {
                 const y = parseInt((entry.match(/y:\s*(\d+)/) || [])[1]) || 0;
                 const matchable = /matchable:\s*true/.test(entry);
                 const isRest = /isRest:\s*true/.test(entry);
+                const shakable = /shakable:\s*true/.test(entry);
+                const chalkable = /chalkable:\s*true/.test(entry);
 
                 const ht = holdTypes.find(h => h.type === type);
                 newHolds.push({
                     type, label: ht ? ht.label : type.toUpperCase(),
                     angle, pumpRating, gripDrain,
-                    position: { x, y }, matchable, isRest
+                    position: { x, y }, matchable, isRest, shakable, chalkable
                 });
             }
         }

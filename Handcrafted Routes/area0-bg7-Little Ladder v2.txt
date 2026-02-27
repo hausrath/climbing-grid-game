@@ -1,0 +1,25 @@
+=== ROUTE ===
+id: bg7
+name: Little Ladder v2
+grade: V1
+area: 0
+description: Find the chalkable hold and don't fall!
+holdCount: 8
+startCol: 3
+
+=== HOLDS ===
+# y  x  type        angle  pump  grip  match  rest  shake  chalk
+  1  2  pocket        0     1     1     no    no     no     no
+  2  3  crimp         0     1     1     no    no     no     no
+  3  2  pocket        0     1     1     no    no     no    yes
+  4  1  edge          0     1     1     no    no     no     no
+  4  3  pinch         0     1     1     no    no     no     no
+  5  2  pocket        0     1     1     no    no     no    yes
+  6  1  jug           0     1     1     no    no     no     no
+  6  2  sloper        0     1     1     no    no     no     no
+  7  2  pinch         0     1     1     no    no     no     no
+  8  3  jug           0     1     1     no    no     no     no
+
+=== STARS ===
+speed: 30
+pumpEfficiency: 0
