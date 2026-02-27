@@ -347,18 +347,40 @@ Routes are defined in `js/routes-area0.js` through `js/routes-area7.js` as array
 
 ---
 
+## Adding or Replacing Routes
+
+Routes live in `js/routes-area0.js` through `js/routes-area7.js`. Each file exports a single `const ROUTES_AREA_N = [...]` array consumed by `routeDatabase` in `js/routes-data.js`.
+
+**Workflow:**
+1. Design the route in the route editor (`route-editor/index.html`). Use the solver to verify it's solvable with the intended skills enabled.
+2. Export via **Export JS** in the editor, or hand-write the hold objects directly in the area file.
+3. Replace or append the route object in the appropriate `routes-areaN.js`. Each location supports any number of routes (convention: 3 per location — tutorial, practice, mastery).
+4. **Critical:** `holdCount` must equal `holds.length`. Always count the holds array, not the text file header.
+5. Route `id` is a string (e.g. `'bg1'`). Keep IDs unique within a location. Prefix with the area abbreviation (bg=Boulder Garden, cc=Crimp Canyon, oa=Overhang Alley, etc.).
+6. Hold `label` must be the uppercase type name (`'jug'` → `'JUG'`, `'pocket'` → `'POCKET'`, etc.).
+7. To mark a hold as a chalk or shake rest, add `chalkable: true` or `shakable: true` to the hold object. Only holds with these flags allow the corresponding action in the main game and editor simulator.
+8. Reload `index.html` to pick up changes (no build step needed).
+
+**Hold object quick reference:**
+```js
+{ type: 'jug', label: 'JUG', angle: 0, pumpRating: 1, gripDrain: 1,
+  position: { x: 3, y: 1 }, matchable: false, isRest: false }
+// Optional: chalkable: true, shakable: true
+```
+
+---
+
 ## Current Routes by Area
 
 ### Area 0 — Boulder Garden
 *Unlocks: Cross (first completion), Reach (8★)*
-*Teaches: Hand selection, direction-to-hand matching, basic movement*
+*Teaches: Hand selection, direction-to-hand matching, chalk/shake recovery*
 
 | ID | Name | Grade | Holds | Start Col | Notes |
 |----|------|-------|-------|-----------|-------|
-| bg1 | Hands | V0 | 8 | 2 | All angle 0°. Straight-up movement tutorial. Unlocks Cross. |
-| bg2 | Zig Zag | V0 | 6 | 2 | Alternating lateral moves, all angle 0°. |
-| bg3 | Little Ladder | V0 | 8 | 2 | Introduces pinch holds (higher grip cost). All angle 0°. |
-| bg4 | Snek | V1 | 9 | 2 | Winding path to far columns. Introduces left-column positions. |
+| bg1 | Hand Choice | V0 | 6 | 3 | All jugs, angle 0°. Teaches hand selection for lateral moves. |
+| bg2 | Shake | V0 | 7 | 3 | All jugs, mixed angles. Introduces shake rests on designated holds. |
+| bg3 | Chalk | V0 | 10 | 3 | Mixed hold types with chalking required on designated jug holds. |
 
 ---
 

@@ -6,7 +6,7 @@ let solverResults = null;
 let solverBestPath = null;
 
 function hashSolverState(visitedMask, state) {
-    return `${visitedMask}-${state.currentRow}-${state.currentCol}-${state.pumpState}-${state.gripState}-${state.pumpDecayCounter}-${state.lastHandUsed}-${state.weight}-${state.crossCooldown}-${state.reachCooldown}-${state.commitCooldown}-${state.shakeCooldown}-${state.chalkCooldown}-${state.chalkRemaining}-${state.skillState.justChalked}-${state.skillState.justShook}-${state.consecutiveCrosses}`;
+    return `${visitedMask}-${state.currentRow}-${state.currentCol}-${state.pumpState}-${state.gripState}-${state.gripDecayCounter}-${state.lastHandUsed}-${state.weight}-${state.crossCooldown}-${state.reachCooldown}-${state.commitCooldown}-${state.shakeCooldown}-${state.chalkCooldown}-${state.chalkRemaining}-${state.skillState.justChalked}-${state.skillState.justShook}-${state.consecutiveCrosses}`;
 }
 
 function runSolver() {
@@ -59,10 +59,10 @@ function runSolver() {
         const elapsed = (performance.now() - startTime).toFixed(0);
         const holdStats = sorted.map(() => ({
             successCombos: new Set(), totalAttempts: 0, failures: 0,
-            failReasons: { pump: 0, grip: 0, penalty: 0 }, bestGripArriving: 999, inBestPath: false
+            failReasons: { pump: 0, grip: 0, penalty: 0 }, bestPumpArriving: 999, inBestPath: false
         }));
         solverResults = {
-            totalPaths: 0, successPaths: 0, bestFinalGrip: 999, holdStats, elapsed,
+            totalPaths: 0, successPaths: 0, bestFinalPump: 999, holdStats, elapsed,
             highestRowReached: 0, maxY, shortestPathLength: 999,
             unreachableHolds: unreachableHolds.map(i => ({
                 index: i,
@@ -78,12 +78,12 @@ function runSolver() {
     let totalPaths = 0;
     let successPaths = 0;
     let bestPath = null;
-    let bestFinalGrip = 999;
+    let bestFinalPump = 999;
     let shortestPathLength = 999;
     let highestRowReached = 0;
     let bestAttemptPath = null;
     let bestAttemptRow = -1;
-    let bestAttemptGrip = 999;
+    let bestAttemptPump = 999;
 
     // Per-hold stats (indexed by position in sorted array)
     const holdStats = sorted.map(() => ({
@@ -91,7 +91,7 @@ function runSolver() {
         totalAttempts: 0,
         failures: 0,
         failReasons: { pump: 0, grip: 0, penalty: 0 },
-        bestGripArriving: 999,
+        bestPumpArriving: 999,
         inBestPath: false
     }));
 
@@ -102,10 +102,10 @@ function runSolver() {
         if (state.currentRow >= maxY) {
             totalPaths++;
             successPaths++;
-            // Prefer lower grip (mismatch stat), then shorter path
-            if (state.gripState < bestFinalGrip ||
-                (state.gripState === bestFinalGrip && path.length < shortestPathLength)) {
-                bestFinalGrip = state.gripState;
+            // Prefer lower pump, then shorter path
+            if (state.pumpState < bestFinalPump ||
+                (state.pumpState === bestFinalPump && path.length < shortestPathLength)) {
+                bestFinalPump = state.pumpState;
                 bestPath = [...path];
                 shortestPathLength = path.length;
             }
@@ -148,7 +148,7 @@ function runSolver() {
         if (reachable.length === 0) {
             // Dead end — no reachable holds and not at top
             totalPaths++;
-            trackBestAttempt(state.currentRow, path, state.gripState);
+            trackBestAttempt(state.currentRow, path, state.pumpState);
             memo.set(stateHash, 'fail');
             return false;
         }
@@ -162,9 +162,9 @@ function runSolver() {
         for (const holdIdx of reachable) {
             const hold = sorted[holdIdx];
 
-            // Track best arriving grip for this hold
-            if (state.gripState < holdStats[holdIdx].bestGripArriving) {
-                holdStats[holdIdx].bestGripArriving = state.gripState;
+            // Track best arriving pump for this hold
+            if (state.pumpState < holdStats[holdIdx].bestPumpArriving) {
+                holdStats[holdIdx].bestPumpArriving = state.pumpState;
             }
 
             const hands = ['left', 'right'];
@@ -216,7 +216,7 @@ function runSolver() {
                                         holdStats[holdIdx].failures++;
                                         holdStats[holdIdx].failReasons.penalty++;
                                         totalPaths++;
-                                        trackBestAttempt(state.currentRow, path, state.gripState);
+                                        trackBestAttempt(state.currentRow, path, state.pumpState);
                                         continue;
                                     }
 
@@ -226,14 +226,14 @@ function runSolver() {
                                         holdStats[holdIdx].failures++;
                                         holdStats[holdIdx].failReasons.pump++;
                                         totalPaths++;
-                                        trackBestAttempt(state.currentRow, path, state.gripState);
+                                        trackBestAttempt(state.currentRow, path, state.pumpState);
                                         continue;
                                     }
                                     if (moveState.gripState >= 3) {
                                         holdStats[holdIdx].failures++;
                                         holdStats[holdIdx].failReasons.grip++;
                                         totalPaths++;
-                                        trackBestAttempt(state.currentRow, path, state.gripState);
+                                        trackBestAttempt(state.currentRow, path, state.pumpState);
                                         continue;
                                     }
 
@@ -261,12 +261,12 @@ function runSolver() {
         return anySuccess;
     }
 
-    function trackBestAttempt(row, path, gripArriving) {
+    function trackBestAttempt(row, path, pumpArriving) {
         if (row > bestAttemptRow ||
-            (row === bestAttemptRow && gripArriving < bestAttemptGrip)) {
+            (row === bestAttemptRow && pumpArriving < bestAttemptPump)) {
             bestAttemptPath = [...path];
             bestAttemptRow = row;
-            bestAttemptGrip = gripArriving;
+            bestAttemptPump = pumpArriving;
         }
     }
 
@@ -283,7 +283,7 @@ function runSolver() {
     }
 
     solverResults = {
-        totalPaths, successPaths, bestFinalGrip, holdStats, elapsed,
+        totalPaths, successPaths, bestFinalPump, holdStats, elapsed,
         highestRowReached, maxY, shortestPathLength
     };
     solverBestPath = successPaths > 0 ? bestPath : bestAttemptPath;
@@ -313,7 +313,7 @@ function displaySolverResults() {
     }
     if (r.successPaths > 0) {
         html += `<div class="result-row"><span>Successful paths:</span><span class="success">${r.successPaths}</span></div>`;
-        html += `<div class="result-row"><span>Best final grip:</span><span class="success">${GRIP_STATE_LABELS[r.bestFinalGrip] || r.bestFinalGrip} (${r.bestFinalGrip})</span></div>`;
+        html += `<div class="result-row"><span>Best final pump:</span><span class="success">${PUMP_STATE_LABELS[r.bestFinalPump] || r.bestFinalPump} (${r.bestFinalPump})</span></div>`;
         html += `<div class="result-row"><span>Shortest path:</span><span>${r.shortestPathLength} holds</span></div>`;
     } else {
         // Find holds that block progress (attempted but never succeeded)
@@ -348,8 +348,8 @@ function displaySolverResults() {
             html += `<div class="result-row" style="margin-top:8px;"><span style="color:#f5aaa2;">The Wall:</span><span style="color:#f5aaa2;">Hold #${wallIndex + 1} (${wallHt} ${wallHold.angle}°)</span></div>`;
             html += `<div class="result-row" style="padding-left:12px;"><span style="color:#738078;">${reasons.join(', ')}</span></div>`;
 
-            if (r.holdStats[wallIndex].bestGripArriving < 999) {
-                html += `<div class="result-row" style="padding-left:12px;"><span style="color:#738078;">Best grip arriving: ${GRIP_STATE_LABELS[r.holdStats[wallIndex].bestGripArriving] || r.holdStats[wallIndex].bestGripArriving}</span></div>`;
+            if (r.holdStats[wallIndex].bestPumpArriving < 999) {
+                html += `<div class="result-row" style="padding-left:12px;"><span style="color:#738078;">Best pump arriving: ${PUMP_STATE_LABELS[r.holdStats[wallIndex].bestPumpArriving] || r.holdStats[wallIndex].bestPumpArriving}</span></div>`;
             }
         }
     }
@@ -499,11 +499,11 @@ function loadBestPath() {
         const logType = result.fell ? 'fell' : result.effectivePenalty === 0 ? 'bonus' : result.effectivePenalty >= 2 ? 'penalty' : 'neutral';
         addMoveLog(logText, logType);
         result.feedback.forEach(f => addMoveLog('  ' + f.text, f.type));
-        addMoveLog(`  Grip: ${GRIP_STATE_LABELS[simState.gripState] || 'Critical'} | Pump: ${PUMP_STATE_LABELS[simState.pumpState] || 'Critical'}`, 'neutral');
+        addMoveLog(`  Pump: ${PUMP_STATE_LABELS[simState.pumpState] || 'Critical'} | Grip: ${GRIP_STATE_LABELS[simState.gripState] || 'Critical'}`, 'neutral');
     }
 
     if (simState.completed) {
-        addMoveLog(`COMPLETED! Final grip: ${GRIP_STATE_LABELS[simState.gripState] || 'Critical'} | pump: ${PUMP_STATE_LABELS[simState.pumpState] || 'Critical'}`, 'bonus');
+        addMoveLog(`COMPLETED! Final pump: ${PUMP_STATE_LABELS[simState.pumpState] || 'Critical'}`, 'bonus');
     } else if (isImpossible) {
         addMoveLog(`Best attempt reached row ${solverResults.highestRowReached} of ${solverResults.maxY} before all paths fail`, 'penalty');
     }

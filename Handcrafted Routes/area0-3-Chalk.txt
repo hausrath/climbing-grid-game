@@ -1,0 +1,22 @@
+=== ROUTE ===
+id: 3
+name: area0
+grade: V0
+area: 0
+description: Chalk
+holdCount: 7
+startCol: 3
+
+=== HOLDS ===
+# y  x  type        angle  pump  grip  match  rest  shake  chalk
+  1  2  jug           0     1     1     no    no     no     no
+  2  3  jug          45     1     1     no    no     no     no
+  3  3  jug           0     1     1     no    no     no    yes
+  4  4  jug         315     1     1     no    no     no     no
+  5  4  jug           0     1     1     no    no     no    yes
+  6  5  jug          45     1     1     no    no     no     no
+  7  4  jug           0     1     1     no    no     no     no
+
+=== STARS ===
+speed: 30
+pumpEfficiency: 0

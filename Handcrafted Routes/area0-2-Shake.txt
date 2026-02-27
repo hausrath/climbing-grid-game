@@ -1,0 +1,25 @@
+=== ROUTE ===
+id: 2
+name: Shake
+grade: V0
+area: 0
+description: Shake out to recover some pump and make it to the top.
+holdCount: 10
+startCol: 3
+
+=== HOLDS ===
+# y  x  type        angle  pump  grip  match  rest  shake  chalk
+  1  3  jug           0     1     1     no    no     no     no
+  2  2  edge          0     1     1     no    no     no     no
+  3  3  pocket        0     1     1     no    no     no     no
+  4  3  jug           0     1     1     no    no    yes     no
+  5  4  pinch         0     1     1     no    no     no     no
+  6  3  jug           0     1     1     no    no    yes     no
+  7  4  sloper        0     1     1     no    no     no     no
+  8  3  jug           0     1     1     no    no    yes     no
+  9  4  crimp         0     1     1     no    no     no     no
+  10  3  jug           0     1     1     no    no     no     no
+
+=== STARS ===
+speed: 30
+pumpEfficiency: 0

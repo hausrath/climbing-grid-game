@@ -94,18 +94,18 @@ function refreshTooltip() {
         return `<div style="color: ${resultColor};">${handLabel}: ${levelName} → ${stateChange}${bumpStr}</div>`;
     }
 
-    // Build pump section
-    let pumpHtml = '';
+    // Build grip section (mismatch penalty)
+    let gripHtml = '';
     if (gameState.selectedHand) {
-        pumpHtml = buildHandBreakdown(gameState.selectedHand);
+        gripHtml = buildHandBreakdown(gameState.selectedHand);
     } else {
-        pumpHtml = buildHandBreakdown('left') + buildHandBreakdown('right');
+        gripHtml = buildHandBreakdown('left') + buildHandBreakdown('right');
     }
 
-    // Grip section (hold-type-based decay, threshold = 3 ticks)
-    const gripCost = HOLD_GRIP_COST[hold.type] || 1;
-    const gripLabel = GRIP_STATE_LABELS[gameState.gripState] || 'Critical';
-    const gripColor = ['#a8db60', '#fad882', '#f5aaa2'][gameState.gripState] || '#f5aaa2';
+    // Pump section (hold-type-based decay, threshold = 3 ticks)
+    const pumpCost = HOLD_PUMP_COST[hold.type] || 1;
+    const pumpLabel = PUMP_STATE_LABELS[gameState.pumpState] || 'Critical';
+    const pumpColor = ['#a8db60', '#fad882', '#f5aaa2'][gameState.pumpState] || '#f5aaa2';
 
     tooltipBox.innerHTML = `
         <div style="width: 100%; text-align: left;">
@@ -113,13 +113,13 @@ function refreshTooltip() {
                 ${hold.label} ${hold.angle}°${restLabel}
             </div>
             <div style="padding-top: 4px; border-top: 1px solid #738078; font-size: 0.85em; line-height: 1.8;">
-                <div style="color: #fad882; font-weight: bold; margin-bottom: 2px;">PUMP${styleLabel ? ' (' + styleLabel + ')' : ''}</div>
-                ${pumpHtml}
+                <div style="color: #6dbce3; font-weight: bold; margin-bottom: 2px;">GRIP${styleLabel ? ' (' + styleLabel + ')' : ''}</div>
+                ${gripHtml}
             </div>
             <div style="padding-top: 4px; border-top: 1px solid #738078; font-size: 0.85em; line-height: 1.8; margin-top: 4px;">
-                <div style="color: #6dbce3; font-weight: bold; margin-bottom: 2px;">GRIP</div>
-                <div style="color: ${gripColor};">State: ${gripLabel} | Decay: ${gameState.gripDecayCounter}/3 ticks</div>
-                <div style="color: #bdb9ae; font-size: 0.9em;">Grip cost: ${gripCost} tick${gripCost !== 1 ? 's' : ''} | Chalk: ${gameState.chalkRemaining}/${gameState.maxChalk}</div>
+                <div style="color: #fad882; font-weight: bold; margin-bottom: 2px;">PUMP</div>
+                <div style="color: ${pumpColor};">State: ${pumpLabel} | Ticks: ${gameState.pumpDecayCounter}/3</div>
+                <div style="color: #bdb9ae; font-size: 0.9em;">Pump cost: ${pumpCost} tick${pumpCost !== 1 ? 's' : ''} | Chalk: ${gameState.chalkRemaining}/${gameState.maxChalk}</div>
             </div>
             <div style="margin-top: 4px; font-size: 0.8em; color: #bdb9ae; border-top: 1px solid #738078; padding-top: 4px;">
                 Ideal Weight: ${idealWeight} | ${hold.matchable ? 'Matchable' : 'No match'}${hold.shakable ? ' | 👋 Shake' : ''}${hold.chalkable ? ' | 💨 Chalk' : ''}
@@ -241,14 +241,14 @@ const SKILL_TOOLTIPS = {
     shake: {
         name: 'Shake',
         key: 'Q',
-        what: 'Reduces pump by 1 stage. With Deadpoint: next move has no pump change.',
-        when: 'Use when pump is rising, or before a hard move to set up a Deadpoint. 5-move cooldown.'
+        what: 'Fully restores pump to Fresh. With Deadpoint: next move skips pump decay.',
+        when: 'Use when pump is rising from holding hard holds. Set up Deadpoint before a long sequence. 5-move cooldown.'
     },
     chalk: {
         name: 'Chalk',
         key: 'E',
-        what: 'Resets grip to Fresh. With Deadpoint: next move skips grip decay.',
-        when: 'Use when grip reaches Worn or Slipping. Limited uses per climb.'
+        what: 'Resets grip to Chalked. With Deadpoint: next move has no grip state change.',
+        when: 'Use when grip is degrading from bad technique. Limited uses per climb.'
     },
     dyno: {
         name: 'Dyno',

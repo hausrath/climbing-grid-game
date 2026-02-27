@@ -14,7 +14,11 @@ function moveToHold(row, col) {
         return;
     }
 
-    // Check pump state before move
+    // Check resource states before move
+    if (gameState.gripState >= 3) {
+        endGame(false, `Grip failed! Mismatched technique cost you the hold.`);
+        return;
+    }
     if (gameState.pumpState >= 3) {
         endGame(false, `Pump maxed out! Your forearms gave out.`);
         return;
@@ -50,7 +54,7 @@ function moveToHold(row, col) {
 
     const feedback = [];
 
-    // ---- Step 2: Calculate EFFECTIVE PENALTY LEVEL for pump ----
+    // ---- Step 2: Calculate EFFECTIVE PENALTY LEVEL for grip ----
     // Base penalty from the table (direction + hand + angle + weight)
     const basePenaltyLevel = lookupPenalty(direction, hand, hold.angle, gameState.weight);
 
@@ -103,8 +107,8 @@ function moveToHold(row, col) {
     // Clamp effective level
     effectiveLevel = Math.min(effectiveLevel, 4);
 
-    // ---- Step 3: Map effective level to pump state change ----
-    let pumpStateChange = 0;
+    // ---- Step 3: Map effective level to grip state change ----
+    let gripStateChange = 0;
     if (effectiveLevel >= 3) {
         feedback.push({ text: `Severe penalty — you fell!`, type: 'penalty' });
         addFeedback(`Severe penalty — you fell!`, 'penalty');
@@ -112,65 +116,65 @@ function moveToHold(row, col) {
         endGame(false, `Severe penalty! The move was too much for your body.`);
         return;
     } else if (effectiveLevel === 2) {
-        pumpStateChange = 2;
+        gripStateChange = 2;
     } else if (effectiveLevel === 1) {
-        pumpStateChange = 1;
+        gripStateChange = 1;
     }
-    // effectiveLevel 0 = no pump state change
+    // effectiveLevel 0 = no grip state change
 
-    // Deadpoint: after shake, no pump state change
-    if (isSkillUnlocked('deadpoint') && gameState.skillState.justShook && pumpStateChange > 0) {
-        feedback.push({ text: `Deadpoint! Pump penalty negated after shake`, type: 'bonus' });
-        pumpStateChange = 0;
+    // Deadpoint: after chalk, no grip state change
+    if (isSkillUnlocked('deadpoint') && gameState.skillState.justChalked && gripStateChange > 0) {
+        feedback.push({ text: `Deadpoint! Grip penalty negated after chalk`, type: 'bonus' });
+        gripStateChange = 0;
     }
 
     // Show penalty feedback
-    if (pumpStateChange > 0) {
+    if (gripStateChange > 0) {
         const levelName = PENALTY_LEVEL_NAMES[effectiveLevel] || 'Unknown';
         const bumpStr = levelBumps.length > 0 ? ` (${levelBumps.join(', ')})` : '';
-        feedback.push({ text: `${levelName} penalty${bumpStr}: pump +${pumpStateChange} state`, type: pumpStateChange >= 2 ? 'penalty' : 'neutral' });
+        feedback.push({ text: `${levelName} penalty${bumpStr}: grip +${gripStateChange} state`, type: gripStateChange >= 2 ? 'penalty' : 'neutral' });
     } else if (effectiveLevel === 0 && basePenaltyLevel === 0) {
         feedback.push({ text: `Clean move!`, type: 'bonus' });
     }
 
-    // Apply pump state change
-    const newPumpState = gameState.pumpState + pumpStateChange;
+    // Apply grip state change
+    const newGripState = gameState.gripState + gripStateChange;
 
-    // ---- Step 4: Grip decay (time-based) ----
-    let gripAdvanced = false;
-    let gripDecayBlocked = false;
+    // ---- Step 4: Pump decay (hold-type ticks) ----
+    let pumpAdvanced = false;
+    let pumpDecayBlocked = false;
 
-    // Deadpoint: after chalk, no grip decay this move
-    if (isSkillUnlocked('deadpoint') && gameState.skillState.justChalked) {
-        gripDecayBlocked = true;
-        feedback.push({ text: `Deadpoint! Grip decay blocked after chalk`, type: 'bonus' });
+    // Deadpoint: after shake, no pump decay this move
+    if (isSkillUnlocked('deadpoint') && gameState.skillState.justShook) {
+        pumpDecayBlocked = true;
+        feedback.push({ text: `Deadpoint! Pump decay blocked after shake`, type: 'bonus' });
     }
 
-    if (!gripDecayBlocked) {
-        const gripCost = HOLD_GRIP_COST[hold.type] || 1;
-        gameState.gripDecayCounter += gripCost;
-        while (gameState.gripDecayCounter >= 3) {
-            gameState.gripDecayCounter -= 3;
-            gameState.gripState++;
-            gripAdvanced = true;
+    if (!pumpDecayBlocked) {
+        const pumpCost = HOLD_PUMP_COST[hold.type] || 1;
+        gameState.pumpDecayCounter += pumpCost;
+        while (gameState.pumpDecayCounter >= 3) {
+            gameState.pumpDecayCounter -= 3;
+            gameState.pumpState++;
+            pumpAdvanced = true;
         }
     }
 
-    // Grip decay feedback
-    if (gripAdvanced) {
-        const gripLabel = GRIP_STATE_LABELS[gameState.gripState] || 'Critical';
-        feedback.push({ text: `Grip decayed to: ${gripLabel}`, type: gameState.gripState >= 2 ? 'penalty' : 'neutral' });
+    // Pump decay feedback
+    if (pumpAdvanced) {
+        const pumpLabel = PUMP_STATE_LABELS[gameState.pumpState] || 'Critical';
+        feedback.push({ text: `Pump increased to: ${pumpLabel}`, type: gameState.pumpState >= 2 ? 'penalty' : 'neutral' });
     } else {
-        feedback.push({ text: `Grip decay: ${gameState.gripDecayCounter}/3 ticks`, type: 'neutral' });
+        feedback.push({ text: `Pump ticks: ${gameState.pumpDecayCounter}/3`, type: 'neutral' });
     }
 
-    // ---- Step 5: Apply pump state ----
-    gameState.pumpState = newPumpState;
+    // ---- Step 5: Apply grip state ----
+    gameState.gripState = newGripState;
 
     // Main move summary
     const pumpLabel = PUMP_STATE_LABELS[gameState.pumpState] || 'Critical';
     const gripLabel = GRIP_STATE_LABELS[gameState.gripState] || 'Critical';
-    feedback.push({ text: `${hold.label} (${hold.angle}°) — Pump: ${pumpLabel}, Grip: ${gripLabel}`, type: 'neutral' });
+    feedback.push({ text: `${hold.label} (${hold.angle}°) — Grip: ${gripLabel}, Pump: ${pumpLabel}`, type: 'neutral' });
 
     // ---- Step 6: Decrement cooldowns ----
     if (gameState.crossCooldown > 0) gameState.crossCooldown--;
@@ -250,10 +254,10 @@ function moveToHold(row, col) {
     updateUI();
 
     // ---- Step 8: Check win/loss ----
-    if (gameState.pumpState >= 3) {
+    if (gameState.gripState >= 3) {
+        endGame(false, `Grip failed! Mismatched technique cost you the hold.`);
+    } else if (gameState.pumpState >= 3) {
         endGame(false, `Pump maxed out! Your forearms gave out.`);
-    } else if (gameState.gripState >= 3) {
-        endGame(false, `Grip depleted! Your skin couldn't hold on.`);
     } else if (gameState.currentRoute && gameState.currentRow >= gameState.currentRoute.topRow) {
         completeRoute();
     }

@@ -50,16 +50,16 @@ const gameState = {
     currentHand: null, // Which hand is currently on the wall ('left' or 'right')
 
     // State-based pump/grip system (0=fresh, 1=moderate, 2=critical, 3+=fall)
-    pumpState: 0,       // 0: Fresh, 1: Pumped, 2: Struggling, 3+: Fall
-    gripState: 0,       // 0: Chalked, 1: Weakening, 2: Slipping, 3+: Fall
-    gripDecayCounter: 0, // Counts moves since last chalk (advances grip state every 3)
+    pumpState: 0,        // 0: Fresh, 1: Pumped, 2: Struggling, 3+: Fall — rises from hold-type cost (ticks)
+    gripState: 0,        // 0: Chalked, 1: Weakening, 2: Slipping, 3+: Fall — rises from penalty mismatch
+    pumpDecayCounter: 0, // Counts ticks from hold-type cost (advances pump state every 3)
     // Skills - location-gated unlocks (no star purchasing)
     unlockedSkills: [], // Array of skill IDs unlocked by visiting locations
 
     // Skill state tracking (per-climb, reset each attempt)
     skillState: {
-        justChalked: false, // Deadpoint: after chalk, next move skips grip decay
-        justShook: false    // Deadpoint: after shake, next move has no pump change
+        justChalked: false, // Deadpoint: after chalk, next move skips pump decay (hold-type)
+        justShook: false    // Deadpoint: after shake, next move has no grip change (mismatch)
     },
     
     commitCooldown: 0,

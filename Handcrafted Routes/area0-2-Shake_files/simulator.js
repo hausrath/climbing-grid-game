@@ -12,7 +12,7 @@ function createSimState() {
         currentCol: editorState.startCol,
         pumpState: 0,
         gripState: 0,
-        pumpDecayCounter: 0,
+        gripDecayCounter: 0,
         weight: 'center',
         lastHandUsed: null,
         consecutiveCrosses: 0,
@@ -57,9 +57,9 @@ function simulateMove(state, hold, hand, weight, options) {
 
     const result = {
         success: true, direction: '', basePenalty: 0,
-        modifiers: [], effectivePenalty: 0, gripChange: 0,
-        newGripState: state.gripState, newPumpState: state.pumpState,
-        pumpAdvanced: false, pumpDecayBlocked: false,
+        modifiers: [], effectivePenalty: 0, pumpChange: 0,
+        newPumpState: state.pumpState, newGripState: state.gripState,
+        gripAdvanced: false, gripDecayBlocked: false,
         fell: false, fallReason: null, feedback: [],
         crossUsed: false, reachUsed: false, commitUsed: false
     };
@@ -135,76 +135,76 @@ function simulateMove(state, hold, hand, weight, options) {
     result.effectivePenalty = effectiveLevel;
     result.modifiers = levelBumps;
 
-    // Map to grip change
+    // Map to pump change
     if (effectiveLevel >= 3) {
         result.success = false; result.fell = true;
         result.fallReason = `Severe penalty (effective ${effectiveLevel})`;
         return result;
     } else if (effectiveLevel === 2) {
-        result.gripChange = 2;
+        result.pumpChange = 2;
     } else if (effectiveLevel === 1) {
-        result.gripChange = 1;
+        result.pumpChange = 1;
     }
 
-    // Deadpoint after chalk: blocks grip state change
-    if (skills.includes('deadpoint') && state.skillState.justChalked && result.gripChange > 0) {
-        result.feedback.push({ text: 'Deadpoint: grip penalty negated after chalk', type: 'bonus' });
-        result.gripChange = 0;
+    // Deadpoint after shake
+    if (skills.includes('deadpoint') && state.skillState.justShook && result.pumpChange > 0) {
+        result.feedback.push({ text: 'Deadpoint: pump penalty negated after shake', type: 'bonus' });
+        result.pumpChange = 0;
     }
 
-    result.newGripState = state.gripState + result.gripChange;
+    result.newPumpState = state.pumpState + result.pumpChange;
 
-    // Pump decay (hold-type ticks)
-    let pumpDecayBlocked = false;
-    if (skills.includes('deadpoint') && state.skillState.justShook) {
-        pumpDecayBlocked = true;
-        result.pumpDecayBlocked = true;
-        result.feedback.push({ text: 'Deadpoint: pump decay blocked after shake', type: 'bonus' });
+    // Grip decay
+    let gripDecayBlocked = false;
+    if (skills.includes('deadpoint') && state.skillState.justChalked) {
+        gripDecayBlocked = true;
+        result.gripDecayBlocked = true;
+        result.feedback.push({ text: 'Deadpoint: grip decay blocked after chalk', type: 'bonus' });
     }
 
-    let newPumpDecayCounter = state.pumpDecayCounter;
-    let newPumpState = state.pumpState;
-    if (!pumpDecayBlocked) {
-        const pumpCost = HOLD_PUMP_COST[hold.type] || 1;
-        newPumpDecayCounter += pumpCost;
-        while (newPumpDecayCounter >= 3) {
-            newPumpDecayCounter -= 3;
-            newPumpState++;
-            result.pumpAdvanced = true;
+    let newGripDecayCounter = state.gripDecayCounter;
+    let newGripState = state.gripState;
+    if (!gripDecayBlocked) {
+        const gripCost = HOLD_GRIP_COST[hold.type] || 1;
+        newGripDecayCounter += gripCost;
+        while (newGripDecayCounter >= 3) {
+            newGripDecayCounter -= 3;
+            newGripState++;
+            result.gripAdvanced = true;
         }
     }
-    result.newPumpState = newPumpState;
+    result.newGripState = newGripState;
 
     // Check post-move falls
-    if (result.newGripState >= 3) {
-        result.success = false; result.fell = true;
-        result.fallReason = 'Grip failed';
-    }
     if (result.newPumpState >= 3) {
         result.success = false; result.fell = true;
         result.fallReason = 'Pump maxed out';
     }
+    if (result.newGripState >= 3) {
+        result.success = false; result.fell = true;
+        result.fallReason = 'Grip depleted';
+    }
 
     // Build summary feedback
-    if (result.gripChange > 0) {
+    if (result.pumpChange > 0) {
         const bumpStr = levelBumps.length > 0 ? ` (${levelBumps.join(', ')})` : '';
-        result.feedback.push({ text: `${PENALTY_LEVEL_NAMES[effectiveLevel]}${bumpStr}: grip +${result.gripChange}`, type: result.gripChange >= 2 ? 'penalty' : 'neutral' });
+        result.feedback.push({ text: `${PENALTY_LEVEL_NAMES[effectiveLevel]}${bumpStr}: pump +${result.pumpChange}`, type: result.pumpChange >= 2 ? 'penalty' : 'neutral' });
     } else if (effectiveLevel === 0) {
         result.feedback.push({ text: 'Clean move!', type: 'bonus' });
     }
 
     // Store computed values for state application
-    result._newPumpDecayCounter = newPumpDecayCounter;
+    result._newGripDecayCounter = newGripDecayCounter;
     result._crossMove = crossMove;
 
     return result;
 }
 
 function applyMoveResult(state, hold, hand, result, weight) {
-    // Apply grip/pump
-    state.gripState = result.newGripState;
+    // Apply pump/grip
     state.pumpState = result.newPumpState;
-    state.pumpDecayCounter = result._newPumpDecayCounter;
+    state.gripState = result.newGripState;
+    state.gripDecayCounter = result._newGripDecayCounter;
     if (weight) state.weight = weight;
 
     // Decrement cooldowns
@@ -262,11 +262,10 @@ function applyMoveResult(state, hold, hand, result, weight) {
 // ---- Recovery Actions ----
 function simulateShakeAction(state) {
     if (state.shakeCooldown > 0) return { success: false, reason: `Shake on cooldown (${state.shakeCooldown})` };
-    if (state.pumpState <= 0 && state.pumpDecayCounter <= 0) return { success: false, reason: 'Pump already fresh' };
+    if (state.pumpState <= 0) return { success: false, reason: 'Already fresh' };
 
-    const oldPump = PUMP_STATE_LABELS[state.pumpState] || 'Critical';
-    state.pumpState = 0;
-    state.pumpDecayCounter = 0;
+    const oldPump = state.pumpState;
+    state.pumpState = Math.max(0, state.pumpState - 1);
     state.shakesUsed++;
     state.shakeCooldown = state.actionCooldownLength;
 
@@ -279,7 +278,7 @@ function simulateShakeAction(state) {
     if (state.reachCooldown > 0) state.reachCooldown--;
     if (state.commitCooldown > 0) state.commitCooldown--;
 
-    return { success: true, text: `Shake: ${oldPump} -> Fresh` };
+    return { success: true, text: `Shake: ${PUMP_STATE_LABELS[oldPump]} -> ${PUMP_STATE_LABELS[state.pumpState]}` };
 }
 
 function simulateChalkAction(state) {
@@ -288,6 +287,7 @@ function simulateChalkAction(state) {
 
     const oldGrip = GRIP_STATE_LABELS[state.gripState] || 'Critical';
     state.gripState = 0;
+    state.gripDecayCounter = 0;
     state.chalkRemaining--;
     state.chalksUsed++;
     state.chalkCooldown = 1;
@@ -462,9 +462,8 @@ function simExecuteMove() {
     if (result.fell) {
         addMoveLog(`FELL: ${result.fallReason}`, 'fell');
     } else if (simState.completed) {
-        const gripLabel = GRIP_STATE_LABELS[simState.gripState] || 'Critical';
         const pumpLabel = PUMP_STATE_LABELS[simState.pumpState] || 'Critical';
-        addMoveLog(`COMPLETED! Final grip: ${gripLabel} | pump: ${pumpLabel}`, 'bonus');
+        addMoveLog(`COMPLETED! Final pump: ${pumpLabel}`, 'bonus');
     }
 
     updateSimUI();
@@ -478,7 +477,7 @@ function simShake() {
     if (result.success) {
         addMoveLog(result.text, 'bonus');
         if (simState.skillState.justShook) {
-            addMoveLog('  Deadpoint ready: next move no grip change', 'bonus');
+            addMoveLog('  Deadpoint ready: next move no pump change', 'bonus');
         }
     } else {
         addMoveLog(result.reason, 'penalty');
@@ -494,7 +493,7 @@ function simChalk() {
     if (result.success) {
         addMoveLog(result.text, 'bonus');
         if (simState.skillState.justChalked) {
-            addMoveLog('  Deadpoint ready: next move pump decay skipped', 'bonus');
+            addMoveLog('  Deadpoint ready: next move grip decay skipped', 'bonus');
         }
     } else {
         addMoveLog(result.reason, 'penalty');
@@ -533,20 +532,20 @@ function addMoveLog(text, type) {
 function updateSimUI() {
     if (!simState) { simState = createSimState(); }
 
-    const gripLabel = simState.gripState < 3 ? GRIP_STATE_LABELS[simState.gripState] : 'FELL';
     const pumpLabel = simState.pumpState < 3 ? PUMP_STATE_LABELS[simState.pumpState] : 'FELL';
-
-    const gripEl = document.getElementById('sim-grip');
-    gripEl.textContent = `${gripLabel} (${simState.gripState})`;
-    gripEl.className = 'value ' + (simState.gripState === 0 ? 'fresh' : simState.gripState === 1 ? 'moderate' : 'critical');
+    const gripLabel = simState.gripState < 3 ? GRIP_STATE_LABELS[simState.gripState] : 'FELL';
 
     const pumpEl = document.getElementById('sim-pump');
     pumpEl.textContent = `${pumpLabel} (${simState.pumpState})`;
     pumpEl.className = 'value ' + (simState.pumpState === 0 ? 'fresh' : simState.pumpState === 1 ? 'moderate' : 'critical');
 
+    const gripEl = document.getElementById('sim-grip');
+    gripEl.textContent = `${gripLabel} (${simState.gripState})`;
+    gripEl.className = 'value ' + (simState.gripState === 0 ? 'fresh' : simState.gripState === 1 ? 'moderate' : 'critical');
+
     document.getElementById('sim-weight').textContent = simState.weight.charAt(0).toUpperCase() + simState.weight.slice(1);
     document.getElementById('sim-hand').textContent = simState.lastHandUsed ? (simState.lastHandUsed === 'left' ? 'Left' : 'Right') : '—';
-    document.getElementById('sim-decay').textContent = `${simState.pumpDecayCounter}/3`;
+    document.getElementById('sim-decay').textContent = `${simState.gripDecayCounter}/3`;
     document.getElementById('sim-chalk').textContent = `${simState.chalkRemaining}/${simState.maxChalk}`;
     document.getElementById('sim-move').textContent = simState.holdsClimbed;
 
@@ -616,10 +615,8 @@ function updateSimUI() {
     }
 
     // Update button states
-    const allHolds = getSortedHolds();
-    const currentHold = allHolds.find(h => h.position.x === simState.currentCol && h.position.y === simState.currentRow) || null;
     document.getElementById('btn-move').disabled = simState.fell || simState.completed || reachable.length === 0;
-    document.getElementById('btn-shake').disabled = simState.fell || simState.completed || simState.shakeCooldown > 0 || (simState.pumpState <= 0 && simState.pumpDecayCounter <= 0);
-    document.getElementById('btn-chalk').disabled = simState.fell || simState.completed || simState.chalkCooldown > 0 || simState.chalkRemaining <= 0 || !currentHold?.chalkable;
+    document.getElementById('btn-shake').disabled = simState.fell || simState.completed || simState.shakeCooldown > 0 || simState.pumpState <= 0;
+    document.getElementById('btn-chalk').disabled = simState.fell || simState.completed || simState.chalkCooldown > 0 || simState.chalkRemaining <= 0;
     document.getElementById('btn-undo').disabled = simState.moveHistory.length === 0;
 }

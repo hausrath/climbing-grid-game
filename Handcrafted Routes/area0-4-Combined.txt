@@ -1,0 +1,26 @@
+=== ROUTE ===
+id: 4
+name: Combined
+grade: V1
+area: 0
+description: Use all of your skills to reach the top!
+holdCount: 11
+startCol: 3
+
+=== HOLDS ===
+# y  x  type        angle  pump  grip  match  rest  shake  chalk
+  1  3  jug           0     1     1     no    no     no     no
+  2  2  jug         315     1     1     no    no     no     no
+  2  4  pocket        0     2     1     no    no     no     no
+  3  3  jug         270     2     1     no    no    yes     no
+  4  3  pinch        45     1     1     no    no     no     no
+  5  2  edge          0     1     1     no    no     no    yes
+  6  2  crimp       315     1     1     no    no     no     no
+  6  3  pocket       45     1     1     no    no     no     no
+  7  2  edge          0     1     1     no    no     no     no
+  7  4  jug          45     1     1     no    no     no     no
+  8  3  jug           0     1     1     no    no     no     no
+
+=== STARS ===
+speed: 30
+pumpEfficiency: 0

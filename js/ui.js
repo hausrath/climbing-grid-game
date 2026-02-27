@@ -291,7 +291,7 @@ function updateUI() {
         chalkBtn.style.opacity = '0.5';
     } else {
         chalkBtn.textContent = `CHALK (E) ${gameState.chalkRemaining}/${gameState.maxChalk}`;
-        chalkBtn.style.opacity = '1';
+        chalkBtn.style.opacity = curHold?.chalkable ? '1' : '';
     }
 
     // Update move counter with no-fall zone indicator
@@ -335,18 +335,18 @@ function updateUI() {
     document.getElementById('grip-value').textContent = gripLabel;
     document.getElementById('grip-value').style.color = gripColors[gameState.gripState] || '#f5aaa2';
 
-    // Update pump bar: starts empty, fills as pump accumulates (fall at state 3 = 100%)
-    const pumpPercent = Math.min(100, (gameState.pumpState / 3) * 100);
+    // Update pump bar: starts empty, fills as hold-type ticks accumulate (3 states × 3 ticks = 9 total)
+    const usedPumpTicks = (gameState.pumpState * 3) + gameState.pumpDecayCounter;
+    const pumpPercent = Math.min(100, (usedPumpTicks / 9) * 100);
     document.getElementById('pump-bar').style.width = `${pumpPercent}%`;
     document.getElementById('pump-bar').style.background = pumpColors[gameState.pumpState] || '#f5aaa2';
     document.getElementById('pump-bar-text').textContent = pumpLabel;
 
-    // Update grip bar: starts full, depletes as grip is lost (3 states × 3 ticks = 9 total)
-    const usedGripTicks = (gameState.gripState * 3) + gameState.gripDecayCounter;
-    const gripPercent = Math.max(0, ((9 - usedGripTicks) / 9) * 100);
+    // Update grip bar: starts full, depletes as mismatch penalty accumulates (fall at state 3 = 0%)
+    const gripPercent = Math.max(0, ((3 - gameState.gripState) / 3) * 100);
     document.getElementById('grip-bar').style.width = `${gripPercent}%`;
     document.getElementById('grip-bar').style.background = gripColors[gameState.gripState] || '#f5aaa2';
-    document.getElementById('grip-bar-text').textContent = `${gripLabel} (${gameState.gripDecayCounter}/3)`;
+    document.getElementById('grip-bar-text').textContent = gripLabel;
 
     // Update Commit button (only visible if skill unlocked)
     const commitBtn = document.getElementById('commit-btn');

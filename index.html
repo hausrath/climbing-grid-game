@@ -136,8 +136,8 @@
                     <span id="grip-value" style="color: #a8db60;">Chalked</span>
                 </div>
                 <div class="bar-container">
-                    <div class="bar-fill grip-bar" id="grip-bar" style="width: 0%"></div>
-                    <span class="bar-text" id="grip-bar-text">Chalked (decay in 2)</span>
+                    <div class="bar-fill grip-bar" id="grip-bar" style="width: 100%"></div>
+                    <span class="bar-text" id="grip-bar-text">Chalked</span>
                 </div>
             </div>
 
@@ -214,7 +214,7 @@
                 <div class="controls">
                     <div class="control-group">
                         <strong>Goal:</strong><br>
-                        Climb as high as you can! Game ends when pump reaches max or grip reaches 0. Increase your max with stats!
+                        Climb as high as you can! Game ends when grip or pump reaches max. Use Shake to restore grip, Chalk to restore pump!
                     </div>
 
                     <div class="control-group">
@@ -235,10 +235,9 @@
 
                     <div class="control-group">
                         <strong>Mechanics:</strong><br>
-                        • Hold Difficulty → Grip costs<br>
-                        • Move Difficulty → Pump costs<br>
-                        • Rest holds (⚓) = no cooldowns<br>
-                        • Long/diagonal moves cost more pump
+                        • Hold Type → Pump costs (jugs=easy, crimps=hard)<br>
+                        • Move Angle/Weight → Grip costs<br>
+                        • Rest holds (⚓) = no cooldowns
                     </div>
 
                     <div class="control-group">
@@ -272,8 +271,8 @@
 
                     <div class="control-group">
                         <strong>Actions:</strong><br>
-                        • Press Q = Shake Out (-20 pump)<br>
-                        • Press E = Chalk Up (+20 grip)<br>
+                        • Press Q = Shake Out (restores grip)<br>
+                        • Press E = Chalk Up (restores pump)<br>
                         • Both have 5-move cooldown<br>
                         • Use strategically to extend your climb!
                     </div>
@@ -281,7 +280,7 @@
                     <div class="control-group">
                         <strong>Combo System:</strong><br>
                         • 3 consecutive successful grabs = Flow State!<br>
-                        • Flow State: ALL moves cost 50% pump & grip<br>
+                        • Flow State: ALL moves cost 50% grip & pump<br>
                         • Flow State persists as long as you keep succeeding<br>
                         • Failed grabs break combo and reset flow state
                     </div>
@@ -385,13 +384,13 @@
                             <span style="color: #f5aaa2;">ENDURANCE: <span id="camp-endurance">0</span></span>
                             <button class="hand-button" onclick="allocateStatPoint('endurance')" style="border-color: #f5aaa2; padding: 5px 15px;">+</button>
                         </div>
-                        <div style="font-size: 0.75em; color: #738078;">-2% pump per point, +5 max pump</div>
+                        <div style="font-size: 0.75em; color: #738078;">-2% grip per point, +5 max grip</div>
 
                         <div style="display: flex; justify-content: space-between; align-items: center;">
                             <span style="color: #c178de;">POWER: <span id="camp-power">0</span></span>
                             <button class="hand-button" onclick="allocateStatPoint('power')" style="border-color: #c178de; padding: 5px 15px;">+</button>
                         </div>
-                        <div style="font-size: 0.75em; color: #738078;">-2% grip loss, +5 max grip</div>
+                        <div style="font-size: 0.75em; color: #738078;">-2% pump per point, +5 max pump</div>
 
                         <div style="display: flex; justify-content: space-between; align-items: center;">
                             <span style="color: #6dbce3;">SPEED: <span id="camp-speed">0</span></span>

@@ -8,9 +8,9 @@ const holdTypes = [
     { type: 'undercling', label: 'UNDER',  color: '#b06758' }
 ];
 
-// ============ HOLD GRIP COST ============
-// Maps hold type → grip decay ticks per move. Threshold is 3 ticks = 1 grip stage advance.
-const HOLD_GRIP_COST = {
+// ============ HOLD PUMP COST ============
+// Maps hold type → pump accumulation ticks per move. Threshold is 3 ticks = 1 pump stage advance.
+const HOLD_PUMP_COST = {
     jug: 1,
     edge: 1,
     pocket: 2,

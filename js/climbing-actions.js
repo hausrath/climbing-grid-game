@@ -1,4 +1,4 @@
-// ============ SHAKE (reduces pump state by 1) ============
+// ============ SHAKE (fully restores pump) ============
 function useShake() {
     const currentHold = gameState.routeGrid?.[gameState.currentRow]?.[gameState.currentCol];
     if (!currentHold?.shakable) {
@@ -10,18 +10,19 @@ function useShake() {
         return;
     }
 
-    if (gameState.pumpState <= 0) {
+    if (gameState.pumpState <= 0 && gameState.pumpDecayCounter <= 0) {
         addFeedback(`Already fresh — no pump to shake off!`, 'neutral');
         return;
     }
 
-    // Reduce pump state by 1
+    // Fully restore pump to 0
     const oldState = gameState.pumpState;
-    gameState.pumpState = Math.max(0, gameState.pumpState - 1);
+    gameState.pumpState = 0;
+    gameState.pumpDecayCounter = 0;
     const newLabel = PUMP_STATE_LABELS[gameState.pumpState] || 'Fresh';
 
     gameState.shakesUsed++;
-    gameState.shakeCooldown = gameState.actionCooldownLength;
+    gameState.shakeCooldown = 1;
 
     addFeedback(`Shook out! Pump: ${PUMP_STATE_LABELS[oldState]} -> ${newLabel}`, 'bonus');
     addFeedback(`Cooldown: ${gameState.shakeCooldown} moves`, 'neutral');
@@ -29,7 +30,7 @@ function useShake() {
     // Deadpoint tracking
     if (isSkillUnlocked('deadpoint')) {
         gameState.skillState.justShook = true;
-        addFeedback(`Deadpoint ready! Next move: no pump state change`, 'bonus');
+        addFeedback(`Deadpoint ready! Next move: pump decay skipped`, 'bonus');
     }
 
     // Shake counts as a turn for cooldown purposes
@@ -60,10 +61,9 @@ function useChalk() {
 
     gameState.chalkRemaining--;
 
-    // Reset grip state and decay counter
+    // Reset grip state
     const oldGripLabel = GRIP_STATE_LABELS[gameState.gripState] || 'Critical';
     gameState.gripState = 0;
-    gameState.gripDecayCounter = 0;
 
     gameState.chalksUsed++;
     gameState.chalkCooldown = 1; // 1-turn cooldown
@@ -73,7 +73,7 @@ function useChalk() {
     // Deadpoint tracking
     if (isSkillUnlocked('deadpoint')) {
         gameState.skillState.justChalked = true;
-        addFeedback(`Deadpoint ready! Next move: grip decay skipped`, 'bonus');
+        addFeedback(`Deadpoint ready! Next move: grip state change blocked`, 'bonus');
     }
 
     // Chalk counts as a turn for cooldown purposes
@@ -286,8 +286,6 @@ function completeRoute() {
     }
 
     // Build star display
-    const pumpEffLabel = 'Finish with Fresh pump';
-
     const starDisplay = `
         <div style="font-size: 1.2em; margin-bottom: 15px;">
             ${starResults.completion ? '⭐' : '☆'} Completion
@@ -298,12 +296,12 @@ function completeRoute() {
             <div style="font-size: 0.7em; color: #bdb9ae;">${roundedTime}s / ${timeLimit}s limit</div>
         </div>
         <div style="font-size: 1.2em; margin-bottom: 15px;">
-            ${starResults.pumpEfficiency ? '⭐' : '☆'} Pump Efficiency
-            <div style="font-size: 0.7em; color: #bdb9ae;">${pumpEffLabel} (ended: ${PUMP_STATE_LABELS[gameState.pumpState] || 'Critical'})</div>
-        </div>
-        <div style="font-size: 1.2em; margin-bottom: 15px;">
             ${starResults.gripEfficiency ? '⭐' : '☆'} Grip Efficiency
             <div style="font-size: 0.7em; color: #bdb9ae;">Finish with Chalked grip (ended: ${GRIP_STATE_LABELS[gameState.gripState] || 'Critical'})</div>
+        </div>
+        <div style="font-size: 1.2em; margin-bottom: 15px;">
+            ${starResults.pumpEfficiency ? '⭐' : '☆'} Pump Efficiency
+            <div style="font-size: 0.7em; color: #bdb9ae;">Finish with Fresh pump (ended: ${PUMP_STATE_LABELS[gameState.pumpState] || 'Critical'})</div>
         </div>
         <div style="font-size: 1.2em; margin-bottom: 15px;">
             ${starResults.flashClimb ? '⭐' : '☆'} Flash Climb
@@ -365,14 +363,14 @@ function endGame(victory, message) {
     const msg = document.getElementById('game-over-message');
 
     title.textContent = 'YOU FELL!';
-    const pumpLabel = PUMP_STATE_LABELS[gameState.pumpState] || 'Critical';
     const gripLabel = GRIP_STATE_LABELS[gameState.gripState] || 'Critical';
+    const pumpLabel = PUMP_STATE_LABELS[gameState.pumpState] || 'Critical';
     msg.innerHTML = `
         <div style="margin-bottom: 20px;">${message}</div>
         <div>Reached row ${gameState.currentRow} / ${topRow}</div>
         ${isNewHighPoint ? `<div style="color: #fad882; margin: 10px 0;">NEW HIGH POINT!</div>` :
             (highPoint > 0 ? `<div style="color: #738078; margin: 10px 0;">High Point: row ${highPoint}</div>` : '')}
-        <div style="margin-bottom: 10px; color: #bdb9ae;">Pump: ${pumpLabel} | Grip: ${gripLabel}</div>
+        <div style="margin-bottom: 10px; color: #bdb9ae;">Grip: ${gripLabel} | Pump: ${pumpLabel}</div>
         <button class="back-button" onclick="retryRoute()">Retry</button>
         <button class="back-button" onclick="returnToRouteSelection()">Routes</button>
         <button class="back-button" onclick="returnToWorldMap()">World Map</button>

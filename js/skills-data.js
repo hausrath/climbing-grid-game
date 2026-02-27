@@ -1,7 +1,7 @@
 // ============ SKILLS DATABASE (Location-Gated Puzzle Skills) ============
 // Skills unlock on the victory screen when the player earns enough stars.
-// 'completion' = first route completion at this location.
 // 'areaUnlock' = when 8+ stars earned at this location (same threshold that unlocks adjacent areas).
+// 'routeCount' = when N routes at this location are completed (uses unlockRouteCount; 'all' = every route).
 
 const SKILL_STAR_THRESHOLD = 8; // Stars needed at a location to trigger 'areaUnlock' skills
 
@@ -9,8 +9,9 @@ const skillDatabase = {
     cross: {
         id: 'cross',
         name: 'Cross',
-        unlockLocation: 0, // Boulder Garden (unlocks after completing first route)
-        unlockTrigger: 'completion',
+        unlockLocation: 0, // Boulder Garden (unlocks after completing all routes)
+        unlockTrigger: 'routeCount',
+        unlockRouteCount: 'all',
         key: '3',
         description: 'Activate before a cross-body move to reduce effective penalty by 1.',
         effect: 'Reduces cross-body or gaston penalty by 1 level. 3-move cooldown.',
@@ -19,8 +20,9 @@ const skillDatabase = {
     reach: {
         id: 'reach',
         name: 'Reach',
-        unlockLocation: 0, // Boulder Garden (unlocks at 8+ stars)
-        unlockTrigger: 'areaUnlock',
+        unlockLocation: 1, // Crimp Canyon (unlocks after completing first 2 routes)
+        unlockTrigger: 'routeCount',
+        unlockRouteCount: 2,
         key: '1',
         description: 'Activate before a 2+ space move to negate the distance penalty.',
         effect: 'Negates the +1 penalty for extended (2+ space) moves. 3-move cooldown.',
@@ -41,7 +43,7 @@ const skillDatabase = {
         unlockLocation: 2, // Overhang Alley
         unlockTrigger: 'areaUnlock',
         description: 'On matchable holds, place both hands to reset hand alternation.',
-        effect: 'Resets hand choice and consecutive crosses. Costs 1 move (grip decays, cooldowns tick).',
+        effect: 'Resets hand choice and consecutive crosses. Costs 1 move (pump ticks, cooldowns tick).',
         passive: true
     },
     deadpoint: {
@@ -50,7 +52,7 @@ const skillDatabase = {
         unlockLocation: 3, // Slab Valley
         unlockTrigger: 'areaUnlock',
         description: 'Recovery actions empower your next move.',
-        effect: 'After Shake: next move has no pump state change. After Chalk: next move skips grip decay.',
+        effect: 'After Shake: next move skips pump decay. After Chalk: next move has no grip state change.',
         passive: true
     },
     commit: {
@@ -70,7 +72,7 @@ const skillDatabase = {
         unlockTrigger: 'areaUnlock',
         key: 'b',
         description: 'Move to an adjacent hold without changing hands.',
-        effect: 'Reposition (same row or 1 lateral space) without hand alternation. Costs 1 move (grip decays, cooldowns tick).',
+        effect: 'Reposition (same row or 1 lateral space) without hand alternation. Costs 1 move (pump ticks, cooldowns tick).',
         cooldown: 0
     },
     dyno: {
@@ -108,14 +110,25 @@ function tryUnlockSkillAtLocation(locationId) {
 }
 
 // Unlock skills triggered by completing a route at a location
-// 'completion' fires on any route completion; 'areaUnlock' fires when 8+ stars earned
+// 'areaUnlock' fires when 8+ stars earned; 'routeCount' fires when N routes completed
 function tryUnlockSkillOnCompletion(locationId) {
     const newSkills = [];
     const locationStars = calculateLocationStars(locationId);
     const hasEnoughStars = locationStars >= SKILL_STAR_THRESHOLD;
+
+    const locationRoutes = getRoutesForLocation(locationId);
+    const completedCount = locationRoutes.filter(r => gameState.completedRoutes[`${locationId}-${r.id}`]).length;
+
     for (const [skillId, skill] of Object.entries(skillDatabase)) {
         if (skill.unlockLocation === locationId && !gameState.unlockedSkills.includes(skillId)) {
-            if (skill.unlockTrigger === 'completion' || (skill.unlockTrigger === 'areaUnlock' && hasEnoughStars)) {
+            let shouldUnlock = false;
+            if (skill.unlockTrigger === 'areaUnlock' && hasEnoughStars) {
+                shouldUnlock = true;
+            } else if (skill.unlockTrigger === 'routeCount') {
+                const threshold = skill.unlockRouteCount === 'all' ? locationRoutes.length : skill.unlockRouteCount;
+                if (completedCount >= threshold) shouldUnlock = true;
+            }
+            if (shouldUnlock) {
                 gameState.unlockedSkills.push(skillId);
                 newSkills.push(skill);
             }
