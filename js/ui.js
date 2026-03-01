@@ -262,7 +262,14 @@ function updateUI() {
         weightSection.style.display = isSkillUnlocked('weightShift') ? 'block' : 'none';
     }
 
-    // Update weight indicator
+    // Update weight buttons and indicator
+    const weightLeftBtn = document.getElementById('weight-left-btn');
+    const weightCenterBtn = document.getElementById('weight-center-btn');
+    const weightRightBtn = document.getElementById('weight-right-btn');
+    if (weightLeftBtn) weightLeftBtn.classList.toggle('selected', gameState.weight === 'left');
+    if (weightCenterBtn) weightCenterBtn.classList.toggle('selected', gameState.weight === 'center');
+    if (weightRightBtn) weightRightBtn.classList.toggle('selected', gameState.weight === 'right');
+
     const weightIndicator = document.getElementById('weight-indicator');
     if (weightIndicator) {
         const weightLabels = { left: '← LEFT', center: 'CENTER', right: 'RIGHT →' };

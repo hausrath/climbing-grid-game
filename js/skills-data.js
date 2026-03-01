@@ -9,9 +9,9 @@ const skillDatabase = {
     cross: {
         id: 'cross',
         name: 'Cross',
-        unlockLocation: 0, // Boulder Garden (unlocks after completing all routes)
+        unlockLocation: 1, // Crimp Canyon (unlocks after completing route 1: Weight Shift)
         unlockTrigger: 'routeCount',
-        unlockRouteCount: 'all',
+        unlockRouteCount: 1,
         key: '3',
         description: 'Activate before a cross-body move to reduce effective penalty by 1.',
         effect: 'Reduces cross-body or gaston penalty by 1 level. 3-move cooldown.',
@@ -31,8 +31,7 @@ const skillDatabase = {
     weightShift: {
         id: 'weightShift',
         name: 'Weight Shift',
-        unlockLocation: 1, // Crimp Canyon
-        unlockTrigger: 'areaUnlock',
+        unlockLocation: 1, // Crimp Canyon — unlocks on arrival
         description: 'Manually set your body weight before a move.',
         effect: 'Shift weight one step (left/center/right) per action. Allows pre-positioning for optimal penalty angles.',
         passive: true

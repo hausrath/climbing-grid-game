@@ -353,8 +353,8 @@ function startClimb(location, route) {
 
     // Reset climbing state
     gameState.pumpState = 0;
+    gameState.pumpDecayCounter = 0;
     gameState.gripState = 0;
-    gameState.gripDecayCounter = 0;
     gameState.selectedHand = null;
     gameState.lastHandUsed = null;
     gameState.currentHand = null;
