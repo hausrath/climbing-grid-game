@@ -1,5 +1,5 @@
 === ROUTE ===
-id: 1
+id: a0-1
 name: Hand Choice
 grade: V0
 area: 0

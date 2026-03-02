@@ -1,0 +1,30 @@
+=== ROUTE ===
+id: a1-4
+name: Combined Level 2
+grade: V2
+area: 1
+description: Use all the tools at your disposal to conquer this boulder.
+holdCount: 6
+startCol: 2
+
+=== HOLDS ===
+# y  x  type        angle  pump  grip  match  rest  shake  chalk
+  1  1  jug           0     1     1     no    no     no     no
+  1  4  edge         45     1     1     no    no     no     no
+  2  0  crimp         0     1     1     no    no     no     no
+  2  4  pocket        0     1     1     no    no     no     no
+  3  1  pinch         0     1     1     no    no     no     no
+  3  5  pocket      315     1     1     no    no     no     no
+  4  1  pocket        0     1     1     no    no     no     no
+  4  5  edge        270     1     1     no    no     no     no
+  5  2  edge          0     1     1     no    no    yes    yes
+  5  4  jug         315     1     1     no    no    yes    yes
+  7  3  sloper        0     1     1     no    no     no     no
+  8  3  pinch         0     1     1     no    no     no     no
+  8  4  jug           0     1     1     no    no     no     no
+  9  3  pocket        0     1     1     no    no     no     no
+  10  4  jug           0     1     1     no    no     no     no
+
+=== STARS ===
+speed: 30
+pumpEfficiency: 0

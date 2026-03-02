@@ -38,7 +38,7 @@ A move is **cross-body** if:
 - Right hand reaches **up-left**
 - Left hand reaches **up-right**
 
-Cross-body moves use a different row of the penalty table (inherently higher base penalties). The Cross skill reduces the effective penalty by 1 for these moves.
+Cross-body moves **require the Cross skill** — attempting one without it is an instant fall. When Cross is active, the effective penalty level is reduced by 1.
 
 ---
 
@@ -56,7 +56,7 @@ Determined by the horizontal delta from current column to target column:
 
 ## Penalty System
 
-Every move has an **effective penalty level** (0–4) that drives pump state changes.
+Every move has an **effective penalty level** (0–4) that drives grip state changes.
 
 ### Base Penalty Table
 
@@ -96,21 +96,21 @@ The table covers three directions (`up`, `up-left`, `up-right`), two hands (`L`/
 
 ### Penalty Modifiers (applied after base lookup)
 
-Modifiers adjust the effective level before mapping to pump state change. Applied in order:
+Modifiers adjust the effective level before mapping to grip state change. Applied in order:
 
-1. **+1 Distance** — move spans dy ≥ 2 OR dx ≥ 2. Negated by Reach skill when active.
-2. **Cross skill** (if active) — effective level −1 on cross-body moves.
+1. **Distance** — extended moves (dy ≥ 2 or dx ≥ 2) **require the Reach skill**; without it the move is an instant fall. With Reach active, no penalty is added.
+2. **Cross skill** — cross-body moves **require the Cross skill**; without it the move is an instant fall. With Cross active, effective level is reduced by 1.
 3. **Commit skill** (if active) — effective level −1 (applied after cross).
 
 Effective level is clamped to [0, 4]. A base level of 4 triggers an instant fall **before** modifiers are applied.
 
-### Effective Level → Pump State Change
+### Effective Level → Grip State Change
 
 | Effective Level | Result |
 |----------------|--------|
-| 0 | No pump change |
-| 1 | +1 pump state |
-| 2 | +2 pump states |
+| 0 | No grip change |
+| 1 | +1 grip state |
+| 2 | +2 grip states |
 | 3+ | Instant fall |
 
 ---
@@ -120,8 +120,24 @@ Effective level is clamped to [0, 4]. A base level of 4 triggers an instant fall
 **States**: Fresh (0) → Pumped (1) → Struggling (2) → Fall (3+)
 
 - Reaching state 3 ends the climb immediately.
+- A **decay counter** accumulates ticks each move based on the hold type grabbed.
+- Every time the counter reaches 3 ticks, pump advances one state and the counter resets (carries over remainder).
 - **Shake** reduces pump by 1 state (5-move cooldown).
 - **Deadpoint** (skill): after Shake, the next move has zero pump state change.
+
+### Hold Types & Pump Cost
+
+| Hold Type | Ticks per Move | Moves to Advance (from 0 ticks) |
+|-----------|:--------------:|:--------------------------------:|
+| Jug       | 1              | 3                                |
+| Edge      | 2              | 1.5                              |
+| Pocket    | 2              | 1.5                              |
+| Undercling | 2             | 1.5                              |
+| Pinch     | 3              | 1                                |
+| Crimp     | 4              | 0.75                             |
+| Sloper    | 4              | 0.75                             |
+
+*Pump cost is looked up from `HOLD_PUMP_COST` in `js/constants.js` using the hold's `type` field.*
 
 Pump is displayed as a colored bar and text label. State is checked at the start of each move and again after applying changes.
 
@@ -132,31 +148,16 @@ Pump is displayed as a colored bar and text label. State is checked at the start
 **States**: Chalked (0) → Weakening (1) → Slipping (2) → Fall (3+)
 
 - Reaching state 3 ends the climb immediately.
-- A **decay counter** accumulates ticks each move based on the hold type grabbed.
-- Every time the counter reaches 3 ticks, grip advances one state and the counter resets (carries over remainder).
-- **Chalk** resets grip state to 0 and decay counter to 0 (3 uses per climb, 1-move cooldown).
-- **Deadpoint** (skill): after Chalk, the next move skips grip decay entirely.
-
-### Hold Types & Grip Cost
-
-| Hold Type | Ticks per Move | Moves to Decay (from 0 ticks) |
-|-----------|:--------------:|:-----------------------------:|
-| Jug       | 1              | 3                             |
-| Edge      | 1              | 3                             |
-| Pocket    | 2              | 1.5                           |
-| Undercling | 2             | 1.5                           |
-| Pinch     | 3              | 1                             |
-| Crimp     | 4              | 0.75                          |
-| Sloper    | 4              | 0.75                          |
-
-*Grip cost is looked up from `HOLD_GRIP_COST` in `js/constants.js` using the hold's `type` field.*
+- Grip advances based on the move's effective penalty level: level 1 = +1 grip state, level 2 = +2 grip states.
+- **Chalk** resets grip state to 0 (3 uses per climb, 1-move cooldown).
+- **Deadpoint** (skill): after Chalk, the next move has no grip state change.
 
 ### Chalk Economy Reference
 
 | Route Length | Expected Grip Pressure |
 |---|---|
-| ≤ 4 holds | No chalk needed (max ~1.3 ticks on jugs) |
-| 5–8 holds | 1 chalk may be needed |
+| ≤ 4 holds | Low pressure on clean routes |
+| 5–8 holds | 1 chalk may be needed on penalized routes |
 | 9+ holds | Chalk management becomes critical |
 
 ---
@@ -164,18 +165,20 @@ Pump is displayed as a colored bar and text label. State is checked at the start
 ## Recovery Actions
 
 ### Shake (Q)
-- Reduces pump state by 1 (minimum 0).
-- 5-move cooldown (`actionCooldownLength = 5`).
-- Cannot be used at pump state 0.
-- If Deadpoint is unlocked: sets `justShook = true` so the next move has no pump state change.
+- Fully resets pump state to 0 and clears the pump decay counter.
+- 1-move cooldown.
+- Can only be used on holds marked as `shakable`.
+- Cannot be used if pump state is already 0 and the decay counter is also 0.
+- If Deadpoint is unlocked: sets `justShook = true` so the next move has no pump decay.
 - Counts as a turn for all other cooldowns.
 
 ### Chalk (E)
-- Resets grip state to 0 and decay counter to 0.
+- Resets grip state to 0.
 - Limited to 3 uses per climb (`maxChalk = 3`), reset at climb start.
 - 1-move cooldown after use.
+- Can only be used on holds marked as `chalkable`.
 - Cannot be used if `chalkRemaining = 0`.
-- If Deadpoint is unlocked: sets `justChalked = true` so the next move skips grip decay.
+- If Deadpoint is unlocked: sets `justChalked = true` so the next move has no grip state change.
 - Counts as a turn for all other cooldowns.
 
 ---
@@ -207,8 +210,8 @@ Eight skills unlock as the player earns stars at locations. All skills except We
 
 | Skill | Key | Unlock | Trigger | Effect | Cooldown |
 |-------|-----|--------|---------|--------|----------|
-| **Cross** | 3 | Area 0 (Boulder Garden) | completion | −1 effective penalty on cross-body moves | 3 moves |
-| **Reach** | 1 | Area 0 (Boulder Garden) | areaUnlock (8★) | Negates the +1 distance penalty for extended (dy/dx ≥ 2) moves | 3 moves |
+| **Cross** | 3 | Area 0 (Boulder Garden) | completion | Required for cross-body moves (no skill = instant fall); −1 effective penalty when used | 3 moves |
+| **Reach** | 1 | Area 0 (Boulder Garden) | areaUnlock (8★) | Required for extended moves (dy/dx ≥ 2); no skill = instant fall | 3 moves |
 | **Weight Shift** | Z/X/C | Area 1 (Crimp Canyon) | areaUnlock (8★) | Unlocks the weight UI; enables pre-move weight positioning | Passive |
 | **Match** | — | Area 2 (Overhang Alley) | areaUnlock (8★) | On matchable holds, resets `lastHandUsed` and consecutive crosses | Passive |
 | **Deadpoint** | — | Area 3 (Slab Valley) | areaUnlock (8★) | After Shake: next move has no pump change. After Chalk: next move skips grip decay | Passive |
@@ -219,7 +222,7 @@ Eight skills unlock as the player earns stars at locations. All skills except We
 
 ### Skill Mechanics Detail
 
-**Cross & Reach** — toggled on/off independently before a move (keys 1 and 3). Key 2 deactivates both. Auto-deactivate after use; cooldown begins on the move they are used, not when activated.
+**Cross & Reach** — required skills, not optional modifiers. Cross-body moves without Cross active are an instant fall; extended moves (dy/dx ≥ 2) without Reach active are an instant fall. Toggled on/off independently before a move (keys 1 and 3). Key 2 deactivates both. Auto-deactivate after use; cooldown begins on the move they are used, not when activated.
 
 **Weight Shift** — purely enables the weight UI. Without it, weight is locked at center and the Z/X/C keys have no visible effect.
 
@@ -379,20 +382,21 @@ Routes live in `js/routes-area0.js` through `js/routes-area7.js`. Each file expo
 | ID | Name | Grade | Holds | Start Col | Notes |
 |----|------|-------|-------|-----------|-------|
 | bg1 | Hand Choice | V0 | 6 | 3 | All jugs, angle 0°. Teaches hand selection for lateral moves. |
-| bg2 | Shake | V0 | 7 | 3 | All jugs, mixed angles. Introduces shake rests on designated holds. |
-| bg3 | Chalk | V0 | 10 | 3 | Mixed hold types with chalking required on designated jug holds. |
+| bg2 | Shake | V0 | 10 | 3 | Mixed hold types, angle 0°. Introduces shake rests on designated jugs. |
+| bg3 | Chalk | V0 | 7 | 3 | All jugs, mixed angles. Chalk rests on designated holds. |
 
 ---
 
 ### Area 1 — Crimp Canyon
 *Unlocks: Weight Shift (8★)*
-*Teaches: Cross + Reach skills (just unlocked at Area 0). Uses angled holds briefly.*
+*Teaches: Cross + Reach skills (just unlocked at Area 0). Introduces angled holds requiring weight management.*
 
 | ID | Name | Grade | Holds | Start Col | Notes |
 |----|------|-------|-------|-----------|-------|
-| cc1 | Monkey Arms | V1 | 8 | 2 | Wide first move, then mixed hold types ascending. All angle 0°. |
-| cc2 | Reach a Cross | V2 | 8 | 0 | Far-left start, pinch holds, wide lateral spreads. All angle 0°. |
-| cc3 | Careful Planning | V2 | 9 | 3 | Right-side start, pocket/pinch/jug mix, reaching far left. All angle 0°. |
+| cc1 | Weight Shift | V0 | 8 | 3 | Straight column, angled holds (315°, 45°, 90°, 270°). Weight shift focus. Rest/chalk at hold 4. |
+| cc2 | Cross | V0 | 8 | 4 | Lateral spread, angled pockets and jugs. Cross skill required. Rest/chalk at hold 4. |
+| cc3 | Reach | V1 | 8 | 2 | Extended moves (dy=2 gap at rows 6→8). Reach skill required. |
+| cc4 | Combined Level 2 | V0 | 15 | 2 | Holds spread across columns 0–5, hard hold types in lower section. Two rest/chalk holds at y=5. |
 
 ---
 

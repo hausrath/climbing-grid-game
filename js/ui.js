@@ -18,7 +18,7 @@ function renderGrid() {
             const dy = routeRow - gameState.currentRow;
             const dx = Math.abs(col - gameState.currentCol);
             const maxReach = gameState.dynoActive ? 3 : 2;
-            const isReachable = dy > 0 && dy <= maxReach && dx <= maxReach;
+            const isReachable = (dy > 0 || (dy === 0 && dx > 0)) && dy <= maxReach && dx <= maxReach;
 
             if (isReachable && gameState.grid[row][col]) {
                 cell.classList.add('next-row');
@@ -113,8 +113,8 @@ function renderGrid() {
 
 // Select hand
 function selectHand(hand) {
-    // Can't select the hand that was just used (must alternate)
-    if (hand === gameState.lastHandUsed) {
+    // Can't select the hand that was just used (must alternate, unless Bump is active)
+    if (hand === gameState.lastHandUsed && !gameState.bumpActive) {
         addFeedback(`Can't use ${hand} hand again! Must alternate or match.`, 'penalty');
         return;
     }
@@ -208,9 +208,9 @@ function updateUI() {
     const leftStatus = document.getElementById('left-hand-status');
     const rightStatus = document.getElementById('right-hand-status');
 
-    // Disable the hand that was just used
-    leftBtn.disabled = (gameState.lastHandUsed === 'left');
-    rightBtn.disabled = (gameState.lastHandUsed === 'right');
+    // Disable the hand that was just used (unless Bump is active, allowing reuse)
+    leftBtn.disabled = (gameState.lastHandUsed === 'left' && !gameState.bumpActive);
+    rightBtn.disabled = (gameState.lastHandUsed === 'right' && !gameState.bumpActive);
 
     // Show which hand is selected
     if (gameState.selectedHand === 'left') {
@@ -396,6 +396,28 @@ function updateUI() {
             }
         } else {
             dynoBtn.style.display = 'none';
+        }
+    }
+
+    // Update Bump button (only visible if skill unlocked)
+    const bumpBtn = document.getElementById('bump-btn');
+    if (bumpBtn) {
+        if (isSkillUnlocked('bump')) {
+            bumpBtn.style.display = 'inline-block';
+            bumpBtn.disabled = gameState.bumpCooldown > 0 || gameState.bumpActive;
+
+            if (gameState.bumpActive) {
+                bumpBtn.textContent = 'ACTIVE!';
+                bumpBtn.style.borderColor = '#a8db60';
+            } else if (gameState.bumpCooldown > 0) {
+                bumpBtn.textContent = `CD: ${gameState.bumpCooldown}`;
+                bumpBtn.style.borderColor = '#738078';
+            } else {
+                bumpBtn.textContent = 'BUMP (B)';
+                bumpBtn.style.borderColor = '#6dbce3';
+            }
+        } else {
+            bumpBtn.style.display = 'none';
         }
     }
 }

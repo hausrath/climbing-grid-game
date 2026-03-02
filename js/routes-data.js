@@ -80,6 +80,58 @@ const PENALTY_TABLE_RAW = [
     ["up-right","R",315,"C",1], ["up-right","L",315,"C",3],
     ["up-right","R",315,"L",3], ["up-right","L",315,"L",4],
     ["up-right","R",315,"R",0], ["up-right","L",315,"R",2],
+
+    // === LEFT (same row, moving left) — mirrors up-left ===
+    ["left","R",0,"C",1], ["left","L",0,"C",0],
+    ["left","R",0,"L",2], ["left","L",0,"L",2],
+    ["left","R",0,"R",2], ["left","L",0,"R",2],
+    ["left","R",45,"C",3], ["left","L",45,"C",1],
+    ["left","R",45,"L",2], ["left","L",45,"L",0],
+    ["left","R",45,"R",4], ["left","L",45,"R",3],
+    ["left","R",90,"C",3], ["left","L",90,"C",2],
+    ["left","R",90,"L",3], ["left","L",90,"L",1],
+    ["left","R",90,"R",4], ["left","L",90,"R",4],
+    ["left","R",135,"C",3], ["left","L",135,"C",2],
+    ["left","R",135,"L",3], ["left","L",135,"L",1],
+    ["left","R",135,"R",4], ["left","L",135,"R",4],
+    ["left","R",180,"C",3], ["left","L",180,"C",1],
+    ["left","R",180,"L",4], ["left","L",180,"L",3],
+    ["left","R",180,"R",3], ["left","L",180,"R",2],
+    ["left","R",225,"C",4], ["left","L",225,"C",1],
+    ["left","R",225,"L",3], ["left","L",225,"L",3],
+    ["left","R",225,"R",2], ["left","L",225,"R",1],
+    ["left","R",270,"C",2], ["left","L",270,"C",1],
+    ["left","R",270,"L",4], ["left","L",270,"L",4],
+    ["left","R",270,"R",1], ["left","L",270,"R",0],
+    ["left","R",315,"C",2], ["left","L",315,"C",1],
+    ["left","R",315,"L",3], ["left","L",315,"L",2],
+    ["left","R",315,"R",1], ["left","L",315,"R",0],
+
+    // === RIGHT (same row, moving right) — mirrors up-right ===
+    ["right","R",0,"C",0], ["right","L",0,"C",1],
+    ["right","R",0,"L",2], ["right","L",0,"L",2],
+    ["right","R",0,"R",2], ["right","L",0,"R",2],
+    ["right","R",45,"C",1], ["right","L",45,"C",2],
+    ["right","R",45,"L",0], ["right","L",45,"L",1],
+    ["right","R",45,"R",2], ["right","L",45,"R",3],
+    ["right","R",90,"C",1], ["right","L",90,"C",2],
+    ["right","R",90,"L",0], ["right","L",90,"L",1],
+    ["right","R",90,"R",4], ["right","L",90,"R",4],
+    ["right","R",135,"C",1], ["right","L",135,"C",4],
+    ["right","R",135,"L",1], ["right","L",135,"L",2],
+    ["right","R",135,"R",3], ["right","L",135,"R",3],
+    ["right","R",180,"C",1], ["right","L",180,"C",3],
+    ["right","R",180,"L",2], ["right","L",180,"L",3],
+    ["right","R",180,"R",3], ["right","L",180,"R",4],
+    ["right","R",225,"C",2], ["right","L",225,"C",3],
+    ["right","R",225,"L",4], ["right","L",225,"L",4],
+    ["right","R",225,"R",1], ["right","L",225,"R",3],
+    ["right","R",270,"C",2], ["right","L",270,"C",3],
+    ["right","R",270,"L",4], ["right","L",270,"L",4],
+    ["right","R",270,"R",1], ["right","L",270,"R",3],
+    ["right","R",315,"C",1], ["right","L",315,"C",3],
+    ["right","R",315,"L",3], ["right","L",315,"L",4],
+    ["right","R",315,"R",0], ["right","L",315,"R",2],
 ];
 
 // Build O(1) lookup Map from the raw table
@@ -116,7 +168,11 @@ function getIdealWeight(holdAngle) {
 
 // Determine move direction based on position change
 function getMoveDirection(fromX, fromY, toX, toY) {
+    const dy = toY - fromY;
     const dx = toX - fromX;
+    if (dy === 0) {
+        return dx < 0 ? 'left' : 'right';
+    }
     if (dx < 0) return 'up-left';
     if (dx > 0) return 'up-right';
     return 'up';
@@ -125,8 +181,8 @@ function getMoveDirection(fromX, fromY, toX, toY) {
 // Check if a move is a cross-body move
 function isCrossMove(hand, direction) {
     // Right hand reaching left = cross, left hand reaching right = cross
-    if (hand === 'right' && direction === 'up-left') return true;
-    if (hand === 'left' && direction === 'up-right') return true;
+    if (hand === 'right' && (direction === 'up-left' || direction === 'left')) return true;
+    if (hand === 'left' && (direction === 'up-right' || direction === 'right')) return true;
     return false;
 }
 

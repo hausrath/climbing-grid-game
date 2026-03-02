@@ -45,6 +45,7 @@ document.addEventListener('keydown', (e) => {
     else if (key === 'e') useChalk();
     else if (key === 'r') activateCommit();
     else if (key === 't') activateDyno();
+    else if (key === 'b') activateBump();
     else if (key === 'z') setWeight('left');
     else if (key === 'x') setWeight('center');
     else if (key === 'c') setWeight('right');
@@ -372,6 +373,9 @@ function startClimb(location, route) {
     gameState.commitActive = false;
     gameState.dynoCooldown = 0;
     gameState.dynoActive = false;
+    gameState.bumpActive = false;
+    gameState.bumpCooldown = 0;
+    gameState.matchCooldown = 0;
     gameState.climbStartTime = Date.now();
     gameState.shakesUsed = 0;
     gameState.chalksUsed = 0;

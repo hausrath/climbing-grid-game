@@ -1,0 +1,23 @@
+=== ROUTE ===
+id: a1-1
+name: Weight Shift
+grade: V1
+area: 1
+description: Keep your center of gravity moving to tackle this climb.
+holdCount: 6
+startCol: 3
+
+=== HOLDS ===
+# y  x  type        angle  pump  grip  match  rest  shake  chalk
+  1  3  jug         315     1     1     no    no     no     no
+  2  3  edge          0     1     1     no    no     no     no
+  3  3  pocket       45     1     1     no    no     no     no
+  4  3  jug          90     1     1     no    no    yes    yes
+  5  3  edge         45     1     1     no    no     no     no
+  6  3  jug           0     1     1     no    no     no     no
+  7  3  edge        315     1     1     no    no     no     no
+  8  3  jug         270     1     1     no    no     no     no
+
+=== STARS ===
+speed: 30
+pumpEfficiency: 0

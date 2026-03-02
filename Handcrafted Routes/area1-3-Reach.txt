@@ -2,9 +2,9 @@
 id: a1-3
 name: Reach
 grade: V1
-area: 0
+area: 1
 description: Long reaches lead up this rock face.
-holdCount: 8
+holdCount: 6
 startCol: 2
 
 === HOLDS ===

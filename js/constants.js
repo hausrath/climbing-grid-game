@@ -12,7 +12,7 @@ const holdTypes = [
 // Maps hold type → pump accumulation ticks per move. Threshold is 3 ticks = 1 pump stage advance.
 const HOLD_PUMP_COST = {
     jug: 1,
-    edge: 1,
+    edge: 2,
     pocket: 2,
     undercling: 2,
     pinch: 3,

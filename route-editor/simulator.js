@@ -79,7 +79,7 @@ function simulateMove(state, hold, hand, weight, options) {
         result.fallReason = 'Can only climb upward';
         return result;
     }
-    if (dy > 2 || dx > 2) {
+    if (dy > 2 || dx > 2 || (dy === 2 && dx === 2)) {
         result.success = false; result.fell = true;
         result.fallReason = 'Too far to reach';
         return result;
@@ -232,6 +232,7 @@ function applyMoveResult(state, hold, hand, result, weight) {
         state.consecutiveCrosses = 0;
     }
 
+    const prevHand = state.lastHandUsed;
     state.currentHand = hand;
     state.lastHandUsed = hand;
     state.currentRow = hold.position.y;
@@ -240,7 +241,7 @@ function applyMoveResult(state, hold, hand, result, weight) {
 
     // Match check (requires different hand than last used)
     const skills = editorState.unlockedSkills;
-    if (hold.matchable && skills.includes('match') && state.lastHandUsed !== null && state.lastHandUsed !== hand) {
+    if (hold.matchable && skills.includes('match') && prevHand !== null && prevHand !== hand) {
         state.lastHandUsed = null;
         state.consecutiveCrosses = 0;
     }
@@ -376,7 +377,7 @@ function getReachableHolds(state) {
         const hold = sorted[i];
         const dy = hold.position.y - state.currentRow;
         const dx = Math.abs(hold.position.x - state.currentCol);
-        if (dy > 0 && dy <= 2 && dx <= 2) {
+        if (dy > 0 && dy <= 2 && dx <= 2 && !(dy === 2 && dx === 2)) {
             reachable.push({ index: i, hold });
         }
     }

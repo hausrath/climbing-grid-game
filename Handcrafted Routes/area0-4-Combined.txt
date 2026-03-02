@@ -1,10 +1,10 @@
 === ROUTE ===
-id: 4
+id: a0-4
 name: Combined
 grade: V1
 area: 0
 description: Use all of your skills to reach the top!
-holdCount: 11
+holdCount: 6
 startCol: 3
 
 === HOLDS ===
@@ -16,8 +16,8 @@ startCol: 3
   4  3  pinch        45     1     1     no    no     no     no
   5  2  edge          0     1     1     no    no     no    yes
   6  2  crimp       315     1     1     no    no     no     no
-  6  3  pocket       45     1     1     no    no     no     no
-  7  2  edge          0     1     1     no    no     no     no
+  6  3  jug          45     1     1     no    no     no     no
+  7  2  jug           0     1     1     no    no     no     no
   7  4  jug          45     1     1     no    no     no     no
   8  3  jug           0     1     1     no    no     no     no
 

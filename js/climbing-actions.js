@@ -38,6 +38,8 @@ function useShake() {
     if (gameState.reachCooldown > 0) gameState.reachCooldown--;
     if (gameState.commitCooldown > 0) gameState.commitCooldown--;
     if (gameState.dynoCooldown > 0) gameState.dynoCooldown--;
+    if (gameState.bumpCooldown > 0) gameState.bumpCooldown--;
+    if (gameState.matchCooldown > 0) gameState.matchCooldown--;
 
     updateUI();
 }
@@ -81,6 +83,8 @@ function useChalk() {
     if (gameState.reachCooldown > 0) gameState.reachCooldown--;
     if (gameState.commitCooldown > 0) gameState.commitCooldown--;
     if (gameState.dynoCooldown > 0) gameState.dynoCooldown--;
+    if (gameState.bumpCooldown > 0) gameState.bumpCooldown--;
+    if (gameState.matchCooldown > 0) gameState.matchCooldown--;
 
     updateUI();
 }
@@ -115,6 +119,30 @@ function recordSuccessfulGrab(holdIndex) {
     if (gameState.holdFamiliarity[key] < 5) {
         gameState.holdFamiliarity[key]++;
     }
+}
+
+// ============ BUMP SKILL ============
+function activateBump() {
+    if (!isSkillUnlocked('bump')) {
+        addFeedback('Bump skill not learned!', 'penalty');
+        return;
+    }
+    if (gameState.bumpCooldown > 0) {
+        addFeedback(`Bump on cooldown! ${gameState.bumpCooldown} moves remaining`, 'penalty');
+        return;
+    }
+    if (gameState.bumpActive) {
+        addFeedback('Bump already active!', 'penalty');
+        return;
+    }
+    if (gameState.lastHandUsed === null) {
+        addFeedback('No hand to bump with — make a move first!', 'penalty');
+        return;
+    }
+    gameState.bumpActive = true;
+    addFeedback(`BUMP ACTIVATED! Reuse ${gameState.lastHandUsed} hand for next move!`, 'bonus');
+    renderGrid();
+    updateUI();
 }
 
 // ============ COMMIT SKILL ============

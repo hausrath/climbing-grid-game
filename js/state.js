@@ -67,6 +67,9 @@ const gameState = {
     commitActive: false,
     dynoCooldown: 0,
     dynoActive: false,
+    bumpActive: false,
+    bumpCooldown: 0,
+    matchCooldown: 0,
     selectedHand: null,
     lastHandUsed: null, // Track which hand was used last
     movementStyle: 'regular', // legacy — kept for compatibility

@@ -1,0 +1,26 @@
+=== ROUTE ===
+id: a2-1
+name: Match
+grade: V1
+area: 2
+description: Match your hands on a hold to solve the sequence.
+holdCount: 7
+startCol: 5
+
+=== HOLDS ===
+# y  x  type        angle  pump  grip  match  rest  shake  chalk
+  1  5  jug          45     1     1     no    no     no     no
+  2  4  edge         45     1     1     no    no     no    yes
+  3  3  pinch       315     1     1     no    no     no     no
+  4  2  jug           0     1     1    yes    no    yes    yes
+  5  0  edge        315     1     1     no    no     no     no
+  5  4  crimp       315     1     1     no    no     no     no
+  6  1  pocket       90     1     1     no    no     no     no
+  6  4  sloper       45     1     1     no    no     no     no
+  7  2  jug           0     1     1     no    no     no     no
+  7  4  jug           0     1     1     no    no     no     no
+  8  3  jug           0     1     1     no    no     no     no
+
+=== STARS ===
+speed: 30
+pumpEfficiency: 0

@@ -39,11 +39,12 @@ const skillDatabase = {
     match: {
         id: 'match',
         name: 'Match',
-        unlockLocation: 2, // Overhang Alley
-        unlockTrigger: 'areaUnlock',
+        unlockLocation: 1, // Crimp Canyon — unlocks after completing all routes
+        unlockTrigger: 'routeCount',
+        unlockRouteCount: 'all',
         description: 'On matchable holds, place both hands to reset hand alternation.',
-        effect: 'Resets hand choice and consecutive crosses. Costs 1 move (pump ticks, cooldowns tick).',
-        passive: true
+        effect: 'Resets hand choice and consecutive crosses. Costs 1 move (pump ticks, cooldowns tick). 3-move cooldown.',
+        cooldown: 3
     },
     deadpoint: {
         id: 'deadpoint',
@@ -71,8 +72,8 @@ const skillDatabase = {
         unlockTrigger: 'areaUnlock',
         key: 'b',
         description: 'Move to an adjacent hold without changing hands.',
-        effect: 'Reposition (same row or 1 lateral space) without hand alternation. Costs 1 move (pump ticks, cooldowns tick).',
-        cooldown: 0
+        effect: 'Reposition (same row or 1 lateral space) without hand alternation. Costs 1 move (pump ticks, cooldowns tick). 3-move cooldown.',
+        cooldown: 3
     },
     dyno: {
         id: 'dyno',

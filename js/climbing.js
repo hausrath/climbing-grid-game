@@ -30,9 +30,13 @@ function moveToHold(row, col) {
         return;
     }
 
-    // Validate reachability: hold must be above current position
-    if (routeRow <= gameState.currentRow) {
+    // Validate reachability: hold must be above or on same row (lateral)
+    if (routeRow < gameState.currentRow) {
         addFeedback('Can only climb upward!', 'penalty');
+        return;
+    }
+    if (routeRow === gameState.currentRow && routeCol === gameState.currentCol) {
+        addFeedback('Already on this hold!', 'penalty');
         return;
     }
 
@@ -40,7 +44,7 @@ function moveToHold(row, col) {
     const dy = routeRow - gameState.currentRow;
     const dx = Math.abs(routeCol - gameState.currentCol);
     const maxReach = gameState.dynoActive ? 3 : 2;
-    if (dy > maxReach || dx > maxReach) {
+    if (dy > maxReach || dx > maxReach || (!gameState.dynoActive && dy === 2 && dx === 2)) {
         addFeedback('Too far to reach!', 'penalty');
         return;
     }
@@ -183,6 +187,8 @@ function moveToHold(row, col) {
     if (gameState.chalkCooldown > 0) gameState.chalkCooldown--;
     if (gameState.commitCooldown > 0) gameState.commitCooldown--;
     if (gameState.dynoCooldown > 0) gameState.dynoCooldown--;
+    if (gameState.bumpCooldown > 0) gameState.bumpCooldown--;
+    if (gameState.matchCooldown > 0) gameState.matchCooldown--;
 
     // Handle Dyno cooldown
     if (gameState.dynoActive) {
@@ -196,6 +202,12 @@ function moveToHold(row, col) {
         gameState.commitActive = false;
         gameState.commitCooldown = 10;
         feedback.push({ text: `Commit used! Cooldown: 10 moves`, type: 'neutral' });
+    }
+
+    // Handle Bump cooldown
+    if (gameState.bumpActive) {
+        gameState.bumpCooldown = 3;
+        feedback.push({ text: `Bump used! Cooldown: 3 moves`, type: 'neutral' });
     }
 
     // Set technique cooldowns
@@ -218,6 +230,7 @@ function moveToHold(row, col) {
     // Weight only changes via manual Weight Shift skill (unlocked at Area 1)
 
     // Update hand tracking
+    const prevHand = gameState.lastHandUsed;
     gameState.currentHand = gameState.selectedHand;
     gameState.lastHandUsed = gameState.selectedHand;
 
@@ -230,10 +243,11 @@ function moveToHold(row, col) {
     recordSuccessfulGrab(hold.holdIndex);
 
     // Handle matching
-    if (hold.matchable && isSkillUnlocked('match') && gameState.lastHandUsed !== null && gameState.lastHandUsed !== gameState.selectedHand) {
+    if (hold.matchable && isSkillUnlocked('match') && gameState.matchCooldown === 0 && prevHand !== null && prevHand !== gameState.selectedHand) {
         feedback.push({ text: `Matched! Both hands & crosses reset`, type: 'bonus' });
         gameState.lastHandUsed = null;
         gameState.consecutiveCrosses = 0;
+        gameState.matchCooldown = 3;
     }
 
     // Update skill state
@@ -246,6 +260,7 @@ function moveToHold(row, col) {
     gameState.selectedHand = null;
     gameState.crossActive = false;
     gameState.reachActive = false;
+    gameState.bumpActive = false;
     gameState.weightAtMoveStart = gameState.weight;
 
     // Update viewport and render

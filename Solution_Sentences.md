@@ -23,3 +23,11 @@ Solution Sentences
 **Hand choice, cross**
 
 * Use the cross skill to avoid penalties and make it to the top
+
+
+
+Hand choice, cross, reach
+
+* Reach up instead of left or right to avoid a terrible hold
+* Stack reach and cross to make the sequence work
+* 

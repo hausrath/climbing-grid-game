@@ -50,6 +50,34 @@ const ROUTES_AREA_2 = [
         }
     },
     {
+        id: 'oa4',
+        name: 'Match',
+        grade: 'V1',
+        holdCount: 11,
+        description: 'Match your hands on a hold to solve the sequence.',
+        startCol: 5,
+        holds: [
+            { type: 'jug',    label: 'JUG',    angle: 45,  pumpRating: 1, gripDrain: 1, position: { x: 5, y: 1 }, matchable: false, isRest: false },
+            { type: 'edge',   label: 'EDGE',   angle: 45,  pumpRating: 1, gripDrain: 1, position: { x: 4, y: 2 }, matchable: false, isRest: false, chalkable: true },
+            { type: 'pinch',  label: 'PINCH',  angle: 315, pumpRating: 1, gripDrain: 1, position: { x: 3, y: 3 }, matchable: false, isRest: false },
+            { type: 'jug',    label: 'JUG',    angle: 0,   pumpRating: 1, gripDrain: 1, position: { x: 2, y: 4 }, matchable: true,  isRest: false, shakable: true, chalkable: true },
+            { type: 'edge',   label: 'EDGE',   angle: 315, pumpRating: 1, gripDrain: 1, position: { x: 0, y: 5 }, matchable: false, isRest: false },
+            { type: 'crimp',  label: 'CRIMP',  angle: 315, pumpRating: 1, gripDrain: 1, position: { x: 4, y: 5 }, matchable: false, isRest: false },
+            { type: 'pocket', label: 'POCKET', angle: 90,  pumpRating: 1, gripDrain: 1, position: { x: 1, y: 6 }, matchable: false, isRest: false },
+            { type: 'sloper', label: 'SLOPER', angle: 45,  pumpRating: 1, gripDrain: 1, position: { x: 4, y: 6 }, matchable: false, isRest: false },
+            { type: 'jug',    label: 'JUG',    angle: 0,   pumpRating: 1, gripDrain: 1, position: { x: 2, y: 7 }, matchable: false, isRest: false },
+            { type: 'jug',    label: 'JUG',    angle: 0,   pumpRating: 1, gripDrain: 1, position: { x: 4, y: 7 }, matchable: false, isRest: false },
+            { type: 'jug',    label: 'JUG',    angle: 0,   pumpRating: 1, gripDrain: 1, position: { x: 3, y: 8 }, matchable: false, isRest: false },
+        ],
+        stars: {
+            completion: true,
+            speed: { timeLimit: 30 },
+            pumpEfficiency: { maxPump: 0 },
+            gripEfficiency: true,
+            flashClimb: true,
+        }
+    },
+    {
         id: 'oa3',
         name: "Don't Fall A Weigh",
         grade: 'V0',

@@ -1,10 +1,10 @@
 === ROUTE ===
-id: 2
+id: a0-2
 name: Shake
 grade: V0
 area: 0
 description: Shake out to recover some pump and make it to the top.
-holdCount: 10
+holdCount: 6
 startCol: 3
 
 === HOLDS ===

@@ -32,7 +32,7 @@ function runSolver() {
         let canReach = false;
         const dyFromStart = hy;
         const dxFromStart = Math.abs(hx - editorState.startCol);
-        if (dyFromStart > 0 && dyFromStart <= 2 && dxFromStart <= 2) {
+        if (dyFromStart > 0 && dyFromStart <= 2 && dxFromStart <= 2 && !(dyFromStart === 2 && dxFromStart === 2)) {
             canReach = true;
         }
 
@@ -43,7 +43,7 @@ function runSolver() {
                 const other = sorted[j];
                 const dy = hy - other.position.y;
                 const dx = Math.abs(hx - other.position.x);
-                if (dy > 0 && dy <= 2 && dx <= 2) {
+                if (dy > 0 && dy <= 2 && dx <= 2 && !(dy === 2 && dx === 2)) {
                     canReach = true;
                     break;
                 }
@@ -140,7 +140,7 @@ function runSolver() {
             const hold = sorted[i];
             const dy = hold.position.y - state.currentRow;
             const dx = Math.abs(hold.position.x - state.currentCol);
-            if (dy > 0 && dy <= 2 && dx <= 2) {
+            if (dy > 0 && dy <= 2 && dx <= 2 && !(dy === 2 && dx === 2)) {
                 reachable.push(i);
             }
         }
@@ -173,7 +173,7 @@ function runSolver() {
                 : ['center'];
 
             const recoveryOptions = [null];
-            if (state.shakeCooldown <= 0 && state.pumpState > 0 && currentHoldForRecovery?.shakable) recoveryOptions.push('shake');
+            if (state.shakeCooldown <= 0 && (state.pumpState > 0 || state.pumpDecayCounter > 0) && currentHoldForRecovery?.shakable) recoveryOptions.push('shake');
             if (state.chalkCooldown <= 0 && state.chalkRemaining > 0 && state.gripState > 0 && currentHoldForRecovery?.chalkable) recoveryOptions.push('chalk');
 
             for (const recovery of recoveryOptions) {

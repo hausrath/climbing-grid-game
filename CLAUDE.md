@@ -6,37 +6,36 @@ A deterministic puzzle-climbing game played on a scrolling grid. Each move is re
 ## Game Mechanics
 
 ### Resources
-- **Pump** (0=Fresh, 1=Pumped, 2=Struggling, 3+=Fall): rises from bad hand/angle/weight choices.
-  - **Shake**: pump -1 state, 5-move cooldown. Deadpoint skill makes Shake also block the next pump gain.
-- **Grip** (0=Chalked, 1=Weakening, 2=Slipping, 3+=Fall): decays based on hold type (see below).
-  - **Chalk**: resets grip to 0, 3 uses per climb, 1-move cooldown. Deadpoint blocks next decay tick.
+- **Pump** (0=Fresh, 1=Pumped, 2=Struggling, 3+=Fall): rises via hold-type tick accumulation (3 ticks = 1 state advance).
+  - **Shake**: fully resets pump to 0 and clears decay counter, 1-move cooldown, requires `shakable` hold. Deadpoint blocks the next move's pump decay.
+- **Grip** (0=Chalked, 1=Weakening, 2=Slipping, 3+=Fall): advances based on move penalty level (level 1 = +1 state, level 2 = +2 states).
+  - **Chalk**: resets grip to 0, 3 uses per climb, 1-move cooldown, requires `chalkable` hold. Deadpoint blocks the next move's grip state change.
 
 ### Move Resolution
-Base penalty `[direction, hand, angle, weight]` → level 0–4 via `PENALTY_TABLE_RAW` in `routes-data.js`.
+Base penalty `[direction, hand, angle, weight]` → level 0–4 via `PENALTY_TABLE_RAW` in `routes-data.js`. Gaston angles (L@135°, R@225°) have elevated base penalties baked into the table.
 Modifiers applied in order:
-1. **+1 Gaston**: hold angle is L@135° or R@225°
-2. **+1 Distance**: move spans 2+ rows (negated by Reach skill while active)
-3. **Cross skill** (if unlocked): -1 on cross-body moves or gastons
-4. **Commit** (if active): -1 one-shot, 10-move cooldown
-5. **Level ≥ 3** = fall; **level = 4** = instant fall regardless of modifiers
+1. **Distance**: extended moves (dy/dx ≥ 2) require Reach skill — no Reach = instant fall; with Reach = no penalty added.
+2. **Cross skill**: cross-body moves require Cross — no Cross = instant fall; with Cross = -1 effective level.
+3. **Commit** (if active): -1 one-shot, 10-move cooldown
+4. **Level ≥ 3** = fall; **level = 4** = instant fall regardless of modifiers
 
-### Hold Types & Grip Cost (ticks accumulated per move)
+### Hold Types & Pump Cost (ticks accumulated per move)
 | Ticks | Types |
 |-------|-------|
-| 1 | jug, edge |
-| 2 | pocket, undercling |
-| 3 | pinch, gaston, sidepull |
+| 1 | jug |
+| 2 | edge, pocket, undercling |
+| 3 | pinch |
 | 4 | crimp, sloper |
-Grip advances one state every 3 ticks (i.e., jug every 3 moves, crimp every ~0.75 moves).
+Pump advances one state every 3 ticks (i.e., jug every 3 moves, crimp every ~0.75 moves).
 
 ### Skills (location-gated, 8 total)
 | Skill | Unlock | Effect |
 |-------|--------|--------|
-| Cross | Area 0 complete | -1 penalty on cross-body / gaston |
-| Reach | Area 0, 8-star | Negates +1 distance penalty |
+| Cross | Area 0 complete | Required for cross-body moves (no skill = fall); -1 effective level when used |
+| Reach | Area 0, 8-star | Required for extended moves (no skill = fall); no penalty when used |
 | Weight Shift | Area 1 | Manual weight control |
 | Match | Area 2 | Reset hand tracking on matchable holds |
-| Deadpoint | Area 3 | Shake/chalk also block next pump gain or grip tick |
+| Deadpoint | Area 3 | Shake blocks next pump decay; Chalk blocks next grip state change |
 | Commit | Area 4 | -1 penalty one-shot, 10-move cooldown |
 | Bump | Area 5 | Lateral reposition without hand change |
 | Dyno | Area 7 | Extend reach to 3 spaces, 5-move cooldown |
@@ -55,7 +54,7 @@ Scripts load in dependency order (no module system — all global scope):
 
 | File | Lines | Role | Key Exports / Functions |
 |------|-------|------|------------------------|
-| `js/constants.js` | 123 | Hold types, grip costs, pump modifiers | `HOLD_TYPES`, `HOLD_GRIP_COST`, `normalizeAngle()` |
+| `js/constants.js` | 123 | Hold types, pump costs | `HOLD_TYPES`, `HOLD_PUMP_COST`, `normalizeAngle()` |
 | `js/routes-data.js` | 163 | Penalty table, helpers, route DB assembly | `PENALTY_TABLE_RAW`, `lookupPenalty()`, `getMoveDirection()`, `isCrossMove()`, `getIdealWeight()`, `routeDatabase` |
 | `js/routes-area0.js` | ~90 | Area 0 routes (Boulder Garden) | `ROUTES_AREA_0` |
 | `js/routes-area1.js` | ~75 | Area 1 routes (Crimp Canyon) | `ROUTES_AREA_1` |

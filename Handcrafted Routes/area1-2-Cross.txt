@@ -1,0 +1,23 @@
+=== ROUTE ===
+id: a1-2
+name: Cross
+grade: V1
+area: 1
+description: Bust out a good cross technique to stay on the wall.
+holdCount: 6
+startCol: 4
+
+=== HOLDS ===
+# y  x  type        angle  pump  grip  match  rest  shake  chalk
+  1  3  jug         315     1     1     no    no     no     no
+  2  3  edge          0     1     1     no    no     no     no
+  3  4  pocket       45     1     1     no    no     no     no
+  4  5  jug           0     1     1     no    no    yes    yes
+  5  4  pocket       45     1     1     no    no     no     no
+  6  4  jug           0     1     1     no    no     no     no
+  7  3  edge          0     1     1     no    no     no     no
+  8  2  jug           0     1     1     no    no     no     no
+
+=== STARS ===
+speed: 30
+pumpEfficiency: 0
