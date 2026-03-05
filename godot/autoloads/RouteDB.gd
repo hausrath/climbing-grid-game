@@ -56,18 +56,21 @@ func lookup_penalty(direction: String, hand: String, hold_angle: int, weight: St
 	var key := "%s-%s-%d-%s" % [direction, hand_code, normalized, weight_code]
 	return _penalty_map.get(key, 0)
 
-func get_move_direction(from_x: int, _from_y: int, to_x: int, _to_y: int) -> String:
+func get_move_direction(from_x: int, from_y: int, to_x: int, to_y: int) -> String:
+	var dy := to_y - from_y
 	var dx := to_x - from_x
-	if dx < 0:
+	if dy == 0:
+		return "left" if dx < 0 else "right"
+	elif dx < 0:
 		return "up-left"
 	elif dx > 0:
 		return "up-right"
 	return "up"
 
 func is_cross_move(hand: String, direction: String) -> bool:
-	if hand == "right" and direction == "up-left":
+	if hand == "right" and (direction == "up-left" or direction == "left"):
 		return true
-	if hand == "left" and direction == "up-right":
+	if hand == "left" and (direction == "up-right" or direction == "right"):
 		return true
 	return false
 

@@ -26,6 +26,8 @@ const MAX_FEEDBACK := 15
 @onready var reach_btn: Button = $CenterPanel/Actions/ActionsMargin/ActionsVBox/SkillRow/ReachBtn
 @onready var commit_btn: Button = $CenterPanel/Actions/ActionsMargin/ActionsVBox/SkillRow/CommitBtn
 @onready var dyno_btn: Button = $CenterPanel/Actions/ActionsMargin/ActionsVBox/SkillRow/DynoBtn
+# NOTE: BumpBtn must be added to ClimbingUI.tscn in the editor (see GODOT_PORT_EDITOR_WORK.md)
+var bump_btn: Button = null  # Set via editor or dynamically; skipped if not found
 
 @onready var move_count_label: Label = $CenterPanel/MoveCount
 @onready var feedback_container: VBoxContainer = $RightPanel/FeedbackScroll/FeedbackContainer
@@ -67,13 +69,28 @@ func _update_weight_section() -> void:
 
 
 func _update_action_buttons() -> void:
+	# Determine current hold properties for shake/chalk availability
+	var on_shakable := false
+	var on_chalkable := false
+	if not GameState.route_grid.is_empty():
+		var row := GameState.current_row
+		if row >= 0 and row < GameState.route_grid.size():
+			for c in range(7):
+				var cell = GameState.route_grid[row][c]
+				if cell and cell.get("col", -1) == GameState.current_col:
+					on_shakable = cell.get("shakable", false)
+					on_chalkable = cell.get("chalkable", false)
+					break
+
 	# Shake
 	if shake_btn:
 		if GameState.shake_cooldown > 0:
 			shake_btn.text = "SHAKE (%d)" % GameState.shake_cooldown
+		elif not on_shakable:
+			shake_btn.text = "SHAKE — no rest"
 		else:
 			shake_btn.text = "SHAKE (Q)"
-		shake_btn.disabled = GameState.shake_cooldown > 0
+		shake_btn.disabled = (GameState.shake_cooldown > 0 or not on_shakable)
 
 	# Chalk
 	if chalk_btn:
@@ -81,9 +98,11 @@ func _update_action_buttons() -> void:
 			chalk_btn.text = "CHALK CD"
 		elif GameState.chalk_remaining <= 0:
 			chalk_btn.text = "NO CHALK"
+		elif not on_chalkable:
+			chalk_btn.text = "CHALK — no bucket"
 		else:
 			chalk_btn.text = "CHALK (%d) (E)" % GameState.chalk_remaining
-		chalk_btn.disabled = (GameState.chalk_cooldown > 0 or GameState.chalk_remaining <= 0)
+		chalk_btn.disabled = (GameState.chalk_cooldown > 0 or GameState.chalk_remaining <= 0 or not on_chalkable)
 
 	# Movement style buttons
 	_update_style_btn(cross_btn,   "cross",   "CROSS (3)",   GameState.cross_cooldown)
@@ -122,6 +141,24 @@ func _update_action_buttons() -> void:
 				dyno_btn.modulate = Color.WHITE
 			dyno_btn.disabled = (GameState.dyno_cooldown > 0 or GameState.dyno_active)
 
+	# Bump (node created in editor; gracefully skipped if absent)
+	if bump_btn == null and has_node("CenterPanel/Actions/ActionsMargin/ActionsVBox/SkillRow/BumpBtn"):
+		bump_btn = get_node("CenterPanel/Actions/ActionsMargin/ActionsVBox/SkillRow/BumpBtn")
+	if bump_btn:
+		var bump_unlocked := SkillsDB.is_skill_unlocked("bump")
+		bump_btn.visible = bump_unlocked
+		if bump_unlocked:
+			if GameState.bump_active:
+				bump_btn.text = "BUMP ✓ (B)"
+				bump_btn.modulate = Color(0.4, 1.0, 0.4)
+			elif GameState.bump_cooldown > 0:
+				bump_btn.text = "BUMP (%d)" % GameState.bump_cooldown
+				bump_btn.modulate = Color.WHITE
+			else:
+				bump_btn.text = "BUMP (B)"
+				bump_btn.modulate = Color.WHITE
+			bump_btn.disabled = (GameState.bump_cooldown > 0 or GameState.bump_active)
+
 	# Style selection highlight
 	var style := GameState.movement_style
 	if cross_btn:   cross_btn.modulate   = Color(0.4, 1.0, 0.4) if style == "cross"   else Color.WHITE
@@ -145,19 +182,21 @@ func _update_style_btn(btn: Button, style_id: String, label: String, cooldown: i
 
 
 func _update_resource_bars() -> void:
+	# Pump: fills from 0 to 9 total ticks (state * 3 + decay counter)
+	var pump_ticks: int = GameState.pump_state * 3 + GameState.pump_decay_counter
 	if pump_bar:
-		pump_bar.max_value = 3
-		pump_bar.value = GameState.pump_state
+		pump_bar.max_value = 9
+		pump_bar.value = pump_ticks
 	if pump_label:
-		pump_label.text = "Pump: %s (%d/3)" % [
-			Constants.PUMP_STATE_LABELS[min(GameState.pump_state, 2)], GameState.pump_state]
+		pump_label.text = "Pump: %s (%d/9)" % [
+			Constants.PUMP_STATE_LABELS[min(GameState.pump_state, 2)], pump_ticks]
 
+	# Grip: shows remaining grip (inverted — depletes as grip worsens)
 	if grip_bar:
 		grip_bar.max_value = 3
-		grip_bar.value = GameState.grip_state
+		grip_bar.value = 3 - GameState.grip_state
 	if grip_label:
-		grip_label.text = "Grip: %s | decay %d/3" % [
-			Constants.GRIP_STATE_LABELS[min(GameState.grip_state, 2)], GameState.grip_decay_counter]
+		grip_label.text = "Grip: %s" % Constants.GRIP_STATE_LABELS[min(GameState.grip_state, 2)]
 
 
 func _update_move_count() -> void:
@@ -182,8 +221,10 @@ func add_feedback(text: String, type: String) -> void:
 		return
 
 	# Prune old feedback
-	while feedback_container.get_child_count() >= MAX_FEEDBACK:
-		feedback_container.get_child(0).queue_free()
+	if feedback_container.get_child_count() >= MAX_FEEDBACK:
+		var old := feedback_container.get_child(0)
+		feedback_container.remove_child(old)
+		old.queue_free()
 
 	var lbl := Label.new()
 	lbl.text = text

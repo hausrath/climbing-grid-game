@@ -8,6 +8,9 @@ extends Control
 @onready var tooltip_ctrl: Control = $TooltipController
 @onready var game_over_popup: Control = $GameOverPopup
 @onready var route_name_label: Label = $ClimbingUI/CenterPanel/RouteNameLabel
+@onready var camp_btn: Button = $ClimbingUI/RightPanel/CampBtn
+@onready var guidebook_btn: Button = $ClimbingUI/RightPanel/GuidebookBtn
+@onready var skills_btn: Button = $ClimbingUI/RightPanel/SkillsBtn
 
 # Logic node references (set by Main.gd via assign_logic_nodes)
 var climbing_logic: Node = null
@@ -60,6 +63,19 @@ func _connect_signals() -> void:
 			climbing_grid.hold_clicked.connect(_on_hold_clicked)
 		if not climbing_grid.hold_hovered.is_connected(_on_hold_hovered):
 			climbing_grid.hold_hovered.connect(_on_hold_hovered)
+
+	if game_over_popup:
+		if not game_over_popup.retry_requested.is_connected(_on_retry):
+			game_over_popup.retry_requested.connect(_on_retry)
+		if not game_over_popup.map_requested.is_connected(_on_map_from_popup):
+			game_over_popup.map_requested.connect(_on_map_from_popup)
+
+	if camp_btn and not camp_btn.pressed.is_connected(_on_camp_btn):
+		camp_btn.pressed.connect(_on_camp_btn)
+	if guidebook_btn and not guidebook_btn.pressed.is_connected(_on_guidebook_btn):
+		guidebook_btn.pressed.connect(_on_guidebook_btn)
+	if skills_btn and not skills_btn.pressed.is_connected(_on_skills_btn):
+		skills_btn.pressed.connect(_on_skills_btn)
 
 
 func start_climb(route: Dictionary) -> void:
@@ -125,13 +141,13 @@ func _on_hold_hovered(hold: Dictionary, row: int, col: int) -> void:
 
 
 func _on_completion_data(stars: int, star_results: Dictionary, new_skills: Array,
-		loot: Dictionary, time_elapsed: float, time_limit: int) -> void:
-	_show_game_over(true, stars, star_results, new_skills, loot, time_elapsed, time_limit, "")
+		new_actions: Array, loot: Dictionary, time_elapsed: float, time_limit: int) -> void:
+	_show_game_over(true, stars, star_results, new_skills, new_actions, loot, time_elapsed, time_limit, "")
 
 
 func _on_failure_data(message: String, current_row: int, top_row: int,
 		high_point: int, is_new_high: bool) -> void:
-	_show_game_over(false, 0, {}, [], {}, 0.0, 0, message)
+	_show_game_over(false, 0, {}, [], [], {}, 0.0, 0, message)
 
 
 func _on_victory_data(total_stars: int, routes_completed: int) -> void:
@@ -139,10 +155,10 @@ func _on_victory_data(total_stars: int, routes_completed: int) -> void:
 
 
 func _show_game_over(success: bool, stars: int, star_results: Dictionary,
-		new_skills: Array, loot: Dictionary, time_elapsed: float,
+		new_skills: Array, new_actions: Array, loot: Dictionary, time_elapsed: float,
 		time_limit: int, message: String) -> void:
 	if game_over_popup and game_over_popup.has_method("show_result"):
-		game_over_popup.show_result(success, stars, star_results, new_skills, loot,
+		game_over_popup.show_result(success, stars, star_results, new_skills, new_actions, loot,
 			time_elapsed, time_limit, message)
 	elif game_over_popup:
 		game_over_popup.show()
@@ -151,3 +167,34 @@ func _show_game_over(success: bool, stars: int, star_results: Dictionary,
 func _show_final_victory(total_stars: int, routes_completed: int) -> void:
 	if game_over_popup and game_over_popup.has_method("show_victory"):
 		game_over_popup.show_victory(total_stars, routes_completed)
+
+
+func _on_retry() -> void:
+	if GameState.current_route.is_empty(): return
+	var main := get_tree().root.get_node_or_null("Main")
+	if main and main.has_method("_start_climb"):
+		main._start_climb(GameState.current_route)
+
+
+func _on_map_from_popup() -> void:
+	var main := get_tree().root.get_node_or_null("Main")
+	if main and main.has_method("show_world_map"):
+		main.show_world_map()
+
+
+func _on_camp_btn() -> void:
+	var main := get_tree().root.get_node_or_null("Main")
+	if main and main.has_method("open_camp"):
+		main.open_camp()
+
+
+func _on_guidebook_btn() -> void:
+	var main := get_tree().root.get_node_or_null("Main")
+	if main and main.has_method("_show_guidebook"):
+		main._show_guidebook()
+
+
+func _on_skills_btn() -> void:
+	var main := get_tree().root.get_node_or_null("Main")
+	if main and main.has_method("_show_skills"):
+		main._show_skills()

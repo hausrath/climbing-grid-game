@@ -1,5 +1,6 @@
 [gd_scene format=3 uid="uid://mainscene"]
 
+[ext_resource type="Theme" path="res://theme/ClimbTheme.tres" id="0_theme"]
 [ext_resource type="Script" uid="uid://ct84wrm75ngei" path="res://scripts/Main.gd" id="1_main"]
 [ext_resource type="PackedScene" uid="uid://titlescreen" path="res://scenes/TitleScreen.tscn" id="2_title"]
 [ext_resource type="PackedScene" uid="uid://worldmap" path="res://scenes/WorldMap.tscn" id="3_worldmap"]
@@ -25,6 +26,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+theme = ExtResource("0_theme")
 script = ExtResource("1_main")
 
 [node name="TitleScreen" parent="." unique_id=190575884 instance=ExtResource("2_title")]

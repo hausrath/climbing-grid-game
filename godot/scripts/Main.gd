@@ -123,8 +123,8 @@ func _start_climb(route: Dictionary) -> void:
 	_close_all_overlays()
 	# Reset all climbing state
 	GameState.pump_state = 0
+	GameState.pump_decay_counter = 0
 	GameState.grip_state = 0
-	GameState.grip_decay_counter = 0
 	GameState.selected_hand = ""
 	GameState.current_hand = ""
 	GameState.last_hand_used = ""
@@ -139,12 +139,15 @@ func _start_climb(route: Dictionary) -> void:
 	GameState.chalk_cooldown = 0
 	GameState.commit_cooldown = 0
 	GameState.dyno_cooldown = 0
+	GameState.bump_cooldown = 0
+	GameState.match_cooldown = 0
 	GameState.commit_active = false
 	GameState.dyno_active = false
+	GameState.bump_active = false
 	GameState.cross_active = false
 	GameState.reach_active = false
 	GameState.movement_style = "regular"
-	GameState.skill_state = {"justShook": false, "justChalked": false}
+	GameState.skill_state = {"just_shook": false, "just_chalked": false}
 	GameState.climb_start_time = Time.get_unix_time_from_system()
 	GameState.route_attempts += 1
 	GameState.climbs_this_period += 1
@@ -251,6 +254,9 @@ func _handle_climbing_input(event: InputEventKey) -> void:
 		KEY_T:
 			if climbing_actions and climbing_actions.has_method("activate_dyno"):
 				climbing_actions.activate_dyno()
+		KEY_B:
+			if climbing_actions and climbing_actions.has_method("activate_bump"):
+				climbing_actions.activate_bump()
 		KEY_1: _select_movement_style("reach")
 		KEY_2: _select_movement_style("regular")
 		KEY_3: _select_movement_style("cross")
@@ -283,12 +289,7 @@ func _select_movement_style(style: String) -> void:
 func _set_weight(direction: String) -> void:
 	if not SkillsDB.is_skill_unlocked("weightShift"):
 		return
-	# One-step constraint: only allow adjacent shift
-	var order := ["left", "center", "right"]
-	var cur_idx: int = order.find(GameState.weight)
-	var new_idx: int = order.find(direction)
-	if abs(new_idx - cur_idx) <= 1:
-		GameState.weight = direction
+	GameState.weight = direction
 	if climbing_screen and climbing_screen.has_node("ClimbingUI"):
 		climbing_screen.get_node("ClimbingUI").update_ui()
 

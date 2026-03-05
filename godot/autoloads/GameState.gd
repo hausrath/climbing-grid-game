@@ -43,20 +43,24 @@ var weight_at_move_start: String = "center"
 var current_hand: String = ""           # left, right, or ""
 
 var pump_state: int = 0                 # 0=Fresh 1=Pumped 2=Struggling 3+=Fall
+var pump_decay_counter: int = 0         # ticks toward next pump stage (threshold: 3)
 var grip_state: int = 0                 # 0=Chalked 1=Weakening 2=Slipping 3+=Fall
-var grip_decay_counter: int = 0         # ticks toward next grip stage (threshold: 3)
 
 var unlocked_skills: Array = []
+var unlocked_actions: Array = []        # tracks which action intro popups have been shown
 
 var skill_state: Dictionary = {
-	"just_chalked": false,              # Deadpoint: skip next grip decay
-	"just_shook": false,                # Deadpoint: skip next pump gain
+	"just_chalked": false,              # Deadpoint: skip next grip state change (penalty-based)
+	"just_shook": false,                # Deadpoint: skip next pump tick accumulation
 }
 
 var commit_cooldown: int = 0
 var commit_active: bool = false
 var dyno_cooldown: int = 0
 var dyno_active: bool = false
+var bump_active: bool = false
+var bump_cooldown: int = 0
+var match_cooldown: int = 0
 var selected_hand: String = ""
 var last_hand_used: String = ""
 var movement_style: String = "regular"
@@ -68,7 +72,6 @@ var reach_cooldown: int = 0
 var shake_cooldown: int = 0
 var chalk_cooldown: int = 0
 var cooldown_length: int = 3
-var action_cooldown_length: int = 5
 
 var current_row: int = 0
 var current_col: int = 3

@@ -3,8 +3,8 @@ extends Node
 # Handles route completion, failure, and the victory screen.
 # Mirrors completeRoute(), endGame(), showVictoryScreen() in js/climbing.js.
 
-signal completion_data(stars: int, star_results: Dictionary, new_skills: Array, loot: Dictionary,
-	time_elapsed: float, time_limit: int)
+signal completion_data(stars: int, star_results: Dictionary, new_skills: Array, new_actions: Array,
+	loot: Dictionary, time_elapsed: float, time_limit: int)
 signal failure_data(message: String, current_row: int, top_row: int, high_point: int,
 	is_new_high: bool)
 signal victory_data(total_stars: int, routes_completed: int)
@@ -90,10 +90,12 @@ func complete_route() -> void:
 	if equipment_logic:
 		loot = equipment_logic.award_route_loot(location, route)
 
-	# Check skill unlocks
+	# Check skill and action unlocks
 	var new_skills: Array = SkillsDB.try_unlock_skill_on_completion(location.get("id", -1))
+	var new_actions: Array = SkillsDB.try_unlock_action_on_completion(
+		location.get("id", -1), route.get("id", ""))
 
-	emit_signal("completion_data", stars_earned, star_results, new_skills, loot,
+	emit_signal("completion_data", stars_earned, star_results, new_skills, new_actions, loot,
 		float(rounded_time), time_limit)
 
 
@@ -128,7 +130,7 @@ func retry_route() -> void:
 		return
 	# Signal to Main/ClimbingScreen to restart the current climb
 	# The actual restart is handled by the scene controller
-	emit_signal("completion_data", -1, {}, [], {}, 0.0, 0)  # Sentinel for retry
+	emit_signal("completion_data", -1, {}, [], [], {}, 0.0, 0)  # Sentinel for retry
 
 
 func return_to_route_selection() -> void:

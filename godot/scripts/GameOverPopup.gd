@@ -23,7 +23,8 @@ func _ready() -> void:
 
 
 func show_result(success: bool, stars: int, star_results: Dictionary, new_skills: Array,
-		loot: Dictionary, time_elapsed: float, time_limit: int, message: String) -> void:
+		new_actions: Array, loot: Dictionary, time_elapsed: float, time_limit: int,
+		message: String) -> void:
 	if result_label:
 		result_label.text = "Route Complete!" if success else "You Fell!"
 		result_label.modulate = Color(0.4, 1.0, 0.4) if success else Color(1.0, 0.4, 0.4)

@@ -231,6 +231,24 @@ visible = false
 layout_mode = 2
 text = "—"
 
+[node name="HSep3" type="HSeparator" parent="ClimbingUI/RightPanel"]
+layout_mode = 2
+
+[node name="CampBtn" type="Button" parent="ClimbingUI/RightPanel"]
+layout_mode = 2
+text = "CAMP (F1)"
+size_flags_horizontal = 3
+
+[node name="GuidebookBtn" type="Button" parent="ClimbingUI/RightPanel"]
+layout_mode = 2
+text = "GUIDEBOOK"
+size_flags_horizontal = 3
+
+[node name="SkillsBtn" type="Button" parent="ClimbingUI/RightPanel"]
+layout_mode = 2
+text = "SKILLS"
+size_flags_horizontal = 3
+
 [node name="TooltipController" type="Control" parent="."]
 layout_mode = 1
 anchors_preset = 15
